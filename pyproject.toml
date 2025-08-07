@@ -1,0 +1,16 @@
+[project]
+name = "pyhwloc"
+authors = [
+    { name = "Jiaming Yuan", email = "jm.yuan@outlook.com" }
+]
+maintainers = [
+    { name = "Jiaming Yuan", email = "jm.yuan@outlook.com" }
+]
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+follow_imports = "silent"
+
+[tool.isort]
+profile = "black"
