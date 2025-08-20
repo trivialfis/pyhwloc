@@ -600,13 +600,15 @@ def obj_attr_snprintf(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00145.php
 
 
-_LIB.hwloc_obj_get_info_by_name.argtypes = [obj_t, ctypes.c_char_p]
-_LIB.hwloc_obj_get_info_by_name.restype = ctypes.c_char_p
+_pyhwloc_lib.pyhwloc_get_info_by_name.argtypes = [obj_t, ctypes.c_char_p]
+_pyhwloc_lib.pyhwloc_get_info_by_name.restype = ctypes.c_char_p
 
 
 def obj_get_info_by_name(obj: ObjType, name: str) -> str | None:
     name_bytes = name.encode("utf-8")
-    result = _LIB.hwloc_obj_get_info_by_name(obj, name_bytes)
+    # hwloc_obj_get_info_by_name is an inlined function, this is exactly how it's
+    # implemented in the C header.
+    result = _LIB.hwloc_get_info_by_name(ctypes.byref(obj.contents.infos), name_bytes)
     if result:
         return result.decode("utf-8")
     return None
