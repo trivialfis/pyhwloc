@@ -24,6 +24,10 @@ def _check_cu(status: cuda.CUresult) -> None:
             msg = f"Failed to call `cuGetErrorString` for a CUresult: {status}"
         raise RuntimeError(msg)
 
+###########################################
+# Interoperability with the CUDA Driver API
+###########################################
+
 
 _pyhwloc_lib.pyhwloc_cuda_get_device_osdev.restype = obj_t
 

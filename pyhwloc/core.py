@@ -148,7 +148,14 @@ class hwloc_obj_osdev_type_t(IntEnum):
     HWLOC_OBJ_OSDEV_DMA = 1 << 6
 
 
-# int hwloc_compare_types 	( 	hwloc_obj_type_t  	type1, hwloc_obj_type_t  	type2)
+HWLOC_TYPE_UNORDERED = -1
+
+_LIB.hwloc_compare_types.argtypes = [ctypes.c_int, ctypes.c_int]
+_LIB.hwloc_compare_types.restype = ctypes.c_int
+
+
+def compare_types(type1: hwloc_obj_type_t, type2: hwloc_obj_type_t) -> int:
+    return _LIB.hwloc_compare_types(type1, type2)
 
 
 ###################################
@@ -309,13 +316,6 @@ def bitmap_free(bitmap: bitmap_t) -> None:
     _checkc(_LIB.hwloc_bitmap_free(bitmap))
 
 
-_LIB.hwloc_set_cpubind.argtypes = [topology_t, bitmap_t, ctypes.c_int]
-
-
-def set_cpubind(topology: topology_t, cpuset: bitmap_t, flags: int) -> None:
-    _checkc(_LIB.hwloc_set_cpubind(topology, cpuset, flags))
-
-
 _LIB.hwloc_bitmap_asprintf.argtypes = [ctypes.POINTER(ctypes.c_char_p), bitmap_t]
 _LIB.hwloc_bitmap_asprintf.restype = ctypes.c_int
 
@@ -450,17 +450,70 @@ class hwloc_type_filter_e(IntEnum):
     HWLOC_TYPE_FILTER_KEEP_IMPORTANT = 3
 
 
-# int 	hwloc_topology_set_flags (hwloc_topology_t topology, unsigned long flags)
+_LIB.hwloc_topology_set_flags.argtypes = [topology_t, ctypes.c_ulong]
+_LIB.hwloc_topology_set_flags.restype = ctypes.c_int
 
-# unsigned long 	hwloc_topology_get_flags (hwloc_topology_t topology)
 
-# int 	hwloc_topology_is_thissystem (hwloc_topology_t restrict topology)
+def topology_set_flags(topology: topology_t, flags: int) -> None:
+    _checkc(_LIB.hwloc_topology_set_flags(topology, flags))
 
-# const struct hwloc_topology_support * 	hwloc_topology_get_support (hwloc_topology_t restrict topology)
 
-# int 	hwloc_topology_set_type_filter (hwloc_topology_t topology, hwloc_obj_type_t type, enum hwloc_type_filter_e filter)
+_LIB.hwloc_topology_get_flags.argtypes = [topology_t]
+_LIB.hwloc_topology_get_flags.restype = ctypes.c_ulong
 
-# int 	hwloc_topology_get_type_filter (hwloc_topology_t topology, hwloc_obj_type_t type, enum hwloc_type_filter_e *filter)
+
+def topology_get_flags(topology: topology_t) -> int:
+    return _LIB.hwloc_topology_get_flags(topology)
+
+
+_LIB.hwloc_topology_is_thissystem.argtypes = [topology_t]
+_LIB.hwloc_topology_is_thissystem.restype = ctypes.c_int
+
+
+def topology_is_thissystem(topology: topology_t) -> bool:
+    return bool(_LIB.hwloc_topology_is_thissystem(topology))
+
+
+_LIB.hwloc_topology_get_support.argtypes = [topology_t]
+_LIB.hwloc_topology_get_support.restype = ctypes.POINTER(hwloc_topology_support)
+
+
+if TYPE_CHECKING:
+    SupportType = ctypes._Pointer[hwloc_topology_support]
+else:
+    SupportType = ctypes._Pointer
+
+
+def topology_get_support(topology: topology_t) -> SupportType:
+    return _LIB.hwloc_topology_get_support(topology)
+
+
+_LIB.hwloc_topology_set_type_filter.argtypes = [topology_t, ctypes.c_int, ctypes.c_int]
+_LIB.hwloc_topology_set_type_filter.restype = ctypes.c_int
+
+
+def topology_set_type_filter(
+    topology: topology_t, obj_type: hwloc_obj_type_t, filter: hwloc_type_filter_e
+) -> None:
+    _checkc(_LIB.hwloc_topology_set_type_filter(topology, obj_type, filter))
+
+
+_LIB.hwloc_topology_get_type_filter.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.c_int),
+]
+_LIB.hwloc_topology_get_type_filter.restype = ctypes.c_int
+
+
+def topology_get_type_filter(
+    topology: topology_t, obj_type: hwloc_obj_type_t
+) -> hwloc_type_filter_e:
+    filter = ctypes.c_int()
+    _checkc(
+        _LIB.hwloc_topology_get_type_filter(topology, obj_type, ctypes.byref(filter))
+    )
+    return hwloc_type_filter_e(filter.value)
 
 
 def topology_set_all_types_filter(
@@ -491,12 +544,215 @@ def topology_set_io_types_filter(
 
 # void * 	hwloc_topology_get_userdata (hwloc_topology_t topology)
 
+#############################################################
+# Converting between Object Types and Attributes, and Strings
+#############################################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00144.php#ga6a38b931e5d45e8af4323a169482fe39
+
+_LIB.hwloc_obj_type_string.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_string.restype = ctypes.c_char_p
+
+
+def hwloc_obj_type_string(obj_type: hwloc_obj_type_t) -> bytes:
+    return _LIB.hwloc_obj_type_string(obj_type).value
+
+
+_LIB.hwloc_obj_type_snprintf.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    obj_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_obj_type_snprintf.restype = ctypes.c_int
+
+
+def obj_type_snprintf(
+    string: ctypes.c_char_p, size: int, obj: ObjType, verbose: int
+) -> int:
+    return _LIB.hwloc_obj_type_snprintf(string, size, obj, verbose)
+
+
+_LIB.hwloc_obj_attr_snprintf.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    obj_t,
+    ctypes.c_char_p,
+    ctypes.c_int,
+]
+_LIB.hwloc_obj_attr_snprintf.restype = ctypes.c_int
+
+
+def obj_attr_snprintf(
+    string: ctypes.c_char_p,
+    size: int,
+    obj: ObjType,
+    separator: ctypes.c_char_p,
+    verbose: int,
+) -> int:
+    return _LIB.hwloc_obj_attr_snprintf(string, size, obj, separator, verbose)
+
+
+#######################################
+# Consulting and Adding Info Attributes
+#######################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00145.php
+
+
+_LIB.hwloc_obj_get_info_by_name.argtypes = [obj_t, ctypes.c_char_p]
+_LIB.hwloc_obj_get_info_by_name.restype = ctypes.c_char_p
+
+
+def obj_get_info_by_name(obj: ObjType, name: str) -> str | None:
+    name_bytes = name.encode("utf-8")
+    result = _LIB.hwloc_obj_get_info_by_name(obj, name_bytes)
+    if result:
+        return result.decode("utf-8")
+    return None
+
+
+_LIB.hwloc_obj_add_info.argtypes = [obj_t, ctypes.c_char_p, ctypes.c_char_p]
+_LIB.hwloc_obj_add_info.restype = ctypes.c_int
+
+
+def obj_add_info(obj: ObjType, name: str, value: str) -> None:
+    if not name or not value:
+        raise ValueError("name and value must be non-empty strings")
+
+    name_bytes = name.encode("utf-8")
+    value_bytes = value.encode("utf-8")
+    _checkc(_LIB.hwloc_obj_add_info(obj, name_bytes, value_bytes))
+
+
+_LIB.hwloc_obj_set_subtype.argtypes = [topology_t, obj_t, ctypes.c_char_p]
+_LIB.hwloc_obj_set_subtype.restype = ctypes.c_int
+
+
+def obj_set_subtype(topology: topology_t, obj: ObjType, subtype: str) -> None:
+    subtype_bytes = subtype.encode("utf-8")
+    _checkc(_LIB.hwloc_obj_set_subtype(topology, obj, subtype_bytes))
+
 
 #############
 # CPU binding
 #############
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00146.php
+
+
+class hwloc_cpubind_flags_t(IntEnum):
+    HWLOC_CPUBIND_PROCESS = 1 << 0
+    HWLOC_CPUBIND_THREAD = 1 << 1
+    HWLOC_CPUBIND_STRICT = 1 << 2
+    HWLOC_CPUBIND_NOMEMBIND = 1 << 3
+
+
+_LIB.hwloc_set_cpubind.argtypes = [topology_t, hwloc_const_cpuset_t, ctypes.c_int]
+_LIB.hwloc_set_cpubind.restype = ctypes.c_int
+
+
+def set_cpubind(topology: topology_t, cpuset: hwloc_const_cpuset_t, flags: int) -> None:
+    _checkc(_LIB.hwloc_set_cpubind(topology, cpuset, flags))
+
+
+_LIB.hwloc_get_cpubind.argtypes = [topology_t, hwloc_cpuset_t, ctypes.c_int]
+_LIB.hwloc_get_cpubind.restype = ctypes.c_int
+
+
+def get_cpubind(topology: topology_t, cpuset: hwloc_cpuset_t, flags: int) -> None:
+    _checkc(_LIB.hwloc_get_cpubind(topology, cpuset, flags))
+
+
+_LIB.hwloc_set_proc_cpubind.argtypes = [
+    topology_t,
+    hwloc_pid_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_set_proc_cpubind.restype = ctypes.c_int
+
+
+def set_proc_cpubind(
+    topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_const_cpuset_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_set_proc_cpubind(topology, pid, cpuset, flags))
+
+
+_LIB.hwloc_get_proc_cpubind.argtypes = [
+    topology_t,
+    hwloc_pid_t,
+    hwloc_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_get_proc_cpubind.restype = ctypes.c_int
+
+
+def get_proc_cpubind(
+    topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_get_proc_cpubind(topology, pid, cpuset, flags))
+
+
+hwloc_thread_t = ctypes.c_ulong
+
+_LIB.hwloc_set_thread_cpubind.argtypes = [
+    topology_t,
+    hwloc_thread_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_set_thread_cpubind.restype = ctypes.c_int
+
+
+def set_thread_cpubind(
+    topology: topology_t,
+    thread: hwloc_thread_t,
+    cpuset: hwloc_const_cpuset_t,
+    flags: int,
+) -> None:
+    _checkc(_LIB.hwloc_set_thread_cpubind(topology, thread, cpuset, flags))
+
+
+_LIB.hwloc_get_thread_cpubind.argtypes = [
+    topology_t,
+    hwloc_thread_t,
+    hwloc_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_get_thread_cpubind.restype = ctypes.c_int
+
+
+def get_thread_cpubind(
+    topology: topology_t, thread: hwloc_thread_t, cpuset: hwloc_cpuset_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_get_thread_cpubind(topology, thread, cpuset, flags))
+
+
+_LIB.hwloc_get_last_cpu_location.argtypes = [topology_t, hwloc_cpuset_t, ctypes.c_int]
+_LIB.hwloc_get_last_cpu_location.restype = ctypes.c_int
+
+
+def get_last_cpu_location(
+    topology: topology_t, cpuset: hwloc_cpuset_t, flags: int
+) -> None:
+
+    _checkc(_LIB.hwloc_get_last_cpu_location(topology, cpuset, flags))
+
+
+_LIB.hwloc_get_proc_last_cpu_location.argtypes = [
+    topology_t,
+    hwloc_pid_t,
+    hwloc_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_get_proc_last_cpu_location.restype = ctypes.c_int
+
+
+def get_proc_last_cpu_location(
+    topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_get_proc_last_cpu_location(topology, pid, cpuset, flags))
 
 
 ################
@@ -726,50 +982,53 @@ def free(topology: topology_t, addr: ctypes.c_void_p, length: int) -> None:
     _checkc(_LIB.hwloc_free(topology, addr, length))
 
 
-#############################################################
-# Converting between Object Types and Attributes, and Strings
-#############################################################
+######################
+# Kinds of object Type
+######################
 
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00144.php#ga6a38b931e5d45e8af4323a169482fe39
-
-_LIB.hwloc_obj_type_string.argtypes = [ctypes.c_int]
-_LIB.hwloc_obj_type_string.restype = ctypes.c_char_p
+_LIB.hwloc_obj_type_is_normal.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_normal.restype = ctypes.c_int
 
 
-def hwloc_obj_type_string(obj_type: hwloc_obj_type_t) -> bytes:
-    return _LIB.hwloc_obj_type_string(obj_type).value
+def obj_type_is_normal(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_normal(int(obj_type)))
 
 
-_LIB.hwloc_obj_type_snprintf.argtypes = [
-    ctypes.c_char_p,
-    ctypes.c_size_t,
-    obj_t,
-    ctypes.c_int,
-]
-_LIB.hwloc_obj_type_snprintf.restype = ctypes.c_int
+_LIB.hwloc_obj_type_is_io.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_io.restype = ctypes.c_int
 
 
-def obj_type_snprintf(
-    string: ctypes.c_char_p, size: int, obj: ObjType, verbose: int
-) -> int:
-    return _LIB.hwloc_obj_type_snprintf(string, size, obj, verbose)
+def obj_type_is_io(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_io(obj_type))
 
 
-_LIB.hwloc_obj_attr_snprintf.argtypes = [
-    ctypes.c_char_p,
-    ctypes.c_size_t,
-    obj_t,
-    ctypes.c_char_p,
-    ctypes.c_int,
-]
-_LIB.hwloc_obj_attr_snprintf.restype = ctypes.c_int
+_LIB.hwloc_obj_type_is_memory.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_memory.restype = ctypes.c_int
 
 
-def obj_attr_snprintf(
-    string: ctypes.c_char_p,
-    size: int,
-    obj: ObjType,
-    separator: ctypes.c_char_p,
-    verbose: int,
-) -> int:
-    return _LIB.hwloc_obj_attr_snprintf(string, size, obj, separator, verbose)
+def obj_type_is_memory(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_memory(obj_type))
+
+
+_LIB.hwloc_obj_type_is_cache.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_cache.restype = ctypes.c_int
+
+
+def obj_type_is_cache(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_cache(obj_type))
+
+
+_LIB.hwloc_obj_type_is_dcache.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_dcache.restype = ctypes.c_int
+
+
+def obj_type_is_dcache(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_dcache(obj_type))
+
+
+_LIB.hwloc_obj_type_is_icache.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_icache.restype = ctypes.c_int
+
+
+def obj_type_is_icache(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_icache(obj_type))
