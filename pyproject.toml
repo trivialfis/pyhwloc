@@ -1,11 +1,15 @@
 [project]
 name = "pyhwloc"
+dynamic = ["version"]
 authors = [
     { name = "Jiaming Yuan", email = "jm.yuan@outlook.com" }
 ]
 maintainers = [
     { name = "Jiaming Yuan", email = "jm.yuan@outlook.com" }
 ]
+
+[tool.setuptools.dynamic]
+version = { attr = "pyhwloc.__version__" }
 
 [tool.mypy]
 ignore_missing_imports = true

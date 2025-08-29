@@ -79,6 +79,9 @@ _LIB.hwloc_get_api_version.restype = ctypes.c_uint
 
 
 def get_api_version() -> int:
+    # major = v >> 16
+    # minor = (v >> 8) & 0xFF
+    # rev = v & 0xFF
     return _LIB.hwloc_get_api_version()
 
 
@@ -614,8 +617,8 @@ def obj_get_info_by_name(obj: ObjType, name: str) -> str | None:
     return None
 
 
-_LIB.hwloc_obj_add_info.argtypes = [obj_t, ctypes.c_char_p, ctypes.c_char_p]
-_LIB.hwloc_obj_add_info.restype = ctypes.c_int
+_pyhwloc_lib.pyhwloc_obj_add_info.argtypes = [obj_t, ctypes.c_char_p, ctypes.c_char_p]
+_pyhwloc_lib.pyhwloc_obj_add_info.restype = ctypes.c_int
 
 
 def obj_add_info(obj: ObjType, name: str, value: str) -> None:
@@ -953,14 +956,14 @@ def alloc_membind(
     return result
 
 
-_LIB.hwloc_alloc_membind_policy.argtypes = [
+_pyhwloc_lib.pyhwloc_alloc_membind_policy.argtypes = [
     topology_t,
     ctypes.c_size_t,
     const_bitmap_t,
     ctypes.c_int,
     ctypes.c_int,
 ]
-_LIB.hwloc_alloc_membind_policy.restype = ctypes.c_void_p
+_pyhwloc_lib.pyhwloc_alloc_membind_policy.restype = ctypes.c_void_p
 
 
 def alloc_membind_policy(

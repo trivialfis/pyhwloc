@@ -16,14 +16,14 @@ import ctypes
 
 import pytest
 
-from pyhwloc.core import (
+from pyhwloc.core import (  # _obj_t_get_cpuset,
     HwLocError,
     _free,
-    # _obj_t_get_cpuset,
     bitmap_asprintf,
     bitmap_dup,
     bitmap_free,
     bitmap_singlify,
+    get_api_version,
     get_nbobjs_by_depth,
     get_obj_by_depth,
     get_type_or_below_depth,
@@ -38,6 +38,12 @@ from pyhwloc.core import (
     topology_set_io_types_filter,
     topology_t,
 )
+
+
+def test_get_api_version() -> None:
+    version = get_api_version()
+    assert isinstance(version, int)
+    assert version > 0
 
 
 class Topology:
