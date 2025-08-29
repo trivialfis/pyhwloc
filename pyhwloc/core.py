@@ -16,7 +16,7 @@ import ctypes
 import os
 from ctypes.util import find_library
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable, ParamSpec, TypeVar, Type
 
 
 def normpath(path: str) -> str:
@@ -59,6 +59,22 @@ class HwLocError(RuntimeError):
         )
 
 
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
+
+
+def _cfndoc(fn: Callable[_P, _R]) -> Callable[_P, _R]:
+    doc = f"See :cpp:func:`hwloc_{fn.__name__}`"
+    fn.__doc__ = doc
+    return fn
+
+
+def _cenumdoc(enum: Type) -> Type:
+    doc = f"""See :cpp:enum:`{enum.__name__}`."""
+    enum.__doc__ = doc
+    return enum
+
+
 def _free(ptr: Any) -> None:
     _libc.free(ptr)
 
@@ -80,6 +96,7 @@ def _checkc(status: int) -> None:
 _LIB.hwloc_get_api_version.restype = ctypes.c_uint
 
 
+@_cfndoc
 def get_api_version() -> int:
     # major = v >> 16
     # minor = (v >> 8) & 0xFF
@@ -108,6 +125,7 @@ hwloc_const_nodeset_t = const_bitmap_t
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00140.php
 
 
+@_cenumdoc
 class hwloc_obj_type_t(IntEnum):
     HWLOC_OBJ_MACHINE = 0
     HWLOC_OBJ_PACKAGE = 1
@@ -132,17 +150,20 @@ class hwloc_obj_type_t(IntEnum):
     HWLOC_OBJ_TYPE_MAX = 20
 
 
+@_cenumdoc
 class hwloc_obj_cache_type_t(IntEnum):
     HWLOC_OBJ_CACHE_UNIFIED = 0
     HWLOC_OBJ_CACHE_DATA = 1
     HWLOC_OBJ_CACHE_INSTRUCTION = 2
 
 
+@_cenumdoc
 class hwloc_obj_bridge_type_t(IntEnum):
     HWLOC_OBJ_BRIDGE_HOST = 0
     HWLOC_OBJ_BRIDGE_PCI = 1
 
 
+@_cenumdoc
 class hwloc_obj_osdev_type_t(IntEnum):
     HWLOC_OBJ_OSDEV_STORAGE = 1 << 0
     HWLOC_OBJ_OSDEV_MEMORY = 1 << 1
@@ -159,6 +180,7 @@ _LIB.hwloc_compare_types.argtypes = [ctypes.c_int, ctypes.c_int]
 _LIB.hwloc_compare_types.restype = ctypes.c_int
 
 
+@_cfndoc
 def compare_types(type1: hwloc_obj_type_t, type2: hwloc_obj_type_t) -> int:
     return _LIB.hwloc_compare_types(type1, type2)
 
@@ -172,14 +194,17 @@ def compare_types(type1: hwloc_obj_type_t, type2: hwloc_obj_type_t) -> int:
 topology_t = ctypes.c_void_p
 
 
+@_cfndoc
 def topology_init(topology: topology_t) -> None:
     _checkc(_LIB.hwloc_topology_init(ctypes.byref(topology)))
 
 
+@_cfndoc
 def topology_load(topology: topology_t) -> None:
     _checkc(_LIB.hwloc_topology_load(topology))
 
 
+@_cfndoc
 def topology_destroy(topology: topology_t) -> None:
     _LIB.hwloc_topology_destroy(topology)
 
@@ -188,16 +213,19 @@ _LIB.hwloc_topology_dup.argtypes = [ctypes.POINTER(topology_t), topology_t]
 _LIB.hwloc_topology_dup.restype = ctypes.c_int
 
 
+@_cfndoc
 def topology_dup(topology: topology_t) -> topology_t:
     new = topology_t()
     _checkc(_LIB.hwloc_topology_dup(ctypes.byref(new), topology))
     return new
 
 
+@_cfndoc
 def topology_abi_check(topology: topology_t) -> None:
     _checkc(_LIB.hwloc_topology_abi_check(topology))
 
 
+@_cfndoc
 def topology_check(topology: topology_t) -> None:
     _LIB.hwloc_topology_check(topology)
 
@@ -209,10 +237,12 @@ def topology_check(topology: topology_t) -> None:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00143.php#gae54d1782ca9b54bea915f5c18a9158fa
 
 
+@_cfndoc
 def topology_get_depth(topology: topology_t) -> int:
     return _LIB.hwloc_topology_get_depth(topology)
 
 
+@_cfndoc
 def get_nbobjs_by_depth(topology: topology_t, depth: int) -> int:
     return _LIB.hwloc_get_nbobjs_by_depth(topology, depth)
 
@@ -289,6 +319,7 @@ else:
     ObjType = ctypes._Pointer
 
 
+@_cfndoc
 def get_obj_by_depth(topology: topology_t, depth: int, idx: int) -> ObjType:
     return _LIB.hwloc_get_obj_by_depth(topology, depth, idx)
 
@@ -306,6 +337,7 @@ _LIB.hwloc_bitmap_dup.restype = bitmap_t
 _LIB.hwloc_bitmap_alloc.restype = hwloc_bitmap_t
 
 
+@_cfndoc
 def bitmap_alloc() -> hwloc_bitmap_t:
     return _LIB.hwloc_bitmap_alloc()
 
@@ -313,6 +345,7 @@ def bitmap_alloc() -> hwloc_bitmap_t:
 _LIB.hwloc_bitmap_alloc_full.restype = hwloc_bitmap_t
 
 
+@_cfndoc
 def bitmap_alloc_full() -> hwloc_bitmap_t:
     return _LIB.hwloc_bitmap_alloc_full()
 
@@ -320,6 +353,7 @@ def bitmap_alloc_full() -> hwloc_bitmap_t:
 _LIB.hwloc_bitmap_free.argtypes = [hwloc_bitmap_t]
 
 
+@_cfndoc
 def bitmap_free(bitmap: hwloc_bitmap_t) -> None:
     _LIB.hwloc_bitmap_free(bitmap)
 
@@ -328,6 +362,7 @@ _LIB.hwloc_bitmap_dup.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_dup.restype = hwloc_bitmap_t
 
 
+@_cfndoc
 def bitmap_dup(bitmap: hwloc_const_bitmap_t) -> hwloc_bitmap_t:
     return _LIB.hwloc_bitmap_dup(bitmap)
 
@@ -336,6 +371,7 @@ _LIB.hwloc_bitmap_copy.argtypes = [hwloc_bitmap_t, hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_copy.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_copy(dst: hwloc_bitmap_t, src: hwloc_const_bitmap_t) -> None:
     _checkc(_LIB.hwloc_bitmap_copy(dst, src))
 
@@ -349,6 +385,7 @@ _LIB.hwloc_bitmap_snprintf.argtypes = [
 _LIB.hwloc_bitmap_snprintf.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_snprintf(
     buf: ctypes.c_char_p, buflen: int, bitmap: hwloc_const_bitmap_t
 ) -> int:
@@ -363,6 +400,7 @@ _LIB.hwloc_bitmap_asprintf.restype = ctypes.c_int
 
 
 # ctypes.POINTER(ctypes.c_char_p)
+@_cfndoc
 def bitmap_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
     result = _LIB.hwloc_bitmap_asprintf(strp, bitmap)
     if result == -1:
@@ -376,6 +414,7 @@ _LIB.hwloc_bitmap_sscanf.argtypes = [hwloc_bitmap_t, ctypes.c_char_p]
 _LIB.hwloc_bitmap_sscanf.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_sscanf(bitmap: hwloc_bitmap_t, string: str) -> None:
     string_bytes = string.encode("utf-8")
     _checkc(_LIB.hwloc_bitmap_sscanf(bitmap, string_bytes))
@@ -389,6 +428,7 @@ _LIB.hwloc_bitmap_list_snprintf.argtypes = [
 _LIB.hwloc_bitmap_list_snprintf.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_list_snprintf(
     buf: ctypes.c_char_p, buflen: int, bitmap: hwloc_const_bitmap_t
 ) -> int:
@@ -403,6 +443,7 @@ _LIB.hwloc_bitmap_list_asprintf.restype = ctypes.c_int
 
 
 # ctypes.POINTER(ctypes.c_char_p)
+@_cfndoc
 def bitmap_list_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
     result = _LIB.hwloc_bitmap_list_asprintf(strp, bitmap)
     if result == -1:
@@ -416,6 +457,7 @@ _LIB.hwloc_bitmap_list_sscanf.argtypes = [hwloc_bitmap_t, ctypes.c_char_p]
 _LIB.hwloc_bitmap_list_sscanf.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_list_sscanf(bitmap: hwloc_bitmap_t, string: str) -> None:
     string_bytes = string.encode("utf-8")
     _checkc(_LIB.hwloc_bitmap_list_sscanf(bitmap, string_bytes))
@@ -429,6 +471,7 @@ _LIB.hwloc_bitmap_taskset_snprintf.argtypes = [
 _LIB.hwloc_bitmap_taskset_snprintf.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_taskset_snprintf(
     buf: ctypes.c_char_p, buflen: int, bitmap: hwloc_const_bitmap_t
 ) -> int:
@@ -443,6 +486,7 @@ _LIB.hwloc_bitmap_taskset_asprintf.restype = ctypes.c_int
 
 
 # ctypes.POINTER(ctypes.c_char_p)
+@_cfndoc
 def bitmap_taskset_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
     result = _LIB.hwloc_bitmap_taskset_asprintf(strp, bitmap)
     if result == -1:
@@ -456,6 +500,7 @@ _LIB.hwloc_bitmap_taskset_sscanf.argtypes = [hwloc_bitmap_t, ctypes.c_char_p]
 _LIB.hwloc_bitmap_taskset_sscanf.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_taskset_sscanf(bitmap: hwloc_bitmap_t, string: str) -> None:
     string_bytes = string.encode("utf-8")
     _checkc(_LIB.hwloc_bitmap_taskset_sscanf(bitmap, string_bytes))
@@ -467,6 +512,7 @@ _LIB.hwloc_bitmap_singlify.argtypes = [bitmap_t]
 _LIB.hwloc_bitmap_zero.argtypes = [hwloc_bitmap_t]
 
 
+@_cfndoc
 def bitmap_zero(bitmap: hwloc_bitmap_t) -> None:
     _LIB.hwloc_bitmap_zero(bitmap)
 
@@ -474,6 +520,7 @@ def bitmap_zero(bitmap: hwloc_bitmap_t) -> None:
 _LIB.hwloc_bitmap_fill.argtypes = [hwloc_bitmap_t]
 
 
+@_cfndoc
 def bitmap_fill(bitmap: hwloc_bitmap_t) -> None:
     _LIB.hwloc_bitmap_fill(bitmap)
 
@@ -482,6 +529,7 @@ _LIB.hwloc_bitmap_only.argtypes = [hwloc_bitmap_t, ctypes.c_uint]
 _LIB.hwloc_bitmap_only.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_only(bitmap: hwloc_bitmap_t, id: int) -> None:
     _checkc(_LIB.hwloc_bitmap_only(bitmap, id))
 
@@ -490,6 +538,7 @@ _LIB.hwloc_bitmap_allbut.argtypes = [hwloc_bitmap_t, ctypes.c_uint]
 _LIB.hwloc_bitmap_allbut.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_allbut(bitmap: hwloc_bitmap_t, id: int) -> None:
     _checkc(_LIB.hwloc_bitmap_allbut(bitmap, id))
 
@@ -498,6 +547,7 @@ _LIB.hwloc_bitmap_from_ulong.argtypes = [hwloc_bitmap_t, ctypes.c_ulong]
 _LIB.hwloc_bitmap_from_ulong.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_from_ulong(bitmap: hwloc_bitmap_t, mask: int) -> None:
     _checkc(_LIB.hwloc_bitmap_from_ulong(bitmap, mask))
 
@@ -510,6 +560,7 @@ _LIB.hwloc_bitmap_from_ith_ulong.argtypes = [
 _LIB.hwloc_bitmap_from_ith_ulong.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_from_ith_ulong(bitmap: hwloc_bitmap_t, i: int, mask: int) -> None:
     _checkc(_LIB.hwloc_bitmap_from_ith_ulong(bitmap, i, mask))
 
@@ -523,6 +574,7 @@ _LIB.hwloc_bitmap_from_ulongs.restype = ctypes.c_int
 
 
 # ctypes.POINTER(ctypes.c_ulong)
+@_cfndoc
 def bitmap_from_ulongs(bitmap: hwloc_bitmap_t, nr: int, masks: ctypes._Pointer) -> None:
     _checkc(_LIB.hwloc_bitmap_from_ulongs(bitmap, nr, masks))
 
@@ -532,6 +584,7 @@ _LIB.hwloc_bitmap_set.argtypes = [hwloc_bitmap_t, ctypes.c_uint]
 _LIB.hwloc_bitmap_set.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_set(bitmap: hwloc_bitmap_t, id: int) -> None:
     _checkc(_LIB.hwloc_bitmap_set(bitmap, id))
 
@@ -540,6 +593,7 @@ _LIB.hwloc_bitmap_set_range.argtypes = [hwloc_bitmap_t, ctypes.c_uint, ctypes.c_
 _LIB.hwloc_bitmap_set_range.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_set_range(bitmap: hwloc_bitmap_t, begin: int, end: int) -> None:
     _checkc(_LIB.hwloc_bitmap_set_range(bitmap, begin, end))
 
@@ -552,6 +606,7 @@ _LIB.hwloc_bitmap_set_ith_ulong.argtypes = [
 _LIB.hwloc_bitmap_set_ith_ulong.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_set_ith_ulong(bitmap: hwloc_bitmap_t, i: int, mask: int) -> None:
     _checkc(_LIB.hwloc_bitmap_set_ith_ulong(bitmap, i, mask))
 
@@ -560,6 +615,7 @@ _LIB.hwloc_bitmap_clr.argtypes = [hwloc_bitmap_t, ctypes.c_uint]
 _LIB.hwloc_bitmap_clr.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_clr(bitmap: hwloc_bitmap_t, id: int) -> None:
     _checkc(_LIB.hwloc_bitmap_clr(bitmap, id))
 
@@ -568,6 +624,7 @@ _LIB.hwloc_bitmap_clr_range.argtypes = [hwloc_bitmap_t, ctypes.c_uint, ctypes.c_
 _LIB.hwloc_bitmap_clr_range.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_clr_range(bitmap: hwloc_bitmap_t, begin: int, end: int) -> None:
     _checkc(_LIB.hwloc_bitmap_clr_range(bitmap, begin, end))
 
@@ -576,6 +633,7 @@ _LIB.hwloc_bitmap_singlify.argtypes = [hwloc_bitmap_t]
 _LIB.hwloc_bitmap_singlify.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_singlify(bitmap: hwloc_bitmap_t) -> None:
     _checkc(_LIB.hwloc_bitmap_singlify(bitmap))
 
@@ -585,6 +643,7 @@ _LIB.hwloc_bitmap_to_ulong.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_to_ulong.restype = ctypes.c_ulong
 
 
+@_cfndoc
 def bitmap_to_ulong(bitmap: hwloc_const_bitmap_t) -> int:
     return _LIB.hwloc_bitmap_to_ulong(bitmap)
 
@@ -593,6 +652,7 @@ _LIB.hwloc_bitmap_to_ith_ulong.argtypes = [hwloc_const_bitmap_t, ctypes.c_uint]
 _LIB.hwloc_bitmap_to_ith_ulong.restype = ctypes.c_ulong
 
 
+@_cfndoc
 def bitmap_to_ith_ulong(bitmap: hwloc_const_bitmap_t, i: int) -> int:
     return _LIB.hwloc_bitmap_to_ith_ulong(bitmap, i)
 
@@ -606,6 +666,7 @@ _LIB.hwloc_bitmap_to_ulongs.restype = ctypes.c_int
 
 
 # ctypes.POINTER(ctypes.c_ulong)
+@_cfndoc
 def bitmap_to_ulongs(
     bitmap: hwloc_const_bitmap_t, nr: int, masks: ctypes._Pointer
 ) -> None:
@@ -616,6 +677,7 @@ _LIB.hwloc_bitmap_nr_ulongs.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_nr_ulongs.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_nr_ulongs(bitmap: hwloc_const_bitmap_t) -> int:
     return _LIB.hwloc_bitmap_nr_ulongs(bitmap)
 
@@ -624,6 +686,7 @@ _LIB.hwloc_bitmap_isset.argtypes = [hwloc_const_bitmap_t, ctypes.c_uint]
 _LIB.hwloc_bitmap_isset.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_isset(bitmap: hwloc_const_bitmap_t, i: int) -> bool:
     return bool(_LIB.hwloc_bitmap_isset(bitmap, i))
 
@@ -632,6 +695,7 @@ _LIB.hwloc_bitmap_iszero.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_iszero.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_iszero(bitmap: hwloc_const_bitmap_t) -> bool:
     return bool(_LIB.hwloc_bitmap_iszero(bitmap))
 
@@ -640,6 +704,7 @@ _LIB.hwloc_bitmap_isfull.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_isfull.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_isfull(bitmap: hwloc_const_bitmap_t) -> bool:
     return bool(_LIB.hwloc_bitmap_isfull(bitmap))
 
@@ -648,6 +713,7 @@ _LIB.hwloc_bitmap_first.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_first.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_first(bitmap: hwloc_const_bitmap_t) -> int:
     return _LIB.hwloc_bitmap_first(bitmap)
 
@@ -656,6 +722,7 @@ _LIB.hwloc_bitmap_next.argtypes = [hwloc_const_bitmap_t, ctypes.c_int]
 _LIB.hwloc_bitmap_next.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_next(bitmap: hwloc_const_bitmap_t, prev: int) -> int:
     return _LIB.hwloc_bitmap_next(bitmap, prev)
 
@@ -664,6 +731,7 @@ _LIB.hwloc_bitmap_last.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_last.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_last(bitmap: hwloc_const_bitmap_t) -> int:
     return _LIB.hwloc_bitmap_last(bitmap)
 
@@ -672,6 +740,7 @@ _LIB.hwloc_bitmap_weight.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_weight.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_weight(bitmap: hwloc_const_bitmap_t) -> int:
     return _LIB.hwloc_bitmap_weight(bitmap)
 
@@ -680,6 +749,7 @@ _LIB.hwloc_bitmap_first_unset.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_first_unset.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_first_unset(bitmap: hwloc_const_bitmap_t) -> int:
     return _LIB.hwloc_bitmap_first_unset(bitmap)
 
@@ -688,6 +758,7 @@ _LIB.hwloc_bitmap_next_unset.argtypes = [hwloc_const_bitmap_t, ctypes.c_int]
 _LIB.hwloc_bitmap_next_unset.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_next_unset(bitmap: hwloc_const_bitmap_t, prev: int) -> int:
     return _LIB.hwloc_bitmap_next_unset(bitmap, prev)
 
@@ -696,6 +767,7 @@ _LIB.hwloc_bitmap_last_unset.argtypes = [hwloc_const_bitmap_t]
 _LIB.hwloc_bitmap_last_unset.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_last_unset(bitmap: hwloc_const_bitmap_t) -> int:
     return _LIB.hwloc_bitmap_last_unset(bitmap)
 
@@ -709,6 +781,7 @@ _LIB.hwloc_bitmap_or.argtypes = [
 _LIB.hwloc_bitmap_or.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_or(
     res: hwloc_bitmap_t, bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
 ) -> None:
@@ -723,6 +796,7 @@ _LIB.hwloc_bitmap_and.argtypes = [
 _LIB.hwloc_bitmap_and.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_and(
     res: hwloc_bitmap_t, bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
 ) -> None:
@@ -737,6 +811,7 @@ _LIB.hwloc_bitmap_andnot.argtypes = [
 _LIB.hwloc_bitmap_andnot.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_andnot(
     res: hwloc_bitmap_t, bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
 ) -> None:
@@ -751,6 +826,7 @@ _LIB.hwloc_bitmap_xor.argtypes = [
 _LIB.hwloc_bitmap_xor.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_xor(
     res: hwloc_bitmap_t, bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
 ) -> None:
@@ -770,6 +846,7 @@ _LIB.hwloc_bitmap_intersects.argtypes = [hwloc_const_bitmap_t, hwloc_const_bitma
 _LIB.hwloc_bitmap_intersects.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_intersects(
     bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
 ) -> bool:
@@ -780,6 +857,7 @@ _LIB.hwloc_bitmap_isincluded.argtypes = [hwloc_const_bitmap_t, hwloc_const_bitma
 _LIB.hwloc_bitmap_isincluded.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_isincluded(
     sub_bitmap: hwloc_const_bitmap_t, super_bitmap: hwloc_const_bitmap_t
 ) -> bool:
@@ -790,6 +868,7 @@ _LIB.hwloc_bitmap_isequal.argtypes = [hwloc_const_bitmap_t, hwloc_const_bitmap_t
 _LIB.hwloc_bitmap_isequal.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_isequal(
     bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
 ) -> bool:
@@ -800,6 +879,7 @@ _LIB.hwloc_bitmap_compare_first.argtypes = [hwloc_const_bitmap_t, hwloc_const_bi
 _LIB.hwloc_bitmap_compare_first.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_compare_first(
     bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
 ) -> int:
@@ -810,10 +890,12 @@ _LIB.hwloc_bitmap_compare.argtypes = [hwloc_const_bitmap_t, hwloc_const_bitmap_t
 _LIB.hwloc_bitmap_compare.restype = ctypes.c_int
 
 
+@_cfndoc
 def bitmap_compare(bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t) -> int:
     return _LIB.hwloc_bitmap_compare(bitmap1, bitmap2)
 
 
+@_cenumdoc
 class hwloc_get_type_depth_e(IntEnum):
     HWLOC_TYPE_DEPTH_UNKNOWN = -1
     HWLOC_TYPE_DEPTH_MULTIPLE = -2
@@ -825,6 +907,7 @@ class hwloc_get_type_depth_e(IntEnum):
     HWLOC_TYPE_DEPTH_MEMCACHE = -8
 
 
+@_cfndoc
 def get_type_or_below_depth(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
     return _pyhwloc_lib.pyhwloc_get_type_or_below_depth(topology, obj_type)
 
@@ -838,6 +921,7 @@ _LIB.hwloc_topology_get_infos.argtypes = [topology_t]
 _LIB.hwloc_topology_get_infos.restype = ctypes.POINTER(hwloc_infos_s)
 
 
+@_cfndoc
 def topology_get_infos(topology: topology_t) -> PInfosType:
     infos = _LIB.hwloc_topology_get_infos(topology)
     return infos
@@ -914,6 +998,7 @@ class hwloc_topology_support(ctypes.Structure):
     ]
 
 
+@_cenumdoc
 class hwloc_topology_flags_e(IntEnum):
     HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED = 1 << 0
     HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM = 1 << 1
@@ -927,6 +1012,7 @@ class hwloc_topology_flags_e(IntEnum):
     HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS = 1 << 9
 
 
+@_cenumdoc
 class hwloc_type_filter_e(IntEnum):
     HWLOC_TYPE_FILTER_KEEP_ALL = 0
     HWLOC_TYPE_FILTER_KEEP_NONE = 1
@@ -1038,6 +1124,7 @@ _LIB.hwloc_obj_type_string.argtypes = [ctypes.c_int]
 _LIB.hwloc_obj_type_string.restype = ctypes.c_char_p
 
 
+@_cfndoc
 def hwloc_obj_type_string(obj_type: hwloc_obj_type_t) -> bytes:
     return _LIB.hwloc_obj_type_string(obj_type).value
 
@@ -1051,6 +1138,7 @@ _LIB.hwloc_obj_type_snprintf.argtypes = [
 _LIB.hwloc_obj_type_snprintf.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_type_snprintf(
     string: ctypes.c_char_p, size: int, obj: ObjType, verbose: int
 ) -> int:
@@ -1067,6 +1155,7 @@ _LIB.hwloc_obj_attr_snprintf.argtypes = [
 _LIB.hwloc_obj_attr_snprintf.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_attr_snprintf(
     string: ctypes.c_char_p,
     size: int,
@@ -1088,6 +1177,7 @@ _pyhwloc_lib.pyhwloc_get_info_by_name.argtypes = [obj_t, ctypes.c_char_p]
 _pyhwloc_lib.pyhwloc_get_info_by_name.restype = ctypes.c_char_p
 
 
+@_cfndoc
 def obj_get_info_by_name(obj: ObjType, name: str) -> str | None:
     name_bytes = name.encode("utf-8")
     # hwloc_obj_get_info_by_name is an inlined function, this is exactly how it's
@@ -1102,6 +1192,7 @@ _pyhwloc_lib.pyhwloc_obj_add_info.argtypes = [obj_t, ctypes.c_char_p, ctypes.c_c
 _pyhwloc_lib.pyhwloc_obj_add_info.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_add_info(obj: ObjType, name: str, value: str) -> None:
     if not name or not value:
         raise ValueError("name and value must be non-empty strings")
@@ -1115,6 +1206,7 @@ _LIB.hwloc_obj_set_subtype.argtypes = [topology_t, obj_t, ctypes.c_char_p]
 _LIB.hwloc_obj_set_subtype.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_set_subtype(topology: topology_t, obj: ObjType, subtype: str) -> None:
     subtype_bytes = subtype.encode("utf-8")
     _checkc(_LIB.hwloc_obj_set_subtype(topology, obj, subtype_bytes))
@@ -1127,6 +1219,7 @@ def obj_set_subtype(topology: topology_t, obj: ObjType, subtype: str) -> None:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00146.php
 
 
+@_cenumdoc
 class hwloc_cpubind_flags_t(IntEnum):
     HWLOC_CPUBIND_PROCESS = 1 << 0
     HWLOC_CPUBIND_THREAD = 1 << 1
@@ -1138,6 +1231,7 @@ _LIB.hwloc_set_cpubind.argtypes = [topology_t, hwloc_const_cpuset_t, ctypes.c_in
 _LIB.hwloc_set_cpubind.restype = ctypes.c_int
 
 
+@_cfndoc
 def set_cpubind(topology: topology_t, cpuset: hwloc_const_cpuset_t, flags: int) -> None:
     _checkc(_LIB.hwloc_set_cpubind(topology, cpuset, flags))
 
@@ -1146,6 +1240,7 @@ _LIB.hwloc_get_cpubind.argtypes = [topology_t, hwloc_cpuset_t, ctypes.c_int]
 _LIB.hwloc_get_cpubind.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_cpubind(topology: topology_t, cpuset: hwloc_cpuset_t, flags: int) -> None:
     _checkc(_LIB.hwloc_get_cpubind(topology, cpuset, flags))
 
@@ -1159,6 +1254,7 @@ _LIB.hwloc_set_proc_cpubind.argtypes = [
 _LIB.hwloc_set_proc_cpubind.restype = ctypes.c_int
 
 
+@_cfndoc
 def set_proc_cpubind(
     topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_const_cpuset_t, flags: int
 ) -> None:
@@ -1174,6 +1270,7 @@ _LIB.hwloc_get_proc_cpubind.argtypes = [
 _LIB.hwloc_get_proc_cpubind.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_proc_cpubind(
     topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
 ) -> None:
@@ -1191,6 +1288,7 @@ _LIB.hwloc_set_thread_cpubind.argtypes = [
 _LIB.hwloc_set_thread_cpubind.restype = ctypes.c_int
 
 
+@_cfndoc
 def set_thread_cpubind(
     topology: topology_t,
     thread: hwloc_thread_t,
@@ -1209,6 +1307,7 @@ _LIB.hwloc_get_thread_cpubind.argtypes = [
 _LIB.hwloc_get_thread_cpubind.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_thread_cpubind(
     topology: topology_t, thread: hwloc_thread_t, cpuset: hwloc_cpuset_t, flags: int
 ) -> None:
@@ -1219,6 +1318,7 @@ _LIB.hwloc_get_last_cpu_location.argtypes = [topology_t, hwloc_cpuset_t, ctypes.
 _LIB.hwloc_get_last_cpu_location.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_last_cpu_location(
     topology: topology_t, cpuset: hwloc_cpuset_t, flags: int
 ) -> None:
@@ -1235,6 +1335,7 @@ _LIB.hwloc_get_proc_last_cpu_location.argtypes = [
 _LIB.hwloc_get_proc_last_cpu_location.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_proc_last_cpu_location(
     topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
 ) -> None:
@@ -1248,6 +1349,7 @@ def get_proc_last_cpu_location(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00147.php#gadf87089ef533db40460ccc24b5bc0d65
 
 
+@_cenumdoc
 class hwloc_membind_policy_t(IntEnum):
     HWLOC_MEMBIND_DEFAULT = 0
     HWLOC_MEMBIND_FIRSTTOUCH = 1
@@ -1258,6 +1360,7 @@ class hwloc_membind_policy_t(IntEnum):
     HWLOC_MEMBIND_MIXED = -1
 
 
+@_cenumdoc
 class hwloc_membind_flags_t(IntEnum):
     HWLOC_MEMBIND_PROCESS = 1 << 0
     HWLOC_MEMBIND_THREAD = 1 << 1
@@ -1276,6 +1379,7 @@ _LIB.hwloc_set_membind.argtypes = [
 _LIB.hwloc_set_membind.restype = ctypes.c_int
 
 
+@_cfndoc
 def set_membind(
     topology: topology_t,
     set: const_bitmap_t,
@@ -1294,6 +1398,7 @@ _LIB.hwloc_get_membind.argtypes = [
 _LIB.hwloc_get_membind.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_membind(
     topology: topology_t, set: bitmap_t, flags: int
 ) -> hwloc_membind_policy_t:
@@ -1312,6 +1417,7 @@ _LIB.hwloc_set_proc_membind.argtypes = [
 _LIB.hwloc_set_proc_membind.restype = ctypes.c_int
 
 
+@_cfndoc
 def set_proc_membind(
     topology: topology_t,
     pid: hwloc_pid_t,
@@ -1332,6 +1438,7 @@ _LIB.hwloc_get_proc_membind.argtypes = [
 _LIB.hwloc_get_proc_membind.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_proc_membind(
     topology: topology_t, pid: hwloc_pid_t, set: bitmap_t, flags: int
 ) -> hwloc_membind_policy_t:
@@ -1353,6 +1460,7 @@ _LIB.hwloc_set_area_membind.argtypes = [
 _LIB.hwloc_set_area_membind.restype = ctypes.c_int
 
 
+@_cfndoc
 def set_area_membind(
     topology: topology_t,
     addr: ctypes.c_void_p,
@@ -1375,6 +1483,7 @@ _LIB.hwloc_get_area_membind.argtypes = [
 _LIB.hwloc_get_area_membind.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_area_membind(
     topology: topology_t, addr: ctypes.c_void_p, length: int, set: bitmap_t, flags: int
 ) -> hwloc_membind_policy_t:
@@ -1397,6 +1506,7 @@ _LIB.hwloc_get_area_memlocation.argtypes = [
 _LIB.hwloc_get_area_memlocation.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_area_memlocation(
     topology: topology_t, addr: ctypes.c_void_p, length: int, set: bitmap_t, flags: int
 ) -> None:
@@ -1407,6 +1517,7 @@ _LIB.hwloc_alloc.argtypes = [topology_t, ctypes.c_size_t]
 _LIB.hwloc_alloc.restype = ctypes.c_void_p
 
 
+@_cfndoc
 def alloc(topology: topology_t, length: int) -> ctypes.c_void_p:
     result = _LIB.hwloc_alloc(topology, length)
     if not result:
@@ -1424,6 +1535,7 @@ _LIB.hwloc_alloc_membind.argtypes = [
 _LIB.hwloc_alloc_membind.restype = ctypes.c_void_p
 
 
+@_cfndoc
 def alloc_membind(
     topology: topology_t,
     length: int,
@@ -1447,6 +1559,7 @@ _pyhwloc_lib.pyhwloc_alloc_membind_policy.argtypes = [
 _pyhwloc_lib.pyhwloc_alloc_membind_policy.restype = ctypes.c_void_p
 
 
+@_cfndoc
 def alloc_membind_policy(
     topology: topology_t,
     length: int,
@@ -1454,7 +1567,9 @@ def alloc_membind_policy(
     policy: hwloc_membind_policy_t,
     flags: int,
 ) -> ctypes.c_void_p:
-    result = _LIB.hwloc_alloc_membind_policy(topology, length, set, policy, flags)
+    result = _pyhwloc_lib.pyhwloc_alloc_membind_policy(
+        topology, length, set, policy, flags
+    )
     if not result:
         raise HwLocError(-1, 0, b"hwloc_alloc_membind_policy failed")
     return result
@@ -1464,6 +1579,7 @@ _LIB.hwloc_free.argtypes = [topology_t, ctypes.c_void_p, ctypes.c_size_t]
 _LIB.hwloc_free.restype = ctypes.c_int
 
 
+@_cfndoc
 def free(topology: topology_t, addr: ctypes.c_void_p, length: int) -> None:
     _checkc(_LIB.hwloc_free(topology, addr, length))
 
@@ -1476,6 +1592,7 @@ _LIB.hwloc_obj_type_is_normal.argtypes = [ctypes.c_int]
 _LIB.hwloc_obj_type_is_normal.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_type_is_normal(obj_type: hwloc_obj_type_t) -> bool:
     return bool(_LIB.hwloc_obj_type_is_normal(int(obj_type)))
 
@@ -1484,6 +1601,7 @@ _LIB.hwloc_obj_type_is_io.argtypes = [ctypes.c_int]
 _LIB.hwloc_obj_type_is_io.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_type_is_io(obj_type: hwloc_obj_type_t) -> bool:
     return bool(_LIB.hwloc_obj_type_is_io(obj_type))
 
@@ -1492,6 +1610,7 @@ _LIB.hwloc_obj_type_is_memory.argtypes = [ctypes.c_int]
 _LIB.hwloc_obj_type_is_memory.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_type_is_memory(obj_type: hwloc_obj_type_t) -> bool:
     return bool(_LIB.hwloc_obj_type_is_memory(obj_type))
 
@@ -1500,6 +1619,7 @@ _LIB.hwloc_obj_type_is_cache.argtypes = [ctypes.c_int]
 _LIB.hwloc_obj_type_is_cache.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_type_is_cache(obj_type: hwloc_obj_type_t) -> bool:
     return bool(_LIB.hwloc_obj_type_is_cache(obj_type))
 
@@ -1508,6 +1628,7 @@ _LIB.hwloc_obj_type_is_dcache.argtypes = [ctypes.c_int]
 _LIB.hwloc_obj_type_is_dcache.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_type_is_dcache(obj_type: hwloc_obj_type_t) -> bool:
     return bool(_LIB.hwloc_obj_type_is_dcache(obj_type))
 
@@ -1516,5 +1637,6 @@ _LIB.hwloc_obj_type_is_icache.argtypes = [ctypes.c_int]
 _LIB.hwloc_obj_type_is_icache.restype = ctypes.c_int
 
 
+@_cfndoc
 def obj_type_is_icache(obj_type: hwloc_obj_type_t) -> bool:
     return bool(_LIB.hwloc_obj_type_is_icache(obj_type))

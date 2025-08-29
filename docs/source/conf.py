@@ -6,6 +6,8 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
+
 project = "pyhwloc"
 copyright = "2025, Jiaming Yuan"
 author = "Jiaming Yuan"
@@ -15,6 +17,7 @@ author = "Jiaming Yuan"
 
 extensions = [
     "sphinx.ext.autodoc",
+    "breathe",
 ]
 
 templates_path = ["_templates"]
@@ -26,3 +29,13 @@ exclude_patterns = []
 
 html_theme = "alabaster"
 html_static_path = ["_static"]
+
+# Breathe
+breathe_default_project = "pyhwloc"
+DOX_DIR = "/home/jiamingy/ws/pyhwloc_dev/"
+CURR_PATH = os.path.dirname(os.path.abspath(os.path.expanduser(__file__)))  # source
+PROJECT_ROOT = os.path.normpath(os.path.join(CURR_PATH, os.path.pardir, os.path.pardir))
+breathe_projects = {
+    "pyhwloc": os.path.join(PROJECT_ROOT, os.path.pardir, "hwloc/doc/doxygen-doc/xml")
+}
+print("beathe projects", breathe_projects)

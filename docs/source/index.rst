@@ -14,3 +14,4 @@ pyhwloc documentation
   :titlesonly:
 
   core
+  c
