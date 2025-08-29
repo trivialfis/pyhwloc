@@ -25,8 +25,10 @@ def normpath(path: str) -> str:
 
 _LIB = ctypes.CDLL("libhwloc.so", use_errno=True)
 
-bitmap_t = ctypes.c_void_p
-const_bitmap_t = ctypes.c_void_p
+hwloc_bitmap_t = ctypes.c_void_p
+hwloc_const_bitmap_t = ctypes.c_void_p
+bitmap_t = hwloc_bitmap_t
+const_bitmap_t = hwloc_const_bitmap_t
 
 hwloc_uint64_t = ctypes.c_uint64
 hwloc_pid_t = ctypes.c_int
@@ -301,36 +303,515 @@ _LIB.hwloc_bitmap_dup.restype = bitmap_t
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00161.php#gae679434c1a5f41d3560a8a7e2c1b0dee
 
 
-def bitmap_dup(bitmap: bitmap_t) -> bitmap_t:
+_LIB.hwloc_bitmap_alloc.restype = hwloc_bitmap_t
+
+
+def bitmap_alloc() -> hwloc_bitmap_t:
+    return _LIB.hwloc_bitmap_alloc()
+
+
+_LIB.hwloc_bitmap_alloc_full.restype = hwloc_bitmap_t
+
+
+def bitmap_alloc_full() -> hwloc_bitmap_t:
+    return _LIB.hwloc_bitmap_alloc_full()
+
+
+_LIB.hwloc_bitmap_free.argtypes = [hwloc_bitmap_t]
+
+
+def bitmap_free(bitmap: hwloc_bitmap_t) -> None:
+    _LIB.hwloc_bitmap_free(bitmap)
+
+
+_LIB.hwloc_bitmap_dup.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_dup.restype = hwloc_bitmap_t
+
+
+def bitmap_dup(bitmap: hwloc_const_bitmap_t) -> hwloc_bitmap_t:
     return _LIB.hwloc_bitmap_dup(bitmap)
 
 
-_LIB.hwloc_bitmap_singlify.argtypes = [bitmap_t]
+_LIB.hwloc_bitmap_copy.argtypes = [hwloc_bitmap_t, hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_copy.restype = ctypes.c_int
 
 
-def bitmap_singlify(bitmap: bitmap_t) -> None:
-    _checkc(_LIB.hwloc_bitmap_singlify(bitmap))
+def bitmap_copy(dst: hwloc_bitmap_t, src: hwloc_const_bitmap_t) -> None:
+    _checkc(_LIB.hwloc_bitmap_copy(dst, src))
 
 
-_LIB.hwloc_bitmap_free.argtypes = [bitmap_t]
+# Bitmap/String Conversion
+_LIB.hwloc_bitmap_snprintf.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    hwloc_const_bitmap_t,
+]
+_LIB.hwloc_bitmap_snprintf.restype = ctypes.c_int
 
 
-def bitmap_free(bitmap: bitmap_t) -> None:
-    _checkc(_LIB.hwloc_bitmap_free(bitmap))
+def bitmap_snprintf(
+    buf: ctypes.c_char_p, buflen: int, bitmap: hwloc_const_bitmap_t
+) -> int:
+    return _LIB.hwloc_bitmap_snprintf(buf, buflen, bitmap)
 
 
-_LIB.hwloc_bitmap_asprintf.argtypes = [ctypes.POINTER(ctypes.c_char_p), bitmap_t]
+_LIB.hwloc_bitmap_asprintf.argtypes = [
+    ctypes.POINTER(ctypes.c_char_p),
+    hwloc_const_bitmap_t,
+]
 _LIB.hwloc_bitmap_asprintf.restype = ctypes.c_int
 
 
-def bitmap_asprintf(strp: Any, bitmap: bitmap_t) -> int:
-    # strp: char**
+# ctypes.POINTER(ctypes.c_char_p)
+def bitmap_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
     result = _LIB.hwloc_bitmap_asprintf(strp, bitmap)
     if result == -1:
         errno = ctypes.get_errno()
         msg = _libc.strerror(errno)
         raise HwLocError(-1, errno, msg)
     return result
+
+
+_LIB.hwloc_bitmap_sscanf.argtypes = [hwloc_bitmap_t, ctypes.c_char_p]
+_LIB.hwloc_bitmap_sscanf.restype = ctypes.c_int
+
+
+def bitmap_sscanf(bitmap: hwloc_bitmap_t, string: str) -> None:
+    string_bytes = string.encode("utf-8")
+    _checkc(_LIB.hwloc_bitmap_sscanf(bitmap, string_bytes))
+
+
+_LIB.hwloc_bitmap_list_snprintf.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    hwloc_const_bitmap_t,
+]
+_LIB.hwloc_bitmap_list_snprintf.restype = ctypes.c_int
+
+
+def bitmap_list_snprintf(
+    buf: ctypes.c_char_p, buflen: int, bitmap: hwloc_const_bitmap_t
+) -> int:
+    return _LIB.hwloc_bitmap_list_snprintf(buf, buflen, bitmap)
+
+
+_LIB.hwloc_bitmap_list_asprintf.argtypes = [
+    ctypes.POINTER(ctypes.c_char_p),
+    hwloc_const_bitmap_t,
+]
+_LIB.hwloc_bitmap_list_asprintf.restype = ctypes.c_int
+
+
+# ctypes.POINTER(ctypes.c_char_p)
+def bitmap_list_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
+    result = _LIB.hwloc_bitmap_list_asprintf(strp, bitmap)
+    if result == -1:
+        errno = ctypes.get_errno()
+        msg = _libc.strerror(errno)
+        raise HwLocError(-1, errno, msg)
+    return result
+
+
+_LIB.hwloc_bitmap_list_sscanf.argtypes = [hwloc_bitmap_t, ctypes.c_char_p]
+_LIB.hwloc_bitmap_list_sscanf.restype = ctypes.c_int
+
+
+def bitmap_list_sscanf(bitmap: hwloc_bitmap_t, string: str) -> None:
+    string_bytes = string.encode("utf-8")
+    _checkc(_LIB.hwloc_bitmap_list_sscanf(bitmap, string_bytes))
+
+
+_LIB.hwloc_bitmap_taskset_snprintf.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    hwloc_const_bitmap_t,
+]
+_LIB.hwloc_bitmap_taskset_snprintf.restype = ctypes.c_int
+
+
+def bitmap_taskset_snprintf(
+    buf: ctypes.c_char_p, buflen: int, bitmap: hwloc_const_bitmap_t
+) -> int:
+    return _LIB.hwloc_bitmap_taskset_snprintf(buf, buflen, bitmap)
+
+
+_LIB.hwloc_bitmap_taskset_asprintf.argtypes = [
+    ctypes.POINTER(ctypes.c_char_p),
+    hwloc_const_bitmap_t,
+]
+_LIB.hwloc_bitmap_taskset_asprintf.restype = ctypes.c_int
+
+
+# ctypes.POINTER(ctypes.c_char_p)
+def bitmap_taskset_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
+    result = _LIB.hwloc_bitmap_taskset_asprintf(strp, bitmap)
+    if result == -1:
+        errno = ctypes.get_errno()
+        msg = _libc.strerror(errno)
+        raise HwLocError(-1, errno, msg)
+    return result
+
+
+_LIB.hwloc_bitmap_taskset_sscanf.argtypes = [hwloc_bitmap_t, ctypes.c_char_p]
+_LIB.hwloc_bitmap_taskset_sscanf.restype = ctypes.c_int
+
+
+def bitmap_taskset_sscanf(bitmap: hwloc_bitmap_t, string: str) -> None:
+    string_bytes = string.encode("utf-8")
+    _checkc(_LIB.hwloc_bitmap_taskset_sscanf(bitmap, string_bytes))
+
+
+_LIB.hwloc_bitmap_singlify.argtypes = [bitmap_t]
+
+# Building bitmaps
+_LIB.hwloc_bitmap_zero.argtypes = [hwloc_bitmap_t]
+
+
+def bitmap_zero(bitmap: hwloc_bitmap_t) -> None:
+    _LIB.hwloc_bitmap_zero(bitmap)
+
+
+_LIB.hwloc_bitmap_fill.argtypes = [hwloc_bitmap_t]
+
+
+def bitmap_fill(bitmap: hwloc_bitmap_t) -> None:
+    _LIB.hwloc_bitmap_fill(bitmap)
+
+
+_LIB.hwloc_bitmap_only.argtypes = [hwloc_bitmap_t, ctypes.c_uint]
+_LIB.hwloc_bitmap_only.restype = ctypes.c_int
+
+
+def bitmap_only(bitmap: hwloc_bitmap_t, id: int) -> None:
+    _checkc(_LIB.hwloc_bitmap_only(bitmap, id))
+
+
+_LIB.hwloc_bitmap_allbut.argtypes = [hwloc_bitmap_t, ctypes.c_uint]
+_LIB.hwloc_bitmap_allbut.restype = ctypes.c_int
+
+
+def bitmap_allbut(bitmap: hwloc_bitmap_t, id: int) -> None:
+    _checkc(_LIB.hwloc_bitmap_allbut(bitmap, id))
+
+
+_LIB.hwloc_bitmap_from_ulong.argtypes = [hwloc_bitmap_t, ctypes.c_ulong]
+_LIB.hwloc_bitmap_from_ulong.restype = ctypes.c_int
+
+
+def bitmap_from_ulong(bitmap: hwloc_bitmap_t, mask: int) -> None:
+    _checkc(_LIB.hwloc_bitmap_from_ulong(bitmap, mask))
+
+
+_LIB.hwloc_bitmap_from_ith_ulong.argtypes = [
+    hwloc_bitmap_t,
+    ctypes.c_uint,
+    ctypes.c_ulong,
+]
+_LIB.hwloc_bitmap_from_ith_ulong.restype = ctypes.c_int
+
+
+def bitmap_from_ith_ulong(bitmap: hwloc_bitmap_t, i: int, mask: int) -> None:
+    _checkc(_LIB.hwloc_bitmap_from_ith_ulong(bitmap, i, mask))
+
+
+_LIB.hwloc_bitmap_from_ulongs.argtypes = [
+    hwloc_bitmap_t,
+    ctypes.c_uint,
+    ctypes.POINTER(ctypes.c_ulong),
+]
+_LIB.hwloc_bitmap_from_ulongs.restype = ctypes.c_int
+
+
+# ctypes.POINTER(ctypes.c_ulong)
+def bitmap_from_ulongs(bitmap: hwloc_bitmap_t, nr: int, masks: ctypes._Pointer) -> None:
+    _checkc(_LIB.hwloc_bitmap_from_ulongs(bitmap, nr, masks))
+
+
+# Modifying bitmaps
+_LIB.hwloc_bitmap_set.argtypes = [hwloc_bitmap_t, ctypes.c_uint]
+_LIB.hwloc_bitmap_set.restype = ctypes.c_int
+
+
+def bitmap_set(bitmap: hwloc_bitmap_t, id: int) -> None:
+    _checkc(_LIB.hwloc_bitmap_set(bitmap, id))
+
+
+_LIB.hwloc_bitmap_set_range.argtypes = [hwloc_bitmap_t, ctypes.c_uint, ctypes.c_int]
+_LIB.hwloc_bitmap_set_range.restype = ctypes.c_int
+
+
+def bitmap_set_range(bitmap: hwloc_bitmap_t, begin: int, end: int) -> None:
+    _checkc(_LIB.hwloc_bitmap_set_range(bitmap, begin, end))
+
+
+_LIB.hwloc_bitmap_set_ith_ulong.argtypes = [
+    hwloc_bitmap_t,
+    ctypes.c_uint,
+    ctypes.c_ulong,
+]
+_LIB.hwloc_bitmap_set_ith_ulong.restype = ctypes.c_int
+
+
+def bitmap_set_ith_ulong(bitmap: hwloc_bitmap_t, i: int, mask: int) -> None:
+    _checkc(_LIB.hwloc_bitmap_set_ith_ulong(bitmap, i, mask))
+
+
+_LIB.hwloc_bitmap_clr.argtypes = [hwloc_bitmap_t, ctypes.c_uint]
+_LIB.hwloc_bitmap_clr.restype = ctypes.c_int
+
+
+def bitmap_clr(bitmap: hwloc_bitmap_t, id: int) -> None:
+    _checkc(_LIB.hwloc_bitmap_clr(bitmap, id))
+
+
+_LIB.hwloc_bitmap_clr_range.argtypes = [hwloc_bitmap_t, ctypes.c_uint, ctypes.c_int]
+_LIB.hwloc_bitmap_clr_range.restype = ctypes.c_int
+
+
+def bitmap_clr_range(bitmap: hwloc_bitmap_t, begin: int, end: int) -> None:
+    _checkc(_LIB.hwloc_bitmap_clr_range(bitmap, begin, end))
+
+
+_LIB.hwloc_bitmap_singlify.argtypes = [hwloc_bitmap_t]
+_LIB.hwloc_bitmap_singlify.restype = ctypes.c_int
+
+
+def bitmap_singlify(bitmap: hwloc_bitmap_t) -> None:
+    _checkc(_LIB.hwloc_bitmap_singlify(bitmap))
+
+
+# Consulting bitmaps
+_LIB.hwloc_bitmap_to_ulong.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_to_ulong.restype = ctypes.c_ulong
+
+
+def bitmap_to_ulong(bitmap: hwloc_const_bitmap_t) -> int:
+    return _LIB.hwloc_bitmap_to_ulong(bitmap)
+
+
+_LIB.hwloc_bitmap_to_ith_ulong.argtypes = [hwloc_const_bitmap_t, ctypes.c_uint]
+_LIB.hwloc_bitmap_to_ith_ulong.restype = ctypes.c_ulong
+
+
+def bitmap_to_ith_ulong(bitmap: hwloc_const_bitmap_t, i: int) -> int:
+    return _LIB.hwloc_bitmap_to_ith_ulong(bitmap, i)
+
+
+_LIB.hwloc_bitmap_to_ulongs.argtypes = [
+    hwloc_const_bitmap_t,
+    ctypes.c_uint,
+    ctypes.POINTER(ctypes.c_ulong),
+]
+_LIB.hwloc_bitmap_to_ulongs.restype = ctypes.c_int
+
+
+# ctypes.POINTER(ctypes.c_ulong)
+def bitmap_to_ulongs(
+    bitmap: hwloc_const_bitmap_t, nr: int, masks: ctypes._Pointer
+) -> None:
+    _checkc(_LIB.hwloc_bitmap_to_ulongs(bitmap, nr, masks))
+
+
+_LIB.hwloc_bitmap_nr_ulongs.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_nr_ulongs.restype = ctypes.c_int
+
+
+def bitmap_nr_ulongs(bitmap: hwloc_const_bitmap_t) -> int:
+    return _LIB.hwloc_bitmap_nr_ulongs(bitmap)
+
+
+_LIB.hwloc_bitmap_isset.argtypes = [hwloc_const_bitmap_t, ctypes.c_uint]
+_LIB.hwloc_bitmap_isset.restype = ctypes.c_int
+
+
+def bitmap_isset(bitmap: hwloc_const_bitmap_t, i: int) -> bool:
+    return bool(_LIB.hwloc_bitmap_isset(bitmap, i))
+
+
+_LIB.hwloc_bitmap_iszero.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_iszero.restype = ctypes.c_int
+
+
+def bitmap_iszero(bitmap: hwloc_const_bitmap_t) -> bool:
+    return bool(_LIB.hwloc_bitmap_iszero(bitmap))
+
+
+_LIB.hwloc_bitmap_isfull.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_isfull.restype = ctypes.c_int
+
+
+def bitmap_isfull(bitmap: hwloc_const_bitmap_t) -> bool:
+    return bool(_LIB.hwloc_bitmap_isfull(bitmap))
+
+
+_LIB.hwloc_bitmap_first.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_first.restype = ctypes.c_int
+
+
+def bitmap_first(bitmap: hwloc_const_bitmap_t) -> int:
+    return _LIB.hwloc_bitmap_first(bitmap)
+
+
+_LIB.hwloc_bitmap_next.argtypes = [hwloc_const_bitmap_t, ctypes.c_int]
+_LIB.hwloc_bitmap_next.restype = ctypes.c_int
+
+
+def bitmap_next(bitmap: hwloc_const_bitmap_t, prev: int) -> int:
+    return _LIB.hwloc_bitmap_next(bitmap, prev)
+
+
+_LIB.hwloc_bitmap_last.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_last.restype = ctypes.c_int
+
+
+def bitmap_last(bitmap: hwloc_const_bitmap_t) -> int:
+    return _LIB.hwloc_bitmap_last(bitmap)
+
+
+_LIB.hwloc_bitmap_weight.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_weight.restype = ctypes.c_int
+
+
+def bitmap_weight(bitmap: hwloc_const_bitmap_t) -> int:
+    return _LIB.hwloc_bitmap_weight(bitmap)
+
+
+_LIB.hwloc_bitmap_first_unset.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_first_unset.restype = ctypes.c_int
+
+
+def bitmap_first_unset(bitmap: hwloc_const_bitmap_t) -> int:
+    return _LIB.hwloc_bitmap_first_unset(bitmap)
+
+
+_LIB.hwloc_bitmap_next_unset.argtypes = [hwloc_const_bitmap_t, ctypes.c_int]
+_LIB.hwloc_bitmap_next_unset.restype = ctypes.c_int
+
+
+def bitmap_next_unset(bitmap: hwloc_const_bitmap_t, prev: int) -> int:
+    return _LIB.hwloc_bitmap_next_unset(bitmap, prev)
+
+
+_LIB.hwloc_bitmap_last_unset.argtypes = [hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_last_unset.restype = ctypes.c_int
+
+
+def bitmap_last_unset(bitmap: hwloc_const_bitmap_t) -> int:
+    return _LIB.hwloc_bitmap_last_unset(bitmap)
+
+
+# Combining bitmaps
+_LIB.hwloc_bitmap_or.argtypes = [
+    hwloc_bitmap_t,
+    hwloc_const_bitmap_t,
+    hwloc_const_bitmap_t,
+]
+_LIB.hwloc_bitmap_or.restype = ctypes.c_int
+
+
+def bitmap_or(
+    res: hwloc_bitmap_t, bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
+) -> None:
+    _checkc(_LIB.hwloc_bitmap_or(res, bitmap1, bitmap2))
+
+
+_LIB.hwloc_bitmap_and.argtypes = [
+    hwloc_bitmap_t,
+    hwloc_const_bitmap_t,
+    hwloc_const_bitmap_t,
+]
+_LIB.hwloc_bitmap_and.restype = ctypes.c_int
+
+
+def bitmap_and(
+    res: hwloc_bitmap_t, bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
+) -> None:
+    _checkc(_LIB.hwloc_bitmap_and(res, bitmap1, bitmap2))
+
+
+_LIB.hwloc_bitmap_andnot.argtypes = [
+    hwloc_bitmap_t,
+    hwloc_const_bitmap_t,
+    hwloc_const_bitmap_t,
+]
+_LIB.hwloc_bitmap_andnot.restype = ctypes.c_int
+
+
+def bitmap_andnot(
+    res: hwloc_bitmap_t, bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
+) -> None:
+    _checkc(_LIB.hwloc_bitmap_andnot(res, bitmap1, bitmap2))
+
+
+_LIB.hwloc_bitmap_xor.argtypes = [
+    hwloc_bitmap_t,
+    hwloc_const_bitmap_t,
+    hwloc_const_bitmap_t,
+]
+_LIB.hwloc_bitmap_xor.restype = ctypes.c_int
+
+
+def bitmap_xor(
+    res: hwloc_bitmap_t, bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
+) -> None:
+    _checkc(_LIB.hwloc_bitmap_xor(res, bitmap1, bitmap2))
+
+
+_LIB.hwloc_bitmap_not.argtypes = [hwloc_bitmap_t, hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_not.restype = ctypes.c_int
+
+
+def bitmap_not(res: hwloc_bitmap_t, bitmap: hwloc_const_bitmap_t) -> None:
+    _checkc(_LIB.hwloc_bitmap_not(res, bitmap))
+
+
+# Comparing bitmaps
+_LIB.hwloc_bitmap_intersects.argtypes = [hwloc_const_bitmap_t, hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_intersects.restype = ctypes.c_int
+
+
+def bitmap_intersects(
+    bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
+) -> bool:
+    return bool(_LIB.hwloc_bitmap_intersects(bitmap1, bitmap2))
+
+
+_LIB.hwloc_bitmap_isincluded.argtypes = [hwloc_const_bitmap_t, hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_isincluded.restype = ctypes.c_int
+
+
+def bitmap_isincluded(
+    sub_bitmap: hwloc_const_bitmap_t, super_bitmap: hwloc_const_bitmap_t
+) -> bool:
+    return bool(_LIB.hwloc_bitmap_isincluded(sub_bitmap, super_bitmap))
+
+
+_LIB.hwloc_bitmap_isequal.argtypes = [hwloc_const_bitmap_t, hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_isequal.restype = ctypes.c_int
+
+
+def bitmap_isequal(
+    bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
+) -> bool:
+    return bool(_LIB.hwloc_bitmap_isequal(bitmap1, bitmap2))
+
+
+_LIB.hwloc_bitmap_compare_first.argtypes = [hwloc_const_bitmap_t, hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_compare_first.restype = ctypes.c_int
+
+
+def bitmap_compare_first(
+    bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t
+) -> int:
+    return _LIB.hwloc_bitmap_compare_first(bitmap1, bitmap2)
+
+
+_LIB.hwloc_bitmap_compare.argtypes = [hwloc_const_bitmap_t, hwloc_const_bitmap_t]
+_LIB.hwloc_bitmap_compare.restype = ctypes.c_int
+
+
+def bitmap_compare(bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t) -> int:
+    return _LIB.hwloc_bitmap_compare(bitmap1, bitmap2)
 
 
 class hwloc_get_type_depth_e(IntEnum):
