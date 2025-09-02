@@ -16,14 +16,15 @@ import ctypes
 import os
 from ctypes.util import find_library
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Callable, ParamSpec, TypeVar, Type
+from typing import TYPE_CHECKING, Any, Callable, ParamSpec, Type, TypeVar
 
 
 def normpath(path: str) -> str:
     return os.path.normpath(os.path.abspath(path))
 
 
-_LIB = ctypes.CDLL("libhwloc.so", use_errno=True)
+prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
+_LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
 
 hwloc_bitmap_t = ctypes.c_void_p
 hwloc_const_bitmap_t = ctypes.c_void_p
@@ -333,21 +334,26 @@ _LIB.hwloc_bitmap_dup.restype = bitmap_t
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00161.php#gae679434c1a5f41d3560a8a7e2c1b0dee
 
-
-_LIB.hwloc_bitmap_alloc.restype = hwloc_bitmap_t
+_pyhwloc_lib.pyhwloc_bitmap_alloc.argtypes = [ctypes.POINTER(ctypes.c_void_p)]
+_pyhwloc_lib.pyhwloc_bitmap_alloc.restype = int
 
 
 @_cfndoc
 def bitmap_alloc() -> hwloc_bitmap_t:
-    return _LIB.hwloc_bitmap_alloc()
+    ptr = ctypes.c_void_p()
+    _checkc(_pyhwloc_lib.pyhwloc_bitmap_alloc(ctypes.byref(ptr)))
+    return ptr
 
 
-_LIB.hwloc_bitmap_alloc_full.restype = hwloc_bitmap_t
+_pyhwloc_lib.pyhwloc_bitmap_alloc_full.argtypes = [ctypes.POINTER(ctypes.c_void_p)]
+_pyhwloc_lib.pyhwloc_bitmap_alloc_full.restype = int
 
 
 @_cfndoc
 def bitmap_alloc_full() -> hwloc_bitmap_t:
-    return _LIB.hwloc_bitmap_alloc_full()
+    ptr = ctypes.c_void_p()
+    _checkc(_pyhwloc_lib.pyhwloc_bitmap_alloc_full(ctypes.byref(ptr)))
+    return ptr
 
 
 _LIB.hwloc_bitmap_free.argtypes = [hwloc_bitmap_t]
@@ -387,9 +393,12 @@ _LIB.hwloc_bitmap_snprintf.restype = ctypes.c_int
 
 @_cfndoc
 def bitmap_snprintf(
-    buf: ctypes.c_char_p, buflen: int, bitmap: hwloc_const_bitmap_t
+    buf: ctypes.c_char_p | ctypes.Array, buflen: int, bitmap: hwloc_const_bitmap_t
 ) -> int:
-    return _LIB.hwloc_bitmap_snprintf(buf, buflen, bitmap)
+    n_written = _LIB.hwloc_bitmap_snprintf(buf, buflen, bitmap)
+    if n_written == -1:
+        _checkc(n_written)
+    return n_written
 
 
 _LIB.hwloc_bitmap_asprintf.argtypes = [
