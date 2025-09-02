@@ -102,6 +102,17 @@ def test_error() -> None:
         )
 
 
+def find_numa_depth() -> int:
+    topo = Topology()
+    for depth in range(10):  # reasonable upper limit
+        if get_nbobjs_by_depth(topo.hdl, depth) > 0:
+            obj = get_obj_by_depth(topo.hdl, depth, 0)
+            if obj and obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_NUMANODE:
+                numa_depth = depth
+                break
+    return numa_depth
+
+
 def test_example() -> None:
     topo = Topology()
 
