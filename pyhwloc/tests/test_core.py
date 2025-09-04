@@ -32,6 +32,7 @@ from pyhwloc.core import (
     cpukinds_get_nr,
     cpukinds_register,
     get_api_version,
+    get_cache_type_depth,
     get_depth_type,
     get_memory_parents_depth,
     get_nbobjs_by_depth,
@@ -44,6 +45,7 @@ from pyhwloc.core import (
     hwloc_info_s,
     hwloc_infos_s,
     hwloc_obj_attr_u,
+    hwloc_obj_cache_type_t,
     hwloc_obj_type_t,
     hwloc_topology_export_synthetic_flags_e,
     hwloc_topology_export_xml_flags_e,
@@ -649,3 +651,31 @@ def test_obj_set_subtype() -> None:
 
     updated_subtype = ctypes.string_at(root_obj.contents.subtype).decode("utf-8")
     assert updated_subtype == new_subtype
+
+
+##########################
+# Looking at Cache Objects
+##########################
+
+
+def test_get_cache_type_depth() -> None:
+    topo = Topology()
+
+    # Test getting cache type depth for different cache levels and types
+
+    l1_unified_depth = get_cache_type_depth(
+        topo.hdl, 1, hwloc_obj_cache_type_t.HWLOC_OBJ_CACHE_UNIFIED
+    )
+    assert l1_unified_depth >= -1
+
+    l1_data_depth = get_cache_type_depth(
+        topo.hdl, 1, hwloc_obj_cache_type_t.HWLOC_OBJ_CACHE_DATA
+    )
+    assert l1_data_depth > 0
+
+    # Test L1 instruction cache
+    l1_inst_depth = get_cache_type_depth(
+        topo.hdl, 1, hwloc_obj_cache_type_t.HWLOC_OBJ_CACHE_INSTRUCTION
+    )
+    assert isinstance(l1_inst_depth, int)
+    assert l1_inst_depth >= -1

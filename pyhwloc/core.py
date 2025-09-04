@@ -740,6 +740,53 @@ def obj_set_subtype(topology: topology_t, obj: ObjType, subtype: str) -> None:
     _checkc(_LIB.hwloc_obj_set_subtype(topology, obj, subtype_bytes))
 
 
+##########################
+# Looking at Cache Objects
+##########################
+
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00155.php
+
+
+_pyhwloc_lib.pyhwloc_get_cache_type_depth.argtypes = [
+    topology_t,
+    ctypes.c_uint,
+    ctypes.c_int,
+]
+_pyhwloc_lib.pyhwloc_get_cache_type_depth.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_cache_type_depth(
+    topology: topology_t, cachelevel: int, cachetype: hwloc_obj_cache_type_t
+) -> int:
+    # This can return HWLOC_TYPE_DEPTH_UNKNOWN (-1) and HWLOC_TYPE_DEPTH_MULTIPLE (-2)
+    return _pyhwloc_lib.pyhwloc_get_cache_type_depth(topology, cachelevel, cachetype)
+
+
+_pyhwloc_lib.pyhwloc_get_cache_covering_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+]
+_pyhwloc_lib.pyhwloc_get_cache_covering_cpuset.restype = obj_t
+
+
+@_cfndoc
+def get_cache_covering_cpuset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_cache_covering_cpuset(topology, cpuset)
+
+
+_pyhwloc_lib.pyhwloc_get_shared_cache_covering_obj.argtypes = [topology_t, obj_t]
+_pyhwloc_lib.pyhwloc_get_shared_cache_covering_obj.restype = obj_t
+
+
+@_cfndoc
+def get_shared_cache_covering_obj(topology: topology_t, obj: ObjType) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_shared_cache_covering_obj(topology, obj)
+
+
 #####################
 # Finding I/O objects
 #####################
@@ -2162,6 +2209,10 @@ def free(topology: topology_t, addr: ctypes.c_void_p, length: int) -> None:
 ######################
 # Kinds of object Type
 ######################
+
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00151.php
+
 
 _LIB.hwloc_obj_type_is_normal.argtypes = [ctypes.c_int]
 _LIB.hwloc_obj_type_is_normal.restype = ctypes.c_int

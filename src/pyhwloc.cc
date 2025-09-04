@@ -116,6 +116,25 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_bridge(hwloc_topology_t topology,
 
 PYHWLOC_EXPORT int pyhwloc_bridge_covers_pcibus(hwloc_obj_t bridge,
                                                 unsigned domain, unsigned bus) {
+
   return hwloc_bridge_covers_pcibus(bridge, domain, bus);
+}
+
+// Looking at Cache Objects
+PYHWLOC_EXPORT int
+pyhwloc_get_cache_type_depth(hwloc_topology_t topology, unsigned cachelevel,
+                             hwloc_obj_cache_type_t cachetype) {
+
+  return hwloc_get_cache_type_depth(topology, cachelevel, cachetype);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_cache_covering_cpuset(
+    hwloc_topology_t topology, hwloc_const_cpuset_t set) {
+  return hwloc_get_cache_covering_cpuset(topology, set);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_shared_cache_covering_obj(
+    hwloc_topology_t topology __hwloc_attribute_unused, hwloc_obj_t obj) {
+  return hwloc_get_shared_cache_covering_obj(topology, obj);
 }
 }
