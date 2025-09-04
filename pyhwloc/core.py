@@ -787,6 +787,230 @@ def get_shared_cache_covering_obj(topology: topology_t, obj: ObjType) -> ObjType
     return _pyhwloc_lib.pyhwloc_get_shared_cache_covering_obj(topology, obj)
 
 
+########################################
+# Finding objects, miscellaneous helpers
+########################################
+
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00156.php
+
+
+_pyhwloc_lib.pyhwloc_bitmap_singlify_per_core.argtypes = [
+    topology_t,
+    hwloc_bitmap_t,
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_bitmap_singlify_per_core.restype = ctypes.c_int
+
+
+@_cfndoc
+def bitmap_singlify_per_core(
+    topology: topology_t, cpuset: hwloc_bitmap_t, which: int
+) -> None:
+    _checkc(_pyhwloc_lib.pyhwloc_bitmap_singlify_per_core(topology, cpuset, which))
+
+
+_pyhwloc_lib.pyhwloc_get_pu_obj_by_os_index.argtypes = [topology_t, ctypes.c_uint]
+_pyhwloc_lib.pyhwloc_get_pu_obj_by_os_index.restype = obj_t
+
+
+@_cfndoc
+def get_pu_obj_by_os_index(topology: topology_t, os_index: int) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_pu_obj_by_os_index(topology, os_index)
+
+
+_pyhwloc_lib.pyhwloc_get_numanode_obj_by_os_index.argtypes = [topology_t, ctypes.c_uint]
+_pyhwloc_lib.pyhwloc_get_numanode_obj_by_os_index.restype = obj_t
+
+
+@_cfndoc
+def get_numanode_obj_by_os_index(topology: topology_t, os_index: int) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_numanode_obj_by_os_index(topology, os_index)
+
+
+_pyhwloc_lib.pyhwloc_get_closest_objs.argtypes = [
+    topology_t,
+    obj_t,
+    ctypes.POINTER(obj_t),
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_get_closest_objs.restype = ctypes.c_uint
+
+
+@_cfndoc
+def get_closest_objs(
+    topology: topology_t, src: ObjType, objs: ctypes.Array, max_objs: int
+) -> int:
+    return _pyhwloc_lib.pyhwloc_get_closest_objs(topology, src, objs, max_objs)
+
+
+_pyhwloc_lib.pyhwloc_get_obj_below_by_type.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    ctypes.c_uint,
+    ctypes.c_int,
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_get_obj_below_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_obj_below_by_type(
+    topology: topology_t,
+    type1: hwloc_obj_type_t,
+    idx1: int,
+    type2: hwloc_obj_type_t,
+    idx2: int,
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_obj_below_by_type(
+        topology, type1, idx1, type2, idx2
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_obj_below_array_by_type.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.POINTER(ctypes.c_uint),
+]
+_pyhwloc_lib.pyhwloc_get_obj_below_array_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_obj_below_array_by_type(
+    topology: topology_t,
+    nr: int,
+    typev: ctypes.Array,
+    idxv: ctypes.Array,
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_obj_below_array_by_type(topology, nr, typev, idxv)
+
+
+_pyhwloc_lib.pyhwloc_get_obj_with_same_locality.argtypes = [
+    topology_t,
+    obj_t,
+    ctypes.c_int,
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_ulong,
+]
+_pyhwloc_lib.pyhwloc_get_obj_with_same_locality.restype = obj_t
+
+
+@_cfndoc
+def get_obj_with_same_locality(
+    topology: topology_t,
+    src: ObjType,
+    obj_type: hwloc_obj_type_t,
+    subtype: str | None,
+    nameprefix: str | None,
+    flags: int,
+) -> ObjType:
+    subtype_bytes = subtype.encode("utf-8") if subtype else None
+    nameprefix_bytes = nameprefix.encode("utf-8") if nameprefix else None
+    return _pyhwloc_lib.pyhwloc_get_obj_with_same_locality(
+        topology, src, obj_type, subtype_bytes, nameprefix_bytes, flags
+    )
+
+
+########################################
+# CPU and node sets of entire topologies
+########################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00158.php
+
+_LIB.hwloc_topology_get_complete_cpuset.argtypes = [topology_t]
+_LIB.hwloc_topology_get_complete_cpuset.restype = hwloc_const_cpuset_t
+
+
+@_cfndoc
+def topology_get_complete_cpuset(topology: topology_t) -> hwloc_const_cpuset_t:
+    # No need for free.
+    return _LIB.hwloc_topology_get_complete_cpuset(topology)
+
+
+_LIB.hwloc_topology_get_topology_cpuset.argtypes = [topology_t]
+_LIB.hwloc_topology_get_topology_cpuset.restype = hwloc_const_cpuset_t
+
+
+@_cfndoc
+def topology_get_topology_cpuset(topology: topology_t) -> hwloc_const_cpuset_t:
+    return _LIB.hwloc_topology_get_topology_cpuset(topology)
+
+
+_LIB.hwloc_topology_get_allowed_cpuset.argtypes = [topology_t]
+_LIB.hwloc_topology_get_allowed_cpuset.restype = hwloc_const_cpuset_t
+
+
+@_cfndoc
+def topology_get_allowed_cpuset(topology: topology_t) -> hwloc_const_cpuset_t:
+    return _LIB.hwloc_topology_get_allowed_cpuset(topology)
+
+
+_LIB.hwloc_topology_get_complete_nodeset.argtypes = [topology_t]
+_LIB.hwloc_topology_get_complete_nodeset.restype = hwloc_const_nodeset_t
+
+
+@_cfndoc
+def topology_get_complete_nodeset(topology: topology_t) -> hwloc_const_nodeset_t:
+    return _LIB.hwloc_topology_get_complete_nodeset(topology)
+
+
+_LIB.hwloc_topology_get_topology_nodeset.argtypes = [topology_t]
+_LIB.hwloc_topology_get_topology_nodeset.restype = hwloc_const_nodeset_t
+
+
+@_cfndoc
+def topology_get_topology_nodeset(topology: topology_t) -> hwloc_const_nodeset_t:
+    return _LIB.hwloc_topology_get_topology_nodeset(topology)
+
+
+_LIB.hwloc_topology_get_allowed_nodeset.argtypes = [topology_t]
+_LIB.hwloc_topology_get_allowed_nodeset.restype = hwloc_const_nodeset_t
+
+
+@_cfndoc
+def topology_get_allowed_nodeset(topology: topology_t) -> hwloc_const_nodeset_t:
+    return _LIB.hwloc_topology_get_allowed_nodeset(topology)
+
+
+###########################################
+# Converting between CPU sets and node sets
+###########################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00159.php
+
+
+_pyhwloc_lib.pyhwloc_cpuset_to_nodeset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    hwloc_nodeset_t,
+]
+_pyhwloc_lib.pyhwloc_cpuset_to_nodeset.restype = ctypes.c_int
+
+
+@_cfndoc
+def cpuset_to_nodeset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, nodeset: hwloc_nodeset_t
+) -> None:
+    _checkc(_pyhwloc_lib.pyhwloc_cpuset_to_nodeset(topology, cpuset, nodeset))
+
+
+_pyhwloc_lib.pyhwloc_cpuset_from_nodeset.argtypes = [
+    topology_t,
+    hwloc_cpuset_t,
+    hwloc_const_nodeset_t,
+]
+_pyhwloc_lib.pyhwloc_cpuset_from_nodeset.restype = ctypes.c_int
+
+
+@_cfndoc
+def cpuset_from_nodeset(
+    topology: topology_t, cpuset: hwloc_cpuset_t, nodeset: hwloc_const_nodeset_t
+) -> None:
+    _checkc(_pyhwloc_lib.pyhwloc_cpuset_from_nodeset(topology, cpuset, nodeset))
+
+
 #####################
 # Finding I/O objects
 #####################

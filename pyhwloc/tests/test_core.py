@@ -23,6 +23,7 @@ from pyhwloc.core import (
     bitmap_asprintf,
     bitmap_dup,
     bitmap_free,
+    bitmap_iszero,
     bitmap_set,
     bitmap_singlify,
     bridge_covers_pcibus,
@@ -31,6 +32,8 @@ from pyhwloc.core import (
     cpukinds_get_info,
     cpukinds_get_nr,
     cpukinds_register,
+    cpuset_from_nodeset,
+    cpuset_to_nodeset,
     get_api_version,
     get_cache_type_depth,
     get_depth_type,
@@ -64,8 +67,14 @@ from pyhwloc.core import (
     topology_dup,
     topology_export_synthetic,
     topology_export_xmlbuffer,
+    topology_get_allowed_cpuset,
+    topology_get_allowed_nodeset,
+    topology_get_complete_cpuset,
+    topology_get_complete_nodeset,
     topology_get_depth,
     topology_get_infos,
+    topology_get_topology_cpuset,
+    topology_get_topology_nodeset,
     topology_init,
     topology_load,
     topology_set_io_types_filter,
@@ -289,7 +298,6 @@ def test_depth_consistency() -> None:
 
 
 def test_get_root_obj() -> None:
-    """Test the get_root_obj function. Some additional checks for exposed structs."""
     topo = Topology()
 
     # Get the root object
@@ -344,7 +352,6 @@ def test_get_root_obj() -> None:
 
 
 def test_kinds_of_object_type() -> None:
-    """Simple test for obj_type_is_normal function wrapper."""
     # Test normal object types
     normal_types = [
         hwloc_obj_type_t.HWLOC_OBJ_MACHINE,
@@ -484,7 +491,6 @@ def test_example() -> None:
 
 
 def test_bridge_covers_pcibus() -> None:
-    """Test the bridge_covers_pcibus function."""
     # Create a topology with I/O devices enabled
     topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
@@ -543,7 +549,6 @@ def test_topology_export_synthetic() -> None:
 
 
 def test_cpukinds_get_info() -> None:
-    """Test the cpukinds_get_nr function."""
     topo = Topology()
 
     nr_kinds = cpukinds_get_nr(topo.hdl, 0)
@@ -714,3 +719,62 @@ def test_get_cache_type_depth() -> None:
     )
     assert isinstance(l1_inst_depth, int)
     assert l1_inst_depth >= -1
+
+
+###########################################
+# Converting between CPU sets and node sets
+###########################################
+
+
+def test_cpuset_nodeset_conversion() -> None:
+    topo = Topology()
+
+    # Allocate bitmaps for testing
+    original_cpuset = bitmap_alloc()
+    converted_nodeset = bitmap_alloc()
+    roundtrip_cpuset = bitmap_alloc()
+
+    # Create a test CPU set (set CPU 0)
+    bitmap_set(original_cpuset, 0)
+
+    cpuset_to_nodeset(topo.hdl, original_cpuset, converted_nodeset)
+    cpuset_from_nodeset(topo.hdl, roundtrip_cpuset, converted_nodeset)
+
+    bitmap_free(original_cpuset)
+    bitmap_free(converted_nodeset)
+    bitmap_free(roundtrip_cpuset)
+
+
+########################################
+# CPU and node sets of entire topologies
+########################################
+
+
+def test_topology_get_cpuset() -> None:
+    topo = Topology()
+
+    cpuset = topology_get_complete_cpuset(topo.hdl)
+    assert cpuset is not None
+    assert not bitmap_iszero(cpuset)
+
+    cpuset = topology_get_topology_cpuset(topo.hdl)
+    assert cpuset is not None
+    assert not bitmap_iszero(cpuset)
+
+    cpuset = topology_get_allowed_cpuset(topo.hdl)
+    assert cpuset is not None
+    assert not bitmap_iszero(cpuset)
+
+
+def test_topology_get_nodeset() -> None:
+    topo = Topology()
+    nodeset = topology_get_complete_nodeset(topo.hdl)
+    assert not bitmap_iszero(nodeset)
+
+    nodeset = topology_get_topology_cpuset(topo.hdl)
+    assert nodeset is not None
+    assert not bitmap_iszero(nodeset)
+
+    nodeset = topology_get_allowed_cpuset(topo.hdl)
+    assert nodeset is not None
+    assert not bitmap_iszero(nodeset)

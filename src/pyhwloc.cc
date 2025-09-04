@@ -137,4 +137,60 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_shared_cache_covering_obj(
     hwloc_topology_t topology __hwloc_attribute_unused, hwloc_obj_t obj) {
   return hwloc_get_shared_cache_covering_obj(topology, obj);
 }
+
+// Finding objects, miscellaneous helpers
+PYHWLOC_EXPORT int pyhwloc_bitmap_singlify_per_core(hwloc_topology_t topology,
+                                                    hwloc_bitmap_t cpuset,
+                                                    unsigned which) {
+  return hwloc_bitmap_singlify_per_core(topology, cpuset, which);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t
+pyhwloc_get_pu_obj_by_os_index(hwloc_topology_t topology, unsigned os_index) {
+  return hwloc_get_pu_obj_by_os_index(topology, os_index);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_numanode_obj_by_os_index(
+    hwloc_topology_t topology, unsigned os_index) {
+  return hwloc_get_numanode_obj_by_os_index(topology, os_index);
+}
+
+PYHWLOC_EXPORT unsigned pyhwloc_get_closest_objs(hwloc_topology_t topology,
+                                                 hwloc_obj_t src,
+                                                 hwloc_obj_t *objs,
+                                                 unsigned max) {
+  return hwloc_get_closest_objs(topology, src, objs, max);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_below_by_type(
+    hwloc_topology_t topology, hwloc_obj_type_t type1, unsigned idx1,
+    hwloc_obj_type_t type2, unsigned idx2) {
+  return hwloc_get_obj_below_by_type(topology, type1, idx1, type2, idx2);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t
+pyhwloc_get_obj_below_array_by_type(hwloc_topology_t topology, int nr,
+                                    hwloc_obj_type_t *typev, unsigned *idxv) {
+  return hwloc_get_obj_below_array_by_type(topology, nr, typev, idxv);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_with_same_locality(
+    hwloc_topology_t topology, hwloc_obj_t src, hwloc_obj_type_t type,
+    const char *subtype, const char *nameprefix, unsigned long flags) {
+  return hwloc_get_obj_with_same_locality(topology, src, type, subtype,
+                                          nameprefix, flags);
+}
+
+// Converting between CPU sets and node sets
+PYHWLOC_EXPORT int pyhwloc_cpuset_to_nodeset(hwloc_topology_t topology,
+                                             hwloc_const_cpuset_t cpuset,
+                                             hwloc_nodeset_t nodeset) {
+  return hwloc_cpuset_to_nodeset(topology, cpuset, nodeset);
+}
+
+PYHWLOC_EXPORT int pyhwloc_cpuset_from_nodeset(hwloc_topology_t topology,
+                                               hwloc_cpuset_t cpuset,
+                                               hwloc_const_nodeset_t nodeset) {
+  return hwloc_cpuset_from_nodeset(topology, cpuset, nodeset);
+}
 }
