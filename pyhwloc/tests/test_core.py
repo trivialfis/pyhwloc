@@ -29,19 +29,15 @@ from pyhwloc.core import (
     get_depth_type,
     get_memory_parents_depth,
     get_nbobjs_by_depth,
-    get_nbobjs_by_type,
     get_next_bridge,
-    get_next_obj_by_depth,
-    get_next_obj_by_type,
     get_obj_by_depth,
-    get_obj_by_type,
     get_root_obj,
     get_type_depth,
     get_type_or_above_depth,
     get_type_or_below_depth,
     hwloc_obj_attr_u,
-    hwloc_obj_type_string,
     hwloc_obj_type_t,
+    hwloc_topology_export_xml_flags_e,
     hwloc_type_filter_e,
     obj_attr_snprintf,
     obj_type_snprintf,
@@ -50,6 +46,7 @@ from pyhwloc.core import (
     topology_check,
     topology_destroy,
     topology_dup,
+    topology_export_xmlbuffer,
     topology_get_depth,
     topology_get_infos,
     topology_init,
@@ -458,3 +455,11 @@ def test_bridge_covers_pcibus() -> None:
     # Test with clearly invalid domain/bus combinations
     result_invalid = bridge_covers_pcibus(bridge, 0xFFFF, 0xFFFF)
     assert isinstance(result_invalid, int)
+
+
+def test_topology_export_xmlbuffer() -> None:
+    topo = Topology()
+    result = topology_export_xmlbuffer(
+        topo.hdl, hwloc_topology_export_xml_flags_e.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2
+    )
+    assert """<!DOCTYPE topology SYSTEM "hwloc2.dtd">""" in result

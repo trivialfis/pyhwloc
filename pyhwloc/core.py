@@ -1346,6 +1346,152 @@ def bitmap_compare(bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t)
     return _LIB.hwloc_bitmap_compare(bitmap1, bitmap2)
 
 
+#############################
+# Exporting Topologies to XML
+#############################
+
+
+@_cenumdoc
+class hwloc_topology_export_xml_flags_e(IntEnum):
+    HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2 = 1 << 1
+
+
+_LIB.hwloc_topology_export_xml.argtypes = [topology_t, ctypes.c_char_p, ctypes.c_ulong]
+_LIB.hwloc_topology_export_xml.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_export_xml(topology: topology_t, xmlpath: str, flags: int) -> None:
+    _checkc(_LIB.hwloc_topology_export_xml(topology, xmlpath.encode("utf-8"), flags))
+
+
+_LIB.hwloc_topology_export_xmlbuffer.argtypes = [
+    topology_t,
+    ctypes.POINTER(ctypes.c_char_p),
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.c_ulong,
+]
+_LIB.hwloc_topology_export_xmlbuffer.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_export_xmlbuffer(topology: topology_t, flags: int) -> str:
+    xmlbuffer = ctypes.c_char_p()
+    buflen = ctypes.c_int()
+    _checkc(
+        _LIB.hwloc_topology_export_xmlbuffer(
+            topology, ctypes.byref(xmlbuffer), ctypes.byref(buflen), flags
+        )
+    )
+    result = xmlbuffer.value.decode("utf-8") if xmlbuffer.value else ""
+    _LIB.hwloc_free_xmlbuffer(topology, xmlbuffer)
+    return result
+
+
+_LIB.hwloc_free_xmlbuffer.argtypes = [topology_t, ctypes.c_char_p]
+_LIB.hwloc_free_xmlbuffer.restype = None
+
+
+@_cfndoc
+def free_xmlbuffer(topology: topology_t, xmlbuffer: ctypes.c_char_p) -> None:
+    _LIB.hwloc_free_xmlbuffer(topology, xmlbuffer)
+
+
+export_callback_t = ctypes.CFUNCTYPE(
+    None, ctypes.c_void_p, topology_t, ctypes.POINTER(hwloc_obj)
+)
+
+_LIB.hwloc_topology_set_userdata_export_callback.argtypes = [
+    topology_t,
+    export_callback_t,
+]
+_LIB.hwloc_topology_set_userdata_export_callback.restype = None
+
+
+@_cfndoc
+def topology_set_userdata_export_callback(
+    topology: topology_t, export_cb: Callable
+) -> None:
+    _LIB.hwloc_topology_set_userdata_export_callback(topology, export_cb)
+
+
+_LIB.hwloc_export_obj_userdata.argtypes = [
+    ctypes.c_void_p,
+    topology_t,
+    ctypes.POINTER(hwloc_obj),
+    ctypes.c_char_p,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+]
+_LIB.hwloc_export_obj_userdata.restype = ctypes.c_int
+
+
+@_cfndoc
+def export_obj_userdata(
+    reserved: ctypes.c_void_p,
+    topology: topology_t,
+    obj: ObjType,
+    name: str,
+    buf: ctypes.c_void_p,
+    length: int,
+) -> None:
+    _checkc(
+        _LIB.hwloc_export_obj_userdata(
+            reserved, topology, obj, name.encode("utf-8"), buf, length
+        )
+    )
+
+
+_LIB.hwloc_export_obj_userdata_base64.argtypes = [
+    ctypes.c_void_p,
+    topology_t,
+    ctypes.POINTER(hwloc_obj),
+    ctypes.c_char_p,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+]
+_LIB.hwloc_export_obj_userdata_base64.restype = ctypes.c_int
+
+
+@_cfndoc
+def export_obj_userdata_base64(
+    reserved: ctypes.c_void_p,
+    topology: topology_t,
+    obj: ObjType,
+    name: str,
+    buffer: ctypes.c_void_p,
+    length: int,
+) -> None:
+    _checkc(
+        _LIB.hwloc_export_obj_userdata_base64(
+            reserved, topology, obj, name.encode("utf-8"), buffer, length
+        )
+    )
+
+
+import_callback_t = ctypes.CFUNCTYPE(
+    None,
+    topology_t,
+    ctypes.POINTER(hwloc_obj),
+    ctypes.c_char_p,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+)
+
+_LIB.hwloc_topology_set_userdata_import_callback.argtypes = [
+    topology_t,
+    import_callback_t,
+]
+_LIB.hwloc_topology_set_userdata_import_callback.restype = None
+
+
+@_cfndoc
+def topology_set_userdata_import_callback(
+    topology: topology_t, import_cb: Callable
+) -> None:
+    _LIB.hwloc_topology_set_userdata_import_callback(topology, import_cb)
+
+
 @_cfndoc
 def get_type_or_below_depth(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
     return _pyhwloc_lib.pyhwloc_get_type_or_below_depth(topology, obj_type)
