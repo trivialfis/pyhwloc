@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
+
 import ctypes
 import os
 from ctypes.util import find_library
@@ -24,7 +26,7 @@ def normpath(path: str) -> str:
 
 
 prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
-_LIB = ctypes.CDLL(os.path.join("libhwloc.so"), use_errno=True)
+_LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
 
 hwloc_bitmap_t = ctypes.c_void_p
 hwloc_const_bitmap_t = ctypes.c_void_p
@@ -207,6 +209,12 @@ class hwloc_infos_s(ctypes.Structure):
         ("count", ctypes.c_uint),
         ("allocated", ctypes.c_uint),
     ]
+
+
+if TYPE_CHECKING:
+    InfosPtr = ctypes._Pointer[hwloc_infos_s]
+else:
+    InfosPtr = ctypes._Pointer
 
 
 class hwloc_memory_page_type_s(ctypes.Structure):
@@ -681,6 +689,55 @@ def type_sscanf_as_depth(
     )
 
     return hwloc_obj_type_t(typep.value), depthp.value
+
+
+#######################################
+# Consulting and Adding Info Attributes
+#######################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00145.php
+
+
+_pyhwloc_lib.pyhwloc_get_info_by_name.argtypes = [
+    ctypes.POINTER(hwloc_infos_s),
+    ctypes.c_char_p,
+]
+_pyhwloc_lib.pyhwloc_get_info_by_name.restype = ctypes.c_char_p
+
+
+@_cfndoc
+def obj_get_info_by_name(obj: ObjType, name: str) -> str | None:
+    name_bytes = name.encode("utf-8")
+    result = _pyhwloc_lib.pyhwloc_get_info_by_name(
+        ctypes.byref(obj.contents.infos), name_bytes
+    )
+    if result:
+        return result.decode("utf-8")
+    return None
+
+
+_pyhwloc_lib.pyhwloc_obj_add_info.argtypes = [obj_t, ctypes.c_char_p, ctypes.c_char_p]
+_pyhwloc_lib.pyhwloc_obj_add_info.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_add_info(obj: ObjType, name: str, value: str) -> None:
+    if not name or not value:
+        raise ValueError("name and value must be non-empty strings")
+
+    name_bytes = name.encode("utf-8")
+    value_bytes = value.encode("utf-8")
+    _checkc(_pyhwloc_lib.pyhwloc_obj_add_info(obj, name_bytes, value_bytes))
+
+
+_LIB.hwloc_obj_set_subtype.argtypes = [topology_t, obj_t, ctypes.c_char_p]
+_LIB.hwloc_obj_set_subtype.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_set_subtype(topology: topology_t, obj: ObjType, subtype: str) -> None:
+    subtype_bytes = subtype.encode("utf-8")
+    _checkc(_LIB.hwloc_obj_set_subtype(topology, obj, subtype_bytes))
 
 
 #####################
@@ -1497,17 +1554,12 @@ def get_type_or_below_depth(topology: topology_t, obj_type: hwloc_obj_type_t) ->
     return _pyhwloc_lib.pyhwloc_get_type_or_below_depth(topology, obj_type)
 
 
-if TYPE_CHECKING:
-    PInfosType = ctypes._Pointer[hwloc_infos_s]
-else:
-    PInfosType = ctypes._Pointer
-
 _LIB.hwloc_topology_get_infos.argtypes = [topology_t]
 _LIB.hwloc_topology_get_infos.restype = ctypes.POINTER(hwloc_infos_s)
 
 
 @_cfndoc
-def topology_get_infos(topology: topology_t) -> PInfosType:
+def topology_get_infos(topology: topology_t) -> InfosPtr:
     infos = _LIB.hwloc_topology_get_infos(topology)
     return infos
 
@@ -1708,52 +1760,6 @@ def topology_set_io_types_filter(
 # void 	hwloc_topology_set_userdata (hwloc_topology_t topology, const void *userdata)
 
 # void * 	hwloc_topology_get_userdata (hwloc_topology_t topology)
-
-#######################################
-# Consulting and Adding Info Attributes
-#######################################
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00145.php
-
-
-_pyhwloc_lib.pyhwloc_get_info_by_name.argtypes = [obj_t, ctypes.c_char_p]
-_pyhwloc_lib.pyhwloc_get_info_by_name.restype = ctypes.c_char_p
-
-
-@_cfndoc
-def obj_get_info_by_name(obj: ObjType, name: str) -> str | None:
-    name_bytes = name.encode("utf-8")
-    # hwloc_obj_get_info_by_name is an inlined function, this is exactly how it's
-    # implemented in the C header.
-    result = _LIB.hwloc_get_info_by_name(ctypes.byref(obj.contents.infos), name_bytes)
-    if result:
-        return result.decode("utf-8")
-    return None
-
-
-_pyhwloc_lib.pyhwloc_obj_add_info.argtypes = [obj_t, ctypes.c_char_p, ctypes.c_char_p]
-_pyhwloc_lib.pyhwloc_obj_add_info.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_add_info(obj: ObjType, name: str, value: str) -> None:
-    if not name or not value:
-        raise ValueError("name and value must be non-empty strings")
-
-    name_bytes = name.encode("utf-8")
-    value_bytes = value.encode("utf-8")
-    _checkc(_LIB.hwloc_obj_add_info(obj, name_bytes, value_bytes))
-
-
-_LIB.hwloc_obj_set_subtype.argtypes = [topology_t, obj_t, ctypes.c_char_p]
-_LIB.hwloc_obj_set_subtype.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_set_subtype(topology: topology_t, obj: ObjType, subtype: str) -> None:
-    subtype_bytes = subtype.encode("utf-8")
-    _checkc(_LIB.hwloc_obj_set_subtype(topology, obj, subtype_bytes))
-
 
 #############
 # CPU binding
@@ -2230,12 +2236,6 @@ _LIB.hwloc_cpukinds_get_info.argtypes = [
     ctypes.c_ulong,
 ]
 _LIB.hwloc_cpukinds_get_info.restype = ctypes.c_int
-
-
-if TYPE_CHECKING:
-    InfosPtr = ctypes._Pointer[hwloc_infos_s]
-else:
-    InfosPtr = ctypes._Pointer
 
 
 @_cfndoc

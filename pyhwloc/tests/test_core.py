@@ -47,7 +47,10 @@ from pyhwloc.core import (
     hwloc_obj_type_t,
     hwloc_topology_export_xml_flags_e,
     hwloc_type_filter_e,
+    obj_add_info,
     obj_attr_snprintf,
+    obj_get_info_by_name,
+    obj_set_subtype,
     obj_type_snprintf,
     set_cpubind,
     topology_abi_check,
@@ -556,3 +559,69 @@ def test_cpukinds_register_empty_infos() -> None:
     assert new_nr_kinds == initial_nr_kinds + 1
 
     bitmap_free(test_cpuset)
+
+
+#######################################
+# Consulting and Adding Info Attributes
+#######################################
+
+
+def test_obj_get_info_by_name() -> None:
+    topo = Topology()
+
+    # Get the root object
+    root_obj = get_root_obj(topo.hdl)
+    assert root_obj is not None
+
+    # Test getting existing info (root object typically has OS-related info)
+    # Try common info keys that are usually present
+    os_name = obj_get_info_by_name(root_obj, "OSName")
+    if os_name is not None:
+        assert isinstance(os_name, str)
+        assert len(os_name) > 0
+
+    # Test getting non-existent info
+    non_existent = obj_get_info_by_name(root_obj, "NonExistentKey")
+    assert non_existent is None
+
+    # Test with empty string key
+    empty_key_result = obj_get_info_by_name(root_obj, "")
+    assert empty_key_result is None
+
+
+def test_obj_add_info() -> None:
+    topo = Topology()
+
+    # Get the root object
+    root_obj = get_root_obj(topo.hdl)
+    assert root_obj is not None
+
+    # FIXME(jiamingy): Permission error, but the key is added.
+    with pytest.raises(HwLocError, match="Permission denied"):
+        obj_add_info(root_obj, "TestName", "TestValue")
+
+    value = obj_get_info_by_name(root_obj, "TestName")
+    assert value == "TestValue"
+
+
+def test_obj_set_subtype() -> None:
+    topo = Topology()
+
+    # Get the root object
+    root_obj = get_root_obj(topo.hdl)
+    assert root_obj is not None
+
+    # Test setting a basic subtype
+    test_subtype = "TestSubtype"
+    obj_set_subtype(topo.hdl, root_obj, test_subtype)
+
+    assert root_obj.contents.subtype is not None
+    retrieved_subtype = ctypes.string_at(root_obj.contents.subtype).decode("utf-8")
+    assert retrieved_subtype == test_subtype
+
+    # Test setting a different subtype.
+    new_subtype = "NewSubtype"
+    obj_set_subtype(topo.hdl, root_obj, new_subtype)
+
+    updated_subtype = ctypes.string_at(root_obj.contents.subtype).decode("utf-8")
+    assert updated_subtype == new_subtype
