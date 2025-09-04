@@ -16,7 +16,7 @@ import ctypes
 
 import pytest
 
-from pyhwloc.core import (  # _obj_t_get_cpuset,
+from pyhwloc.core import (
     HwLocError,
     _free,
     bitmap_asprintf,
@@ -37,7 +37,7 @@ from pyhwloc.core import (  # _obj_t_get_cpuset,
     get_type_depth,
     get_type_or_above_depth,
     get_type_or_below_depth,
-    hwloc_get_type_depth_e,
+    hwloc_obj_attr_u,
     hwloc_obj_type_string,
     hwloc_obj_type_t,
     hwloc_type_filter_e,
@@ -54,6 +54,8 @@ from pyhwloc.core import (  # _obj_t_get_cpuset,
     topology_load,
     topology_set_io_types_filter,
     topology_t,
+    type_sscanf,
+    type_sscanf_as_depth,
 )
 
 
@@ -318,6 +320,76 @@ def test_get_root_obj() -> None:
     # Root object should have valid cpuset and nodeset
     assert root_obj.contents.cpuset is not None
     assert root_obj.contents.nodeset is not None
+
+
+#############################################################
+# Converting between Object Types and Attributes, and Strings
+#############################################################
+
+
+def test_type_sscanf_functions() -> None:
+    topo = Topology()
+
+    # Test parsing basic object type strings
+    test_cases = ["Machine", "Package", "Core", "PU", "L1Cache", "L2Cache", "L3Cache"]
+
+    for type_str in test_cases:
+        # Test type_sscanf without attributes
+        obj_type, attr = type_sscanf(type_str)
+        assert isinstance(obj_type, hwloc_obj_type_t)
+        assert attr is not None
+        # The depth should be reliable. Other info like size is set to 0 for some reason
+        if obj_type == hwloc_obj_type_t.HWLOC_OBJ_L1CACHE:
+            assert attr.cache.depth == 1
+        if obj_type == hwloc_obj_type_t.HWLOC_OBJ_L2CACHE:
+            assert attr.cache.depth == 2
+        if obj_type == hwloc_obj_type_t.HWLOC_OBJ_L3CACHE:
+            assert attr.cache.depth == 3
+        # Test type_sscanf_as_depth
+        obj_type_depth, depth = type_sscanf_as_depth(type_str, topo.hdl)
+        assert isinstance(obj_type_depth, hwloc_obj_type_t)
+        assert isinstance(depth, int)
+
+        assert obj_type == obj_type_depth
+
+    # Test invalid string
+    with pytest.raises(HwLocError):
+        type_sscanf("FooBar")
+
+
+def test_hwloc_obj_attr_u_union() -> None:
+    # Test creating and accessing the union
+    attr_union = hwloc_obj_attr_u()
+
+    # Test cache attributes
+    attr_union.cache.size = 32768  # 32KB cache
+    attr_union.cache.depth = 1  # L1 cache
+    attr_union.cache.linesize = 64  # 64-byte cache lines
+    attr_union.cache.associativity = 8  # 8-way associative
+    attr_union.cache.type = 0  # hwloc_obj_cache_type_t.HWLOC_OBJ_CACHE_UNIFIED
+
+    assert attr_union.cache.size == 32768
+    assert attr_union.cache.depth == 1
+    assert attr_union.cache.linesize == 64
+    assert attr_union.cache.associativity == 8
+    assert attr_union.cache.type == 0
+
+    # Test PCI device attributes
+    attr_union.pcidev.domain = 0
+    attr_union.pcidev.bus = 1
+    attr_union.pcidev.dev = 0
+    attr_union.pcidev.func = 0
+    attr_union.pcidev.vendor_id = 0x10DE  # NVIDIA
+    attr_union.pcidev.device_id = 0x1234
+    attr_union.pcidev.class_id = 0x0300  # Display controller
+
+    assert attr_union.pcidev.domain == 0
+    assert attr_union.pcidev.bus == 1
+    assert attr_union.pcidev.dev == 0
+    assert attr_union.pcidev.func == 0
+    assert attr_union.pcidev.vendor_id == 0x10DE
+    assert attr_union.pcidev.device_id == 0x1234
+    assert attr_union.pcidev.class_id == 0x0300
 
 
 def find_numa_depth() -> int:

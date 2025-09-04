@@ -209,8 +209,136 @@ class hwloc_infos_s(ctypes.Structure):
     ]
 
 
+class hwloc_memory_page_type_s(ctypes.Structure):
+    _fields_ = [
+        ("size", hwloc_uint64_t),  # Size of pages
+        ("count", hwloc_uint64_t),  # Number of pages of this size
+    ]
+
+
+class hwloc_numanode_attr_s(ctypes.Structure):
+    _fields_ = [
+        ("local_memory", hwloc_uint64_t),  # Local memory (in bytes)
+        ("page_types_len", ctypes.c_uint),  # Size of array page_types
+        (
+            "page_types",
+            ctypes.POINTER(hwloc_memory_page_type_s),
+        ),  # Array of local memory page types
+    ]
+
+
+class hwloc_cache_attr_s(ctypes.Structure):
+    _fields_ = [
+        ("size", hwloc_uint64_t),  # Size of cache in bytes
+        ("depth", ctypes.c_uint),  # Depth of cache (e.g., L1, L2, ...etc.)
+        ("linesize", ctypes.c_uint),  # Cache-line size in bytes. 0 if unknown
+        (
+            "associativity",
+            ctypes.c_int,
+        ),  # Ways of associativity, -1 if fully associative, 0 if unknown
+        ("type", ctypes.c_int),  # hwloc_obj_cache_type_t - Cache type
+    ]
+
+
+class hwloc_group_attr_s(ctypes.Structure):
+    _fields_ = [
+        ("depth", ctypes.c_uint),  # Depth of group object
+        ("kind", ctypes.c_uint),  # Internally-used kind of group
+        (
+            "subkind",
+            ctypes.c_uint,
+        ),  # Internally-used subkind to distinguish different levels
+        (
+            "dont_merge",
+            ctypes.c_ubyte,
+        ),  # Flag preventing groups from being automatically merged
+    ]
+
+
+class hwloc_pcidev_attr_s(ctypes.Structure):
+    _fields_ = [
+        (
+            "domain",
+            ctypes.c_uint,
+        ),  # Domain number (xxxx in PCI BDF notation xxxx:yy:zz.t)
+        ("bus", ctypes.c_ubyte),  # Bus number (yy in PCI BDF notation xxxx:yy:zz.t)
+        ("dev", ctypes.c_ubyte),  # Device number (zz in PCI BDF notation xxxx:yy:zz.t)
+        (
+            "func",
+            ctypes.c_ubyte,
+        ),  # Function number (t in PCI BDF notation xxxx:yy:zz.t)
+        ("prog_if", ctypes.c_ubyte),  # Register-level programming interface number
+        (
+            "class_id",
+            ctypes.c_ushort,
+        ),  # The class number (first two bytes, without prog_if)
+        ("vendor_id", ctypes.c_ushort),  # Vendor ID (xxxx in [xxxx:yyyy])
+        ("device_id", ctypes.c_ushort),  # Device ID (yyyy in [xxxx:yyyy])
+        ("subvendor_id", ctypes.c_ushort),  # Sub-Vendor ID
+        ("subdevice_id", ctypes.c_ushort),  # Sub-Device ID
+        ("revision", ctypes.c_ubyte),  # Revision number
+        ("linkspeed", ctypes.c_float),  # Link speed in GB/s
+    ]
+
+
+class hwloc_bridge_upstream_u(ctypes.Union):
+    _fields_ = [
+        (
+            "pci",
+            hwloc_pcidev_attr_s,
+        ),  # PCI attribute of the upstream part as a PCI device
+    ]
+
+
+class hwloc_bridge_downstream_pci_s(ctypes.Structure):
+    _fields_ = [
+        ("domain", ctypes.c_uint),  # Domain number the downstream PCI buses
+        ("secondary_bus", ctypes.c_ubyte),  # First PCI bus number below the bridge
+        ("subordinate_bus", ctypes.c_ubyte),  # Highest PCI bus number below the bridge
+    ]
+
+
+class hwloc_bridge_downstream_u(ctypes.Union):
+    _fields_ = [
+        ("pci", hwloc_bridge_downstream_pci_s),
+    ]
+
+
+class hwloc_bridge_attr_s(ctypes.Structure):
+    _fields_ = [
+        ("upstream", hwloc_bridge_upstream_u),
+        (
+            "upstream_type",
+            ctypes.c_int,
+        ),  # hwloc_obj_bridge_type_t - Upstream Bridge type
+        ("downstream", hwloc_bridge_downstream_u),
+        (
+            "downstream_type",
+            ctypes.c_int,
+        ),  # hwloc_obj_bridge_type_t - Downstream Bridge type
+        ("depth", ctypes.c_uint),
+    ]
+
+
+class hwloc_osdev_attr_s(ctypes.Structure):
+    _fields_ = [
+        (
+            "types",
+            ctypes.c_int,
+        ),  # hwloc_obj_osdev_types_t - OR'ed set of at least one hwloc_obj_osdev_type_e
+    ]
+
+
+# Main attribute union
 class hwloc_obj_attr_u(ctypes.Union):
-    pass
+    _fields_ = [
+        ("numanode", hwloc_numanode_attr_s),  # NUMA node-specific Object Attributes
+        ("cache", hwloc_cache_attr_s),  # Cache-specific Object Attributes
+        ("group", hwloc_group_attr_s),  # Group-specific Object Attributes
+        ("pcidev", hwloc_pcidev_attr_s),  # PCI Device specific Object Attributes
+        ("bridge", hwloc_bridge_attr_s),  # Bridge specific Object Attributes
+        ("osdev", hwloc_osdev_attr_s),  # OS Device specific Object Attributes
+    ]
 
 
 class hwloc_obj(ctypes.Structure):
@@ -454,6 +582,106 @@ def get_obj_by_depth(topology: topology_t, depth: int, idx: int) -> ObjType:
 
 _LIB.hwloc_bitmap_dup.argtypes = [bitmap_t]
 _LIB.hwloc_bitmap_dup.restype = bitmap_t
+
+#############################################################
+# Converting between Object Types and Attributes, and Strings
+#############################################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00144.php#ga6a38b931e5d45e8af4323a169482fe39
+
+_LIB.hwloc_obj_type_string.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_string.restype = ctypes.c_char_p
+
+
+@_cfndoc
+def hwloc_obj_type_string(obj_type: hwloc_obj_type_t) -> bytes:
+    return _LIB.hwloc_obj_type_string(obj_type).value
+
+
+_LIB.hwloc_obj_type_snprintf.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    obj_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_obj_type_snprintf.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_type_snprintf(
+    string: ctypes.c_char_p | ctypes.Array, size: int, obj: ObjType, verbose: int
+) -> int:
+    return _LIB.hwloc_obj_type_snprintf(string, size, obj, verbose)
+
+
+_LIB.hwloc_obj_attr_snprintf.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    obj_t,
+    ctypes.c_char_p,
+    ctypes.c_int,
+]
+_LIB.hwloc_obj_attr_snprintf.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_attr_snprintf(
+    string: ctypes.c_char_p | ctypes.Array,
+    size: int,
+    obj: ObjType,
+    separator: ctypes.c_char_p | bytes,
+    verbose: int,
+) -> int:
+    return _LIB.hwloc_obj_attr_snprintf(string, size, obj, separator, verbose)
+
+
+_LIB.hwloc_type_sscanf.argtypes = [
+    ctypes.c_char_p,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.POINTER(hwloc_obj_attr_u),
+    ctypes.c_size_t,
+]
+_LIB.hwloc_type_sscanf.restype = ctypes.c_int
+
+
+@_cfndoc
+def type_sscanf(string: str) -> tuple[hwloc_obj_type_t, hwloc_obj_attr_u | None]:
+    string_bytes = string.encode("utf-8")
+    typep = ctypes.c_int()
+
+    attrp = hwloc_obj_attr_u()
+    result = _LIB.hwloc_type_sscanf(
+        string_bytes, ctypes.byref(typep), ctypes.byref(attrp), ctypes.sizeof(attrp)
+    )
+    _checkc(result)
+    return hwloc_obj_type_t(typep.value), attrp
+
+
+_LIB.hwloc_type_sscanf_as_depth.argtypes = [
+    ctypes.c_char_p,
+    ctypes.POINTER(ctypes.c_int),
+    topology_t,
+    ctypes.POINTER(ctypes.c_int),
+]
+_LIB.hwloc_type_sscanf_as_depth.restype = ctypes.c_int
+
+
+@_cfndoc
+def type_sscanf_as_depth(
+    string: str, topology: topology_t
+) -> tuple[hwloc_obj_type_t, int]:
+    string_bytes = string.encode("utf-8")
+    typep = ctypes.c_int()
+    depthp = ctypes.c_int()
+
+    _checkc(
+        _LIB.hwloc_type_sscanf_as_depth(
+            string_bytes, ctypes.byref(typep), topology, ctypes.byref(depthp)
+        )
+    )
+
+    return hwloc_obj_type_t(typep.value), depthp.value
+
 
 ################
 # The bitmap API
@@ -1247,58 +1475,6 @@ def topology_set_io_types_filter(
 # void 	hwloc_topology_set_userdata (hwloc_topology_t topology, const void *userdata)
 
 # void * 	hwloc_topology_get_userdata (hwloc_topology_t topology)
-
-#############################################################
-# Converting between Object Types and Attributes, and Strings
-#############################################################
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00144.php#ga6a38b931e5d45e8af4323a169482fe39
-
-_LIB.hwloc_obj_type_string.argtypes = [ctypes.c_int]
-_LIB.hwloc_obj_type_string.restype = ctypes.c_char_p
-
-
-@_cfndoc
-def hwloc_obj_type_string(obj_type: hwloc_obj_type_t) -> bytes:
-    return _LIB.hwloc_obj_type_string(obj_type).value
-
-
-_LIB.hwloc_obj_type_snprintf.argtypes = [
-    ctypes.c_char_p,
-    ctypes.c_size_t,
-    obj_t,
-    ctypes.c_int,
-]
-_LIB.hwloc_obj_type_snprintf.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_type_snprintf(
-    string: ctypes.c_char_p | ctypes.Array, size: int, obj: ObjType, verbose: int
-) -> int:
-    return _LIB.hwloc_obj_type_snprintf(string, size, obj, verbose)
-
-
-_LIB.hwloc_obj_attr_snprintf.argtypes = [
-    ctypes.c_char_p,
-    ctypes.c_size_t,
-    obj_t,
-    ctypes.c_char_p,
-    ctypes.c_int,
-]
-_LIB.hwloc_obj_attr_snprintf.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_attr_snprintf(
-    string: ctypes.c_char_p | ctypes.Array,
-    size: int,
-    obj: ObjType,
-    separator: ctypes.c_char_p | bytes,
-    verbose: int,
-) -> int:
-    return _LIB.hwloc_obj_attr_snprintf(string, size, obj, separator, verbose)
-
 
 #######################################
 # Consulting and Adding Info Attributes
