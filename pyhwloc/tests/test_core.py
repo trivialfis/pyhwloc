@@ -38,8 +38,11 @@ from pyhwloc.core import (  # _obj_t_get_cpuset,
     get_type_or_above_depth,
     get_type_or_below_depth,
     hwloc_get_type_depth_e,
+    hwloc_obj_type_string,
     hwloc_obj_type_t,
     hwloc_type_filter_e,
+    obj_attr_snprintf,
+    obj_type_snprintf,
     set_cpubind,
     topology_abi_check,
     topology_check,
@@ -265,6 +268,56 @@ def test_depth_consistency() -> None:
         # If type_depth is a normal depth (not special value), it should match
         if type_depth >= 0:
             assert type_depth == depth
+
+
+def test_get_root_obj() -> None:
+    """Test the get_root_obj function. Some additional checks for exposed structs."""
+    topo = Topology()
+
+    # Get the root object
+    root_obj = get_root_obj(topo.hdl)
+
+    # Root object should not be None
+    assert root_obj is not None
+
+    # Root object should be at depth 0
+    assert root_obj.contents.depth == 0
+
+    # Root object should be of type MACHINE
+    assert root_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_MACHINE
+
+    buf = ctypes.create_string_buffer(1024)
+    length = obj_type_snprintf(buf, 256, root_obj, 1)
+    assert buf.value.decode("utf-8") == "Machine" and len("Machine") == length
+    obj_attr_snprintf(buf, 1024, root_obj, b"\n", 1)
+    assert buf.value.decode("utf-8").find("DMIChassisType") != -1
+
+    # Root object should have no parent
+    parent = ctypes.cast(root_obj.contents.parent, ctypes.c_void_p)
+    assert parent.value is None
+
+    # Root object should be the same as getting object at depth 0, index 0
+    depth_0_obj = get_obj_by_depth(topo.hdl, 0, 0)
+    assert depth_0_obj is not None
+    assert root_obj.contents.type == depth_0_obj.contents.type
+    assert root_obj.contents.depth == depth_0_obj.contents.depth
+
+    # Root should have children (unless it's a very simple topology)
+    total_depth = topology_get_depth(topo.hdl)
+    if total_depth > 1:
+        assert root_obj.contents.arity > 0
+        assert root_obj.contents.first_child is not None
+
+        # First child should have root as parent
+        first_child = root_obj.contents.first_child
+        assert (
+            ctypes.cast(root_obj, ctypes.c_void_p).value
+            == ctypes.cast(first_child.contents.parent, ctypes.c_void_p).value
+        )
+
+    # Root object should have valid cpuset and nodeset
+    assert root_obj.contents.cpuset is not None
+    assert root_obj.contents.nodeset is not None
 
 
 def find_numa_depth() -> int:

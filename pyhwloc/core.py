@@ -1274,7 +1274,7 @@ _LIB.hwloc_obj_type_snprintf.restype = ctypes.c_int
 
 @_cfndoc
 def obj_type_snprintf(
-    string: ctypes.c_char_p, size: int, obj: ObjType, verbose: int
+    string: ctypes.c_char_p | ctypes.Array, size: int, obj: ObjType, verbose: int
 ) -> int:
     return _LIB.hwloc_obj_type_snprintf(string, size, obj, verbose)
 
@@ -1291,10 +1291,10 @@ _LIB.hwloc_obj_attr_snprintf.restype = ctypes.c_int
 
 @_cfndoc
 def obj_attr_snprintf(
-    string: ctypes.c_char_p,
+    string: ctypes.c_char_p | ctypes.Array,
     size: int,
     obj: ObjType,
-    separator: ctypes.c_char_p,
+    separator: ctypes.c_char_p | bytes,
     verbose: int,
 ) -> int:
     return _LIB.hwloc_obj_attr_snprintf(string, size, obj, separator, verbose)
