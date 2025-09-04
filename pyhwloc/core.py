@@ -24,7 +24,7 @@ def normpath(path: str) -> str:
 
 
 prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
-_LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
+_LIB = ctypes.CDLL(os.path.join("libhwloc.so"), use_errno=True)
 
 hwloc_bitmap_t = ctypes.c_void_p
 hwloc_const_bitmap_t = ctypes.c_void_p
@@ -186,71 +186,12 @@ def compare_types(type1: hwloc_obj_type_t, type2: hwloc_obj_type_t) -> int:
     return _LIB.hwloc_compare_types(type1, type2)
 
 
-###################################
-# Topology Creation and Destruction
-###################################
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00142.php#ga9d1e76ee15a7dee158b786c30b6a6e38
-
-topology_t = ctypes.c_void_p
-
-
-@_cfndoc
-def topology_init(topology: topology_t) -> None:
-    _checkc(_LIB.hwloc_topology_init(ctypes.byref(topology)))
-
-
-@_cfndoc
-def topology_load(topology: topology_t) -> None:
-    _checkc(_LIB.hwloc_topology_load(topology))
-
-
-@_cfndoc
-def topology_destroy(topology: topology_t) -> None:
-    _LIB.hwloc_topology_destroy(topology)
-
-
-_LIB.hwloc_topology_dup.argtypes = [ctypes.POINTER(topology_t), topology_t]
-_LIB.hwloc_topology_dup.restype = ctypes.c_int
-
-
-@_cfndoc
-def topology_dup(topology: topology_t) -> topology_t:
-    new = topology_t()
-    _checkc(_LIB.hwloc_topology_dup(ctypes.byref(new), topology))
-    return new
-
-
-@_cfndoc
-def topology_abi_check(topology: topology_t) -> None:
-    _checkc(_LIB.hwloc_topology_abi_check(topology))
-
-
-@_cfndoc
-def topology_check(topology: topology_t) -> None:
-    _LIB.hwloc_topology_check(topology)
-
-
 #################################
-# Object levels, depths and types
+# Object Structure and Attributes
 #################################
 
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00143.php#gae54d1782ca9b54bea915f5c18a9158fa
 
-
-@_cfndoc
-def topology_get_depth(topology: topology_t) -> int:
-    return _LIB.hwloc_topology_get_depth(topology)
-
-
-@_cfndoc
-def get_nbobjs_by_depth(topology: topology_t, depth: int) -> int:
-    return _LIB.hwloc_get_nbobjs_by_depth(topology, depth)
-
-
-class hwloc_obj_attr_u(ctypes.Union):
-    pass
-
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00141.php
 
 class hwloc_info_s(ctypes.Structure):
     _fields_ = [
@@ -265,6 +206,10 @@ class hwloc_infos_s(ctypes.Structure):
         ("count", ctypes.c_uint),
         ("allocated", ctypes.c_uint),
     ]
+
+
+class hwloc_obj_attr_u(ctypes.Union):
+    pass
 
 
 class hwloc_obj(ctypes.Structure):
@@ -308,6 +253,79 @@ hwloc_obj._fields_ = [
 
 
 obj_t = ctypes.POINTER(hwloc_obj)
+
+
+###################################
+# Topology Creation and Destruction
+###################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00142.php#ga9d1e76ee15a7dee158b786c30b6a6e38
+
+topology_t = ctypes.c_void_p
+
+_LIB.hwloc_topology_init.argtypes = [ctypes.POINTER(topology_t)]
+_LIB.hwloc_topology_init.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_init(topology: topology_t) -> None:
+    _checkc(_LIB.hwloc_topology_init(ctypes.byref(topology)))
+
+
+_LIB.hwloc_topology_load.argtypes = [topology_t]
+_LIB.hwloc_topology_load.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_load(topology: topology_t) -> None:
+    _checkc(_LIB.hwloc_topology_load(topology))
+
+
+_LIB.hwloc_topology_destroy.argtypes = [topology_t]
+_LIB.hwloc_topology_destroy.restype = None
+
+
+@_cfndoc
+def topology_destroy(topology: topology_t) -> None:
+    _LIB.hwloc_topology_destroy(topology)
+
+
+_LIB.hwloc_topology_dup.argtypes = [ctypes.POINTER(topology_t), topology_t]
+_LIB.hwloc_topology_dup.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_dup(topology: topology_t) -> topology_t:
+    new = topology_t()
+    _checkc(_LIB.hwloc_topology_dup(ctypes.byref(new), topology))
+    return new
+
+
+@_cfndoc
+def topology_abi_check(topology: topology_t) -> None:
+    _checkc(_LIB.hwloc_topology_abi_check(topology))
+
+
+@_cfndoc
+def topology_check(topology: topology_t) -> None:
+    _LIB.hwloc_topology_check(topology)
+
+
+#################################
+# Object levels, depths and types
+#################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00143.php#gae54d1782ca9b54bea915f5c18a9158fa
+
+
+@_cfndoc
+def topology_get_depth(topology: topology_t) -> int:
+    return _LIB.hwloc_topology_get_depth(topology)
+
+
+@_cfndoc
+def get_nbobjs_by_depth(topology: topology_t, depth: int) -> int:
+    return _LIB.hwloc_get_nbobjs_by_depth(topology, depth)
 
 
 _LIB.hwloc_get_obj_by_depth.argtypes = [topology_t, ctypes.c_int, ctypes.c_uint]
@@ -1033,6 +1051,7 @@ _LIB.hwloc_topology_set_flags.argtypes = [topology_t, ctypes.c_ulong]
 _LIB.hwloc_topology_set_flags.restype = ctypes.c_int
 
 
+@_cfndoc
 def topology_set_flags(topology: topology_t, flags: int) -> None:
     _checkc(_LIB.hwloc_topology_set_flags(topology, flags))
 
@@ -1041,6 +1060,7 @@ _LIB.hwloc_topology_get_flags.argtypes = [topology_t]
 _LIB.hwloc_topology_get_flags.restype = ctypes.c_ulong
 
 
+@_cfndoc
 def topology_get_flags(topology: topology_t) -> int:
     return _LIB.hwloc_topology_get_flags(topology)
 
@@ -1049,6 +1069,7 @@ _LIB.hwloc_topology_is_thissystem.argtypes = [topology_t]
 _LIB.hwloc_topology_is_thissystem.restype = ctypes.c_int
 
 
+@_cfndoc
 def topology_is_thissystem(topology: topology_t) -> bool:
     return bool(_LIB.hwloc_topology_is_thissystem(topology))
 
@@ -1063,6 +1084,7 @@ else:
     SupportType = ctypes._Pointer
 
 
+@_cfndoc
 def topology_get_support(topology: topology_t) -> SupportType:
     return _LIB.hwloc_topology_get_support(topology)
 
@@ -1071,6 +1093,7 @@ _LIB.hwloc_topology_set_type_filter.argtypes = [topology_t, ctypes.c_int, ctypes
 _LIB.hwloc_topology_set_type_filter.restype = ctypes.c_int
 
 
+@_cfndoc
 def topology_set_type_filter(
     topology: topology_t, obj_type: hwloc_obj_type_t, filter: hwloc_type_filter_e
 ) -> None:
@@ -1085,6 +1108,7 @@ _LIB.hwloc_topology_get_type_filter.argtypes = [
 _LIB.hwloc_topology_get_type_filter.restype = ctypes.c_int
 
 
+@_cfndoc
 def topology_get_type_filter(
     topology: topology_t, obj_type: hwloc_obj_type_t
 ) -> hwloc_type_filter_e:
@@ -1095,24 +1119,28 @@ def topology_get_type_filter(
     return hwloc_type_filter_e(filter.value)
 
 
+@_cfndoc
 def topology_set_all_types_filter(
     topology: topology_t, filter: hwloc_type_filter_e
 ) -> None:
     _checkc(_LIB.hwloc_topology_set_all_types_filter(topology, filter))
 
 
+@_cfndoc
 def topology_set_cache_types_filter(
     topology: topology_t, filter: hwloc_type_filter_e
 ) -> None:
     _checkc(_LIB.hwloc_topology_set_cache_types_filter(topology, filter))
 
 
-def hwloc_topology_set_icache_types_filter(
+@_cfndoc
+def topology_set_icache_types_filter(
     topology: topology_t, filter: hwloc_type_filter_e
 ) -> None:
     _checkc(_LIB.hwloc_topology_set_icache_types_filter(topology, filter))
 
 
+@_cfndoc
 def topology_set_io_types_filter(
     topology: topology_t, filter: hwloc_type_filter_e
 ) -> None:

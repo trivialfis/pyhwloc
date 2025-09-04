@@ -23,6 +23,7 @@ from pyhwloc.core import (  # _obj_t_get_cpuset,
     bitmap_dup,
     bitmap_free,
     bitmap_singlify,
+    compare_types,
     get_api_version,
     get_nbobjs_by_depth,
     get_obj_by_depth,
@@ -30,7 +31,10 @@ from pyhwloc.core import (  # _obj_t_get_cpuset,
     hwloc_obj_type_t,
     hwloc_type_filter_e,
     set_cpubind,
+    topology_abi_check,
+    topology_check,
     topology_destroy,
+    topology_dup,
     topology_get_depth,
     topology_get_infos,
     topology_init,
@@ -44,6 +48,33 @@ def test_get_api_version() -> None:
     version = get_api_version()
     assert isinstance(version, int)
     assert version > 0
+
+
+##############
+# Object Types
+##############
+
+
+def test_compare_types() -> None:
+    # Test equal types
+    r = compare_types(hwloc_obj_type_t.HWLOC_OBJ_CORE, hwloc_obj_type_t.HWLOC_OBJ_CORE)
+    assert r == 0
+    r = compare_types(hwloc_obj_type_t.HWLOC_OBJ_PU, hwloc_obj_type_t.HWLOC_OBJ_PU)
+    assert r == 0
+
+    r = compare_types(
+        hwloc_obj_type_t.HWLOC_OBJ_MACHINE, hwloc_obj_type_t.HWLOC_OBJ_CORE
+    )
+    assert r != 0
+    r = compare_types(
+        hwloc_obj_type_t.HWLOC_OBJ_CORE, hwloc_obj_type_t.HWLOC_OBJ_MACHINE
+    )
+    assert r != 0
+
+
+###################################
+# Topology Creation and Destruction
+###################################
 
 
 class Topology:
@@ -63,7 +94,18 @@ def test_topology_init() -> None:
     hdl = topology_t()
     topology_init(hdl)
     topology_load(hdl)
+    topology_check(hdl)
+    topology_abi_check(hdl)
     topology_destroy(hdl)
+
+
+def test_topology_dup() -> None:
+    topo = Topology()
+    depth_0 = topology_get_depth(topo.hdl)
+    new = topology_dup(topo.hdl)
+    depth_1 = topology_get_depth(topo.hdl)
+    assert depth_0 == depth_1
+    topology_destroy(new)
 
 
 def test_topology_get_depth() -> None:
