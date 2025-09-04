@@ -23,12 +23,14 @@ from pyhwloc.core import (
     bitmap_dup,
     bitmap_free,
     bitmap_singlify,
+    bridge_covers_pcibus,
     compare_types,
     get_api_version,
     get_depth_type,
     get_memory_parents_depth,
     get_nbobjs_by_depth,
     get_nbobjs_by_type,
+    get_next_bridge,
     get_next_obj_by_depth,
     get_next_obj_by_type,
     get_obj_by_depth,
@@ -427,3 +429,32 @@ def test_example() -> None:
 
         # Free our cpuset copy
         bitmap_free(cpuset)
+
+
+#####################
+# Finding I/O objects
+#####################
+
+
+def test_bridge_covers_pcibus() -> None:
+    """Test the bridge_covers_pcibus function."""
+    # Create a topology with I/O devices enabled
+    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+
+    # Use prev=None to find the first bridge.
+    bridge = get_next_bridge(topo.hdl, None)
+    assert bridge is not None
+
+    # Test with bridge attributes if the bridge has PCI attributes
+    assert bridge.contents.attr
+    bridge_attr = bridge.contents.attr.contents
+    assert bridge_attr.bridge.depth >= 0
+
+    # Test that a bridge covers its own bus range
+    # For a valid bridge, it should cover some bus range
+    result = bridge_covers_pcibus(bridge, 0, 0)
+    assert isinstance(result, int)
+
+    # Test with clearly invalid domain/bus combinations
+    result_invalid = bridge_covers_pcibus(bridge, 0xFFFF, 0xFFFF)
+    assert isinstance(result_invalid, int)

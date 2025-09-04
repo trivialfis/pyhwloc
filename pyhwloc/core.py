@@ -683,6 +683,93 @@ def type_sscanf_as_depth(
     return hwloc_obj_type_t(typep.value), depthp.value
 
 
+#####################
+# Finding I/O objects
+#####################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00160.php
+
+
+_pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.argtypes = [
+    topology_t,
+    ctypes.POINTER(hwloc_obj),
+]
+_pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_non_io_ancestor_obj(topology: topology_t, ioobj: ObjType) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj(topology, ioobj)
+
+
+_pyhwloc_lib.pyhwloc_get_next_pcidev.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
+_pyhwloc_lib.pyhwloc_get_next_pcidev.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_next_pcidev(topology: topology_t, prev: ObjType) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_pcidev(topology, prev)
+
+
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busid.argtypes = [
+    topology_t,
+    ctypes.c_uint,
+    ctypes.c_uint,
+    ctypes.c_uint,
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busid.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_pcidev_by_busid(
+    topology: topology_t, domain: int, bus: int, dev: int, func: int
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_pcidev_by_busid(topology, domain, bus, dev, func)
+
+
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.argtypes = [topology_t, ctypes.c_char_p]
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_pcidev_by_busidstring(topology: topology_t, busid: str) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring(
+        topology, busid.encode("utf-8")
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_next_osdev.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
+_pyhwloc_lib.pyhwloc_get_next_osdev.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_next_osdev(topology: topology_t, prev: ObjType) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_osdev(topology, prev)
+
+
+_pyhwloc_lib.pyhwloc_get_next_bridge.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
+_pyhwloc_lib.pyhwloc_get_next_bridge.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_next_bridge(topology: topology_t, prev: ObjType | None) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_bridge(topology, prev)
+
+
+_pyhwloc_lib.pyhwloc_bridge_covers_pcibus.argtypes = [
+    ctypes.POINTER(hwloc_obj),
+    ctypes.c_uint,
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_bridge_covers_pcibus.restype = ctypes.c_int
+
+
+@_cfndoc
+def bridge_covers_pcibus(bridge: ObjType, domain: int, bus: int) -> int:
+    return _pyhwloc_lib.pyhwloc_bridge_covers_pcibus(bridge, domain, bus)
+
+
 ################
 # The bitmap API
 ################

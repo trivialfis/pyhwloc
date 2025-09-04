@@ -80,4 +80,41 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_by_type(
     hwloc_topology_t topology, hwloc_obj_type_t type, hwloc_obj_t prev) {
   return hwloc_get_next_obj_by_type(topology, type, prev);
 }
+
+// Finding I/O objects
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_non_io_ancestor_obj(
+    hwloc_topology_t topology __hwloc_attribute_unused, hwloc_obj_t ioobj) {
+  return hwloc_get_non_io_ancestor_obj(topology, ioobj);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_pcidev(hwloc_topology_t topology,
+                                                   hwloc_obj_t prev) {
+  return hwloc_get_next_pcidev(topology, prev);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t
+pyhwloc_get_pcidev_by_busid(hwloc_topology_t topology, unsigned domain,
+                            unsigned bus, unsigned dev, unsigned func) {
+  return hwloc_get_pcidev_by_busid(topology, domain, bus, dev, func);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_pcidev_by_busidstring(
+    hwloc_topology_t topology, const char *busid) {
+  return hwloc_get_pcidev_by_busidstring(topology, busid);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_osdev(hwloc_topology_t topology,
+                                                  hwloc_obj_t prev) {
+  return hwloc_get_next_osdev(topology, prev);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_bridge(hwloc_topology_t topology,
+                                                   hwloc_obj_t prev) {
+  return hwloc_get_next_bridge(topology, prev);
+}
+
+PYHWLOC_EXPORT int pyhwloc_bridge_covers_pcibus(hwloc_obj_t bridge,
+                                                unsigned domain, unsigned bus) {
+  return hwloc_bridge_covers_pcibus(bridge, domain, bus);
+}
 }
