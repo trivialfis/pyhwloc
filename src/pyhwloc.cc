@@ -193,4 +193,113 @@ PYHWLOC_EXPORT int pyhwloc_cpuset_from_nodeset(hwloc_topology_t topology,
                                                hwloc_const_nodeset_t nodeset) {
   return hwloc_cpuset_from_nodeset(topology, cpuset, nodeset);
 }
+
+// Finding objects covering at least a CPU set
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_child_covering_cpuset(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset,
+    hwloc_obj_t parent) {
+  return hwloc_get_child_covering_cpuset(topology, cpuset, parent);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_covering_cpuset(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset) {
+  return hwloc_get_obj_covering_cpuset(topology, cpuset);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_covering_cpuset_by_depth(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset, int depth,
+    hwloc_obj_t prev) {
+  return hwloc_get_next_obj_covering_cpuset_by_depth(topology, cpuset, depth,
+                                                     prev);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_covering_cpuset_by_type(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset,
+    hwloc_obj_type_t type, hwloc_obj_t prev) {
+  return hwloc_get_next_obj_covering_cpuset_by_type(topology, cpuset, type,
+                                                    prev);
+}
+
+// Finding objects inside a CPU set
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_first_largest_obj_inside_cpuset(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset) {
+  return hwloc_get_first_largest_obj_inside_cpuset(topology, cpuset);
+}
+
+PYHWLOC_EXPORT int
+pyhwloc_get_largest_objs_inside_cpuset(hwloc_topology_t topology,
+                                       hwloc_const_cpuset_t cpuset,
+                                       hwloc_obj_t *objs, int max) {
+  return hwloc_get_largest_objs_inside_cpuset(topology, cpuset, objs, max);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_inside_cpuset_by_depth(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset, int depth,
+    hwloc_obj_t prev) {
+  return hwloc_get_next_obj_inside_cpuset_by_depth(topology, cpuset, depth,
+                                                   prev);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_inside_cpuset_by_type(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset,
+    hwloc_obj_type_t type, hwloc_obj_t prev) {
+  return hwloc_get_next_obj_inside_cpuset_by_type(topology, cpuset, type, prev);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_inside_cpuset_by_depth(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset, int depth,
+    unsigned idx) {
+  return hwloc_get_obj_inside_cpuset_by_depth(topology, cpuset, depth, idx);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_inside_cpuset_by_type(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset,
+    hwloc_obj_type_t type, unsigned idx) {
+  return hwloc_get_obj_inside_cpuset_by_type(topology, cpuset, type, idx);
+}
+
+PYHWLOC_EXPORT unsigned pyhwloc_get_nbobjs_inside_cpuset_by_depth(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset, int depth) {
+  return hwloc_get_nbobjs_inside_cpuset_by_depth(topology, cpuset, depth);
+}
+
+PYHWLOC_EXPORT int
+pyhwloc_get_nbobjs_inside_cpuset_by_type(hwloc_topology_t topology,
+                                         hwloc_const_cpuset_t cpuset,
+                                         hwloc_obj_type_t type) {
+  return hwloc_get_nbobjs_inside_cpuset_by_type(topology, cpuset, type);
+}
+
+PYHWLOC_EXPORT int pyhwloc_get_obj_index_inside_cpuset(
+    hwloc_topology_t topology, hwloc_const_cpuset_t cpuset, hwloc_obj_t obj) {
+  return hwloc_get_obj_index_inside_cpuset(topology, cpuset, obj);
+}
+
+// Looking at Ancestor and Child Objects
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_ancestor_obj_by_depth(
+    hwloc_topology_t topology, int depth, hwloc_obj_t obj) {
+  return hwloc_get_ancestor_obj_by_depth(topology, depth, obj);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_ancestor_obj_by_type(
+    hwloc_topology_t topology, hwloc_obj_type_t type, hwloc_obj_t obj) {
+  return hwloc_get_ancestor_obj_by_type(topology, type, obj);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_common_ancestor_obj(
+    hwloc_topology_t topology, hwloc_obj_t obj1, hwloc_obj_t obj2) {
+  return hwloc_get_common_ancestor_obj(topology, obj1, obj2);
+}
+
+PYHWLOC_EXPORT int pyhwloc_obj_is_in_subtree(hwloc_topology_t topology,
+                                             hwloc_obj_t obj,
+                                             hwloc_obj_t subtree_root) {
+  return hwloc_obj_is_in_subtree(topology, obj, subtree_root);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_child(hwloc_topology_t topology,
+                                                  hwloc_obj_t parent,
+                                                  hwloc_obj_t prev) {
+  return hwloc_get_next_child(topology, parent, prev);
+}
 }

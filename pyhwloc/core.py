@@ -2494,6 +2494,328 @@ def obj_type_is_icache(obj_type: hwloc_obj_type_t) -> bool:
     return bool(_LIB.hwloc_obj_type_is_icache(obj_type))
 
 
+##################################
+# Finding Objects inside a CPU set
+##################################
+
+_pyhwloc_lib.pyhwloc_get_first_largest_obj_inside_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+]
+_pyhwloc_lib.pyhwloc_get_first_largest_obj_inside_cpuset.restype = obj_t
+
+
+@_cfndoc
+def get_first_largest_obj_inside_cpuset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_first_largest_obj_inside_cpuset(topology, cpuset)
+
+
+_pyhwloc_lib.pyhwloc_get_largest_objs_inside_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.POINTER(obj_t),
+    ctypes.c_int,
+]
+_pyhwloc_lib.pyhwloc_get_largest_objs_inside_cpuset.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_largest_objs_inside_cpuset(
+    topology: topology_t,
+    cpuset: hwloc_const_cpuset_t,
+    objs: ctypes.Array,
+    max_objs: int,
+) -> int:
+    return _pyhwloc_lib.pyhwloc_get_largest_objs_inside_cpuset(
+        topology, cpuset, objs, max_objs
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_depth.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_depth.restype = obj_t
+
+
+@_cfndoc
+def get_next_obj_inside_cpuset_by_depth(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, prev: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_depth(
+        topology, cpuset, depth, prev
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_next_obj_inside_cpuset_by_type(
+    topology: topology_t,
+    cpuset: hwloc_const_cpuset_t,
+    obj_type: hwloc_obj_type_t,
+    prev: ObjType,
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type(
+        topology, cpuset, obj_type, prev
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_depth.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_depth.restype = obj_t
+
+
+@_cfndoc
+def get_obj_inside_cpuset_by_depth(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, idx: int
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_depth(
+        topology, cpuset, depth, idx
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_obj_inside_cpuset_by_type(
+    topology: topology_t,
+    cpuset: hwloc_const_cpuset_t,
+    obj_type: hwloc_obj_type_t,
+    idx: int,
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type(
+        topology, cpuset, obj_type, idx
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_depth.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+]
+_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_depth.restype = ctypes.c_uint
+
+
+@_cfndoc
+def get_nbobjs_inside_cpuset_by_depth(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int
+) -> int:
+    return _pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_depth(
+        topology, cpuset, depth
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+]
+_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_nbobjs_inside_cpuset_by_type(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, obj_type: hwloc_obj_type_t
+) -> int:
+    return _pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type(
+        topology, cpuset, obj_type
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_obj_index_inside_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_obj_index_inside_cpuset.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_obj_index_inside_cpuset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, obj: ObjType
+) -> int:
+    return _pyhwloc_lib.pyhwloc_get_obj_index_inside_cpuset(topology, cpuset, obj)
+
+
+###########################################
+# Finding Objects covering at least CPU set
+###########################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00153.php
+
+
+_pyhwloc_lib.pyhwloc_get_child_covering_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_child_covering_cpuset.restype = obj_t
+
+
+@_cfndoc
+def get_child_covering_cpuset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, parent: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_child_covering_cpuset(topology, cpuset, parent)
+
+
+_pyhwloc_lib.pyhwloc_get_obj_covering_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+]
+_pyhwloc_lib.pyhwloc_get_obj_covering_cpuset.restype = obj_t
+
+
+@_cfndoc
+def get_obj_covering_cpuset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_obj_covering_cpuset(topology, cpuset)
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth.restype = obj_t
+
+
+@_cfndoc
+def get_next_obj_covering_cpuset_by_depth(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, prev: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth(
+        topology, cpuset, depth, prev
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_next_obj_covering_cpuset_by_type(
+    topology: topology_t,
+    cpuset: hwloc_const_cpuset_t,
+    obj_type: hwloc_obj_type_t,
+    prev: ObjType,
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type(
+        topology, cpuset, obj_type, prev
+    )
+
+
+#######################################
+# Looking at Ancestor and Child Objects
+#######################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00154.php
+
+
+_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth.restype = obj_t
+
+
+@_cfndoc
+def get_ancestor_obj_by_depth(
+    topology: topology_t, depth: int, obj: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth(topology, depth, obj)
+
+
+_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_ancestor_obj_by_type(
+    topology: topology_t, obj_type: hwloc_obj_type_t, obj: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type(topology, obj_type, obj)
+
+
+_pyhwloc_lib.pyhwloc_get_common_ancestor_obj.argtypes = [
+    topology_t,
+    obj_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_common_ancestor_obj.restype = obj_t
+
+
+@_cfndoc
+def get_common_ancestor_obj(
+    topology: topology_t, obj1: ObjType, obj2: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_common_ancestor_obj(topology, obj1, obj2)
+
+
+_pyhwloc_lib.pyhwloc_obj_is_in_subtree.argtypes = [
+    topology_t,
+    obj_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_obj_is_in_subtree.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_is_in_subtree(
+    topology: topology_t, obj: ObjType, subtree_root: ObjType
+) -> bool:
+    result = _pyhwloc_lib.pyhwloc_obj_is_in_subtree(topology, obj, subtree_root)
+    return bool(result)
+
+
+_pyhwloc_lib.pyhwloc_get_next_child.argtypes = [
+    topology_t,
+    obj_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_child.restype = obj_t
+
+
+@_cfndoc
+def get_next_child(topology: topology_t, parent: ObjType, prev: ObjType) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_child(topology, parent, prev)
+
+
 ####################
 # Kinds of CPU cores
 ####################
