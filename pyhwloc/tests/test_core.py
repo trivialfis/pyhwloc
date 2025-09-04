@@ -45,6 +45,7 @@ from pyhwloc.core import (
     hwloc_infos_s,
     hwloc_obj_attr_u,
     hwloc_obj_type_t,
+    hwloc_topology_export_synthetic_flags_e,
     hwloc_topology_export_xml_flags_e,
     hwloc_type_filter_e,
     obj_add_info,
@@ -57,6 +58,7 @@ from pyhwloc.core import (
     topology_check,
     topology_destroy,
     topology_dup,
+    topology_export_synthetic,
     topology_export_xmlbuffer,
     topology_get_depth,
     topology_get_infos,
@@ -468,12 +470,34 @@ def test_bridge_covers_pcibus() -> None:
     assert isinstance(result_invalid, int)
 
 
+#############################
+# Exporting Topologies to XML
+#############################
+
+
 def test_topology_export_xmlbuffer() -> None:
     topo = Topology()
     result = topology_export_xmlbuffer(
         topo.hdl, hwloc_topology_export_xml_flags_e.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2
     )
     assert """<!DOCTYPE topology SYSTEM "hwloc2.dtd">""" in result
+
+
+###################################
+# Exporting Topologies to Synthetic
+###################################
+
+
+def test_topology_export_synthetic() -> None:
+    topo = Topology()
+    buf = bytearray(1024)
+    c_buf = (ctypes.c_char * len(buf)).from_buffer(buf)
+
+    ExFlags = hwloc_topology_export_synthetic_flags_e
+    flags = ExFlags.HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES
+    topology_export_synthetic(topo.hdl, c_buf, len(buf), flags)
+    result = buf.decode("utf-8")
+    assert "Socket" in result
 
 
 ####################

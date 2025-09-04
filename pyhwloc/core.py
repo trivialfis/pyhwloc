@@ -1549,19 +1549,45 @@ def topology_set_userdata_import_callback(
     _LIB.hwloc_topology_set_userdata_import_callback(topology, import_cb)
 
 
+###################################
+# Exporting Topologies to Synthetic
+###################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00163.php
+
+
+@_cenumdoc
+class hwloc_topology_export_synthetic_flags_e(IntEnum):
+    HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES = 1 << 0
+    HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_ATTRS = 1 << 1
+    HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_V1 = 1 << 2
+    HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_IGNORE_MEMORY = 1 << 3
+
+
+_LIB.hwloc_topology_export_synthetic.argtypes = [
+    topology_t,
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    ctypes.c_ulong,
+]
+_LIB.hwloc_topology_export_synthetic.restype = ctypes.c_int
+
+
 @_cfndoc
-def get_type_or_below_depth(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
-    return _pyhwloc_lib.pyhwloc_get_type_or_below_depth(topology, obj_type)
-
-
-_LIB.hwloc_topology_get_infos.argtypes = [topology_t]
-_LIB.hwloc_topology_get_infos.restype = ctypes.POINTER(hwloc_infos_s)
-
-
-@_cfndoc
-def topology_get_infos(topology: topology_t) -> InfosPtr:
-    infos = _LIB.hwloc_topology_get_infos(topology)
-    return infos
+def topology_export_synthetic(
+    topology: topology_t,
+    buf: ctypes.c_char_p | ctypes.Array,
+    buflen: int,
+    flags: int,
+) -> int:
+    # A 1024-byte buffer should be large enough for exporting topologies in the vast
+    # majority of cases.
+    n_written = _LIB.hwloc_topology_export_synthetic(topology, buf, buflen, flags)
+    if n_written == -1:
+        errno = ctypes.get_errno()
+        msg = _libc.strerror(errno)
+        raise HwLocError(-1, errno, msg)
+    return n_written
 
 
 ############################################
@@ -2282,3 +2308,23 @@ def cpukinds_register(
     _checkc(
         _LIB.hwloc_cpukinds_register(topology, cpuset, forced_efficiency, pinfos, 0)
     )
+
+
+######
+# misc
+######
+
+
+@_cfndoc
+def get_type_or_below_depth(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
+    return _pyhwloc_lib.pyhwloc_get_type_or_below_depth(topology, obj_type)
+
+
+_LIB.hwloc_topology_get_infos.argtypes = [topology_t]
+_LIB.hwloc_topology_get_infos.restype = ctypes.POINTER(hwloc_infos_s)
+
+
+@_cfndoc
+def topology_get_infos(topology: topology_t) -> InfosPtr:
+    infos = _LIB.hwloc_topology_get_infos(topology)
+    return infos
