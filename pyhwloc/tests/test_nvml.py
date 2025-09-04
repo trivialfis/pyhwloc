@@ -14,8 +14,15 @@
 #
 import pynvml as nm
 
-from pyhwloc.core import hwloc_obj_type_t, hwloc_type_filter_e
-from pyhwloc.nvml import get_device_osdev
+from pyhwloc.core import (
+    bitmap_alloc,
+    bitmap_free,
+    bitmap_iszero,
+    bitmap_weight,
+    hwloc_obj_type_t,
+    hwloc_type_filter_e,
+)
+from pyhwloc.nvml import get_device_cpuset, get_device_osdev
 
 from .test_core import Topology
 
@@ -36,3 +43,20 @@ def test_get_device_osdev() -> None:
 
         dev_obj = get_device_osdev(topo.hdl, nvhdl)
         assert dev_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_OS_DEVICE
+
+
+def test_nvml_get_device_cpuset() -> None:
+    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+
+    with Nvml():
+        # Get handle for the first device
+        nvhdl = nm.nvmlDeviceGetHandleByIndex(0)
+
+        cpuset = bitmap_alloc()
+
+        get_device_cpuset(topo.hdl, nvhdl, cpuset)
+        assert not bitmap_iszero(cpuset)
+        weight = bitmap_weight(cpuset)
+        assert weight > 0
+
+        bitmap_free(cpuset)

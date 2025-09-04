@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import ctypes
+
 import cuda.bindings.driver as cuda
 
-from .core import _pyhwloc_lib, obj_t, topology_t, ObjType
+from .core import ObjType, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
 
 
 def _check_cu(status: cuda.CUresult) -> None:
@@ -24,9 +26,70 @@ def _check_cu(status: cuda.CUresult) -> None:
             msg = f"Failed to call `cuGetErrorString` for a CUresult: {status}"
         raise RuntimeError(msg)
 
+
 ###########################################
 # Interoperability with the CUDA Driver API
 ###########################################
+
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00177.php
+
+
+_pyhwloc_lib.pyhwloc_cuda_get_device_pci_ids.argtypes = [
+    topology_t,
+    ctypes.c_int,  # CUdevice
+    ctypes.POINTER(ctypes.c_int),  # domain
+    ctypes.POINTER(ctypes.c_int),  # bus
+    ctypes.POINTER(ctypes.c_int),  # dev
+]
+_pyhwloc_lib.pyhwloc_cuda_get_device_pci_ids.restype = ctypes.c_int
+
+
+def get_device_pci_ids(
+    topology: topology_t, cudevice: cuda.CUdevice
+) -> tuple[int, int, int]:
+    domain = ctypes.c_int()
+    bus = ctypes.c_int()
+    dev = ctypes.c_int()
+
+    _checkc(
+        _pyhwloc_lib.pyhwloc_cuda_get_device_pci_ids(
+            topology,
+            int(cudevice),
+            ctypes.byref(domain),
+            ctypes.byref(bus),
+            ctypes.byref(dev),
+        )
+    )
+
+    return domain.value, bus.value, dev.value
+
+
+_pyhwloc_lib.pyhwloc_cuda_get_device_cpuset.argtypes = [
+    topology_t,
+    ctypes.c_int,  # CUdevice
+    hwloc_cpuset_t,
+]
+_pyhwloc_lib.pyhwloc_cuda_get_device_cpuset.restype = ctypes.c_int
+
+
+def get_device_cpuset(
+    topology: topology_t, cudevice: cuda.CUdevice, cpuset: hwloc_cpuset_t
+) -> None:
+    _checkc(
+        _pyhwloc_lib.pyhwloc_cuda_get_device_cpuset(topology, int(cudevice), cpuset)
+    )
+
+
+_pyhwloc_lib.pyhwloc_cuda_get_device_pcidev.argtypes = [
+    topology_t,
+    ctypes.c_int,  # CUdevice
+]
+_pyhwloc_lib.pyhwloc_cuda_get_device_pcidev.restype = obj_t
+
+
+def get_device_pcidev(topology: topology_t, cudevice: cuda.CUdevice) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_cuda_get_device_pcidev(topology, int(cudevice))
 
 
 _pyhwloc_lib.pyhwloc_cuda_get_device_osdev.restype = obj_t

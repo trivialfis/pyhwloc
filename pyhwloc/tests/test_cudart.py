@@ -14,8 +14,20 @@
 #
 import cuda.bindings.runtime as cudart
 
-from pyhwloc.core import hwloc_type_filter_e, hwloc_obj_type_t
-from pyhwloc.cudart import _check_cudart, get_device_osdev_by_index
+from pyhwloc.core import (
+    bitmap_alloc,
+    bitmap_free,
+    bitmap_iszero,
+    bitmap_weight,
+    hwloc_obj_type_t,
+    hwloc_type_filter_e,
+)
+from pyhwloc.cudart import (
+    _check_cudart,
+    get_device_cpuset,
+    get_device_osdev_by_index,
+    get_device_pcidev,
+)
 
 from .test_core import Topology
 
@@ -26,6 +38,36 @@ def test_get_device_osdev() -> None:
     status, cnt = cudart.cudaGetDeviceCount()
     _check_cudart(status)
 
-    for i in range(cnt):
-        dev_obj = get_device_osdev_by_index(topo.hdl, i)
+    for ordinal in range(cnt):
+        dev_obj = get_device_osdev_by_index(topo.hdl, ordinal)
         assert dev_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_OS_DEVICE
+
+
+def test_cudart_get_device_cpuset() -> None:
+    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+
+    status, cnt = cudart.cudaGetDeviceCount()
+    _check_cudart(status)
+
+    for ordinal in range(cnt):
+        cpuset = bitmap_alloc()
+
+        get_device_cpuset(topo.hdl, ordinal, cpuset)
+        assert not bitmap_iszero(cpuset)
+
+        weight = bitmap_weight(cpuset)
+        assert weight > 0
+
+        bitmap_free(cpuset)
+
+
+def test_get_device_pcidev() -> None:
+    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+
+    status, cnt = cudart.cudaGetDeviceCount()
+    _check_cudart(status)
+
+    for ordinal in range(cnt):
+        pci_obj = get_device_pcidev(topo.hdl, ordinal)
+        assert pci_obj is not None
+        assert pci_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_PCI_DEVICE

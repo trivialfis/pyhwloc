@@ -17,6 +17,17 @@
 #include <hwloc/nvml.h>
 
 extern "C" {
+PYHWLOC_EXPORT int pyhwloc_nvml_get_device_cpuset(
+    hwloc_topology_t topology __hwloc_attribute_unused, nvmlDevice_t device,
+    hwloc_cpuset_t set) {
+  return hwloc_nvml_get_device_cpuset(topology, device, set);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_nvml_get_device_osdev_by_index(
+    hwloc_topology_t topology, unsigned idx) {
+  return hwloc_nvml_get_device_osdev_by_index(topology, idx);
+}
+
 PYHWLOC_EXPORT hwloc_obj_t
 pyhwloc_nvml_get_device_osdev(hwloc_topology_t topology, nvmlDevice_t device) {
   return hwloc_nvml_get_device_osdev(topology, device);
