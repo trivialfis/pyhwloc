@@ -42,6 +42,42 @@ PYHWLOC_EXPORT int pyhwloc_bitmap_alloc_full(void **out) {
     return 1;
   }
   *out = ptr;
+
   return 0;
+}
+
+// Object levels, depths and types
+PYHWLOC_EXPORT int pyhwloc_get_type_or_above_depth(hwloc_topology_t topology,
+                                                   hwloc_obj_type_t type) {
+
+  return hwloc_get_type_or_above_depth(topology, type);
+}
+
+PYHWLOC_EXPORT int pyhwloc_get_nbobjs_by_type(hwloc_topology_t topology,
+                                              hwloc_obj_type_t type) {
+  return hwloc_get_nbobjs_by_type(topology, type);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_root_obj(hwloc_topology_t topology) {
+
+  return hwloc_get_root_obj(topology);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_by_type(hwloc_topology_t topology,
+                                                   hwloc_obj_type_t type,
+                                                   unsigned idx) {
+
+  return hwloc_get_obj_by_type(topology, type, idx);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_by_depth(
+    hwloc_topology_t topology, int depth, hwloc_obj_t prev) {
+
+  return hwloc_get_next_obj_by_depth(topology, depth, prev);
+}
+
+PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_by_type(
+    hwloc_topology_t topology, hwloc_obj_type_t type, hwloc_obj_t prev) {
+  return hwloc_get_next_obj_by_type(topology, type, prev);
 }
 }

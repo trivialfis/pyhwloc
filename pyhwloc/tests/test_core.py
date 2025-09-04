@@ -25,9 +25,19 @@ from pyhwloc.core import (  # _obj_t_get_cpuset,
     bitmap_singlify,
     compare_types,
     get_api_version,
+    get_depth_type,
+    get_memory_parents_depth,
     get_nbobjs_by_depth,
+    get_nbobjs_by_type,
+    get_next_obj_by_depth,
+    get_next_obj_by_type,
     get_obj_by_depth,
+    get_obj_by_type,
+    get_root_obj,
+    get_type_depth,
+    get_type_or_above_depth,
     get_type_or_below_depth,
+    hwloc_get_type_depth_e,
     hwloc_obj_type_t,
     hwloc_type_filter_e,
     set_cpubind,
@@ -142,6 +152,119 @@ def test_error() -> None:
         topology_set_io_types_filter(
             topo.hdl, hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         )
+
+
+#################################
+# Object levels, depths and types
+#################################
+
+
+def test_get_type_depth() -> None:
+    topo = Topology()
+
+    # Test common object types
+    machine_depth = get_type_depth(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_MACHINE)
+    assert machine_depth == 0
+
+    pu_depth = get_type_depth(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_PU)
+    # PU should typically be at the deepest level
+    assert pu_depth > 0
+
+    total_depth = topology_get_depth(topo.hdl)
+    assert pu_depth < total_depth
+
+
+def test_get_depth_type() -> None:
+    topo = Topology()
+    total_depth = topology_get_depth(topo.hdl)
+
+    # Test each depth level
+    for depth in range(total_depth):
+        obj_type = get_depth_type(topo.hdl, depth)
+        assert isinstance(obj_type, hwloc_obj_type_t)
+        assert obj_type >= 0
+
+        # Roundtrip
+        type_depth = get_type_depth(topo.hdl, obj_type)
+        if type_depth >= 0:  # Skip special depth values
+            assert type_depth == depth
+
+
+def test_get_nbobjs_by_depth() -> None:
+    topo = Topology()
+    total_depth = topology_get_depth(topo.hdl)
+
+    # Test each depth level
+    for depth in range(total_depth):
+        n_objs = get_nbobjs_by_depth(topo.hdl, depth)
+        assert n_objs > 0  # Each level should have at least one object
+
+        # Verify we can actually get objects at this depth
+        obj = get_obj_by_depth(topo.hdl, depth, 0)
+        assert obj is not None
+        assert obj.contents.depth == depth
+
+    # Test invalid depth
+    invalid_depth = total_depth + 10
+    n_objs = get_nbobjs_by_depth(topo.hdl, invalid_depth)
+    assert n_objs == 0
+
+
+def test_get_type_or_above_depth() -> None:
+    topo = Topology()
+
+    # Test with common types
+    core_depth = get_type_or_above_depth(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_CORE)
+    assert core_depth > 0
+    # Should be a valid depth
+    total_depth = topology_get_depth(topo.hdl)
+    assert core_depth < total_depth
+
+    obj_type = get_depth_type(topo.hdl, core_depth)
+    assert obj_type == hwloc_obj_type_t.HWLOC_OBJ_CORE
+
+
+def test_get_type_or_below_depth() -> None:
+    topo = Topology()
+
+    # Test with machine type - should find machine or something below it
+    machine_depth = get_type_or_below_depth(
+        topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_MACHINE
+    )
+    assert machine_depth >= 0  # Should always find something
+
+    # Test with core type
+    core_depth = get_type_or_below_depth(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_CORE)
+    assert core_depth > 0
+    total_depth = topology_get_depth(topo.hdl)
+    assert core_depth < total_depth
+
+    # The returned depth should contain objects of the requested type or below
+    obj_type = get_depth_type(topo.hdl, core_depth)
+    assert obj_type == hwloc_obj_type_t.HWLOC_OBJ_CORE
+
+
+def test_get_memory_parents_depth() -> None:
+    topo = Topology()
+
+    mem_depth = get_memory_parents_depth(topo.hdl)
+    assert mem_depth >= 0
+    total_depth = topology_get_depth(topo.hdl)
+    assert mem_depth < total_depth
+
+
+def test_depth_consistency() -> None:
+    topo = Topology()
+    total_depth = topology_get_depth(topo.hdl)
+
+    # Test that get_type_depth and get_depth_type are consistent
+    for depth in range(total_depth):
+        obj_type = get_depth_type(topo.hdl, depth)
+        type_depth = get_type_depth(topo.hdl, obj_type)
+
+        # If type_depth is a normal depth (not special value), it should match
+        if type_depth >= 0:
+            assert type_depth == depth
 
 
 def find_numa_depth() -> int:

@@ -193,6 +193,7 @@ def compare_types(type1: hwloc_obj_type_t, type2: hwloc_obj_type_t) -> int:
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00141.php
 
+
 class hwloc_info_s(ctypes.Structure):
     _fields_ = [
         ("name", ctypes.c_char_p),  # Info name
@@ -253,6 +254,11 @@ hwloc_obj._fields_ = [
 
 
 obj_t = ctypes.POINTER(hwloc_obj)
+
+if TYPE_CHECKING:
+    ObjType = ctypes._Pointer[hwloc_obj]
+else:
+    ObjType = ctypes._Pointer
 
 
 ###################################
@@ -318,9 +324,118 @@ def topology_check(topology: topology_t) -> None:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00143.php#gae54d1782ca9b54bea915f5c18a9158fa
 
 
+@_cenumdoc
+class hwloc_get_type_depth_e(IntEnum):
+    HWLOC_TYPE_DEPTH_UNKNOWN = -1
+    HWLOC_TYPE_DEPTH_MULTIPLE = -2
+    HWLOC_TYPE_DEPTH_NUMANODE = -3
+    HWLOC_TYPE_DEPTH_BRIDGE = -4
+    HWLOC_TYPE_DEPTH_PCI_DEVICE = -5
+    HWLOC_TYPE_DEPTH_OS_DEVICE = -6
+    HWLOC_TYPE_DEPTH_MISC = -7
+    HWLOC_TYPE_DEPTH_MEMCACHE = -8
+
+
 @_cfndoc
 def topology_get_depth(topology: topology_t) -> int:
     return _LIB.hwloc_topology_get_depth(topology)
+
+
+_LIB.hwloc_get_type_depth.argtypes = [topology_t, ctypes.c_int]
+_LIB.hwloc_get_type_depth.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_type_depth(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
+    return _LIB.hwloc_get_type_depth(topology, obj_type)
+
+
+_LIB.hwloc_get_memory_parents_depth.argtypes = [topology_t]
+_LIB.hwloc_get_memory_parents_depth.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_memory_parents_depth(topology: topology_t) -> int:
+    return _LIB.hwloc_get_memory_parents_depth(topology)
+
+
+_pyhwloc_lib.pyhwloc_get_type_or_above_depth.argtypes = [topology_t, ctypes.c_int]
+_pyhwloc_lib.pyhwloc_get_type_or_above_depth.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_type_or_above_depth(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
+    return _pyhwloc_lib.pyhwloc_get_type_or_above_depth(topology, obj_type)
+
+
+_LIB.hwloc_get_depth_type.argtypes = [topology_t, ctypes.c_int]
+_LIB.hwloc_get_depth_type.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_depth_type(topology: topology_t, depth: int) -> hwloc_obj_type_t:
+    return hwloc_obj_type_t(_LIB.hwloc_get_depth_type(topology, depth))
+
+
+_pyhwloc_lib.pyhwloc_get_nbobjs_by_type.argtypes = [topology_t, ctypes.c_int]
+_pyhwloc_lib.pyhwloc_get_nbobjs_by_type.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_nbobjs_by_type(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
+    return _pyhwloc_lib.pyhwloc_get_nbobjs_by_type(topology, obj_type)
+
+
+_pyhwloc_lib.pyhwloc_get_root_obj.argtypes = [topology_t]
+_pyhwloc_lib.pyhwloc_get_root_obj.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_root_obj(topology: topology_t) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_root_obj(topology)
+
+
+_pyhwloc_lib.pyhwloc_get_obj_by_type.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_get_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_obj_by_type(
+    topology: topology_t, obj_type: hwloc_obj_type_t, idx: int
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_obj_by_type(topology, obj_type, idx)
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_by_depth.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    ctypes.POINTER(hwloc_obj),
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_by_depth.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_next_obj_by_depth(topology: topology_t, depth: int, prev: ObjType) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_by_depth(topology, depth, prev)
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_by_type.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    ctypes.POINTER(hwloc_obj),
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
+
+
+@_cfndoc
+def get_next_obj_by_type(
+    topology: topology_t, obj_type: hwloc_obj_type_t, prev: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_by_type(topology, obj_type, prev)
 
 
 @_cfndoc
@@ -330,12 +445,6 @@ def get_nbobjs_by_depth(topology: topology_t, depth: int) -> int:
 
 _LIB.hwloc_get_obj_by_depth.argtypes = [topology_t, ctypes.c_int, ctypes.c_uint]
 _LIB.hwloc_get_obj_by_depth.restype = ctypes.POINTER(hwloc_obj)
-
-
-if TYPE_CHECKING:
-    ObjType = ctypes._Pointer[hwloc_obj]
-else:
-    ObjType = ctypes._Pointer
 
 
 @_cfndoc
@@ -920,18 +1029,6 @@ _LIB.hwloc_bitmap_compare.restype = ctypes.c_int
 @_cfndoc
 def bitmap_compare(bitmap1: hwloc_const_bitmap_t, bitmap2: hwloc_const_bitmap_t) -> int:
     return _LIB.hwloc_bitmap_compare(bitmap1, bitmap2)
-
-
-@_cenumdoc
-class hwloc_get_type_depth_e(IntEnum):
-    HWLOC_TYPE_DEPTH_UNKNOWN = -1
-    HWLOC_TYPE_DEPTH_MULTIPLE = -2
-    HWLOC_TYPE_DEPTH_NUMANODE = -3
-    HWLOC_TYPE_DEPTH_BRIDGE = -4
-    HWLOC_TYPE_DEPTH_PCI_DEVICE = -5
-    HWLOC_TYPE_DEPTH_OS_DEVICE = -6
-    HWLOC_TYPE_DEPTH_MISC = -7
-    HWLOC_TYPE_DEPTH_MEMCACHE = -8
 
 
 @_cfndoc
