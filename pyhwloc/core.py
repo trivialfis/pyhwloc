@@ -2220,6 +2220,8 @@ _LIB.hwloc_obj_type_is_normal.restype = ctypes.c_int
 
 @_cfndoc
 def obj_type_is_normal(obj_type: hwloc_obj_type_t) -> bool:
+    # For the definition of normal:
+    # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00343.php
     return bool(_LIB.hwloc_obj_type_is_normal(int(obj_type)))
 
 

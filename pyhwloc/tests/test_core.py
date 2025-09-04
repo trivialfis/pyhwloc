@@ -54,6 +54,8 @@ from pyhwloc.core import (
     obj_attr_snprintf,
     obj_get_info_by_name,
     obj_set_subtype,
+    obj_type_is_memory,
+    obj_type_is_normal,
     obj_type_snprintf,
     set_cpubind,
     topology_abi_check,
@@ -334,6 +336,39 @@ def test_get_root_obj() -> None:
     # Root object should have valid cpuset and nodeset
     assert root_obj.contents.cpuset is not None
     assert root_obj.contents.nodeset is not None
+
+
+######################
+# Kinds of object Type
+######################
+
+
+def test_kinds_of_object_type() -> None:
+    """Simple test for obj_type_is_normal function wrapper."""
+    # Test normal object types
+    normal_types = [
+        hwloc_obj_type_t.HWLOC_OBJ_MACHINE,
+        hwloc_obj_type_t.HWLOC_OBJ_PACKAGE,
+    ]
+
+    for obj_type in normal_types:
+        result = obj_type_is_normal(obj_type)
+        assert result is True
+
+    # Test non-normal object types
+    non_normal_types = [
+        hwloc_obj_type_t.HWLOC_OBJ_BRIDGE,
+        hwloc_obj_type_t.HWLOC_OBJ_PCI_DEVICE,
+    ]
+
+    # Verify non-normal types return False
+    for obj_type in non_normal_types:
+        result = obj_type_is_normal(obj_type)
+        assert isinstance(result, bool)
+        assert result is False
+
+    # Others
+    assert obj_type_is_memory(hwloc_obj_type_t.HWLOC_OBJ_NUMANODE) is True
 
 
 #############################################################
