@@ -19,12 +19,18 @@ import pytest
 from pyhwloc.core import (
     HwLocError,
     _free,
+    bitmap_alloc,
     bitmap_asprintf,
     bitmap_dup,
     bitmap_free,
+    bitmap_set,
     bitmap_singlify,
     bridge_covers_pcibus,
     compare_types,
+    cpukinds_get_by_cpuset,
+    cpukinds_get_info,
+    cpukinds_get_nr,
+    cpukinds_register,
     get_api_version,
     get_depth_type,
     get_memory_parents_depth,
@@ -35,6 +41,8 @@ from pyhwloc.core import (
     get_type_depth,
     get_type_or_above_depth,
     get_type_or_below_depth,
+    hwloc_info_s,
+    hwloc_infos_s,
     hwloc_obj_attr_u,
     hwloc_obj_type_t,
     hwloc_topology_export_xml_flags_e,
@@ -463,3 +471,88 @@ def test_topology_export_xmlbuffer() -> None:
         topo.hdl, hwloc_topology_export_xml_flags_e.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2
     )
     assert """<!DOCTYPE topology SYSTEM "hwloc2.dtd">""" in result
+
+
+####################
+# Kinds of CPU cores
+####################
+
+
+def test_cpukinds_get_info() -> None:
+    """Test the cpukinds_get_nr function."""
+    topo = Topology()
+
+    nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+    assert isinstance(nr_kinds, int)
+    assert nr_kinds >= 0
+
+
+def test_cpukinds_register_and_get_functions() -> None:
+    topo = Topology()
+
+    # Get initial number of CPU kinds
+    initial_nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+
+    # Create a test cpuset (use first CPU)
+    test_cpuset = bitmap_alloc()
+    bitmap_set(test_cpuset, 0)  # Set CPU 0
+
+    # Create test info
+    test_info = hwloc_info_s()
+    test_info.name = b"TestCPUKind"
+    test_info.value = b"TestValue"
+
+    infos = hwloc_infos_s()
+    infos.array = ctypes.pointer(test_info)
+    infos.count = 1
+
+    # Register a new CPU kind
+    cpukinds_register(topo.hdl, test_cpuset, 100, infos)
+
+    # Verify the number of kinds increased
+    new_nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+    assert new_nr_kinds == initial_nr_kinds + 1
+
+    # Test cpukinds_get_by_cpuset
+    kind_index = cpukinds_get_by_cpuset(topo.hdl, test_cpuset, 0)
+    assert isinstance(kind_index, int)
+    assert kind_index >= 0
+
+    # Test cpukinds_get_info
+    cpuset, efficiency, ninfos = cpukinds_get_info(topo.hdl, kind_index, 0)
+    assert cpuset is not None
+    assert isinstance(efficiency, int)
+    assert efficiency == 100 or efficiency == -1
+    assert ninfos.contents is not None
+
+    bitmap_free(cpuset)
+    bitmap_free(test_cpuset)
+
+    assert any(
+        ninfos.contents.array[i].name == b"TestCPUKind"
+        for i in range(ninfos.contents.count)
+    )
+    assert any(
+        ninfos.contents.array[i].value == b"TestValue"
+        for i in range(ninfos.contents.count)
+    )
+
+
+def test_cpukinds_register_empty_infos() -> None:
+    topo = Topology()
+
+    # Get initial number of CPU kinds
+    initial_nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+
+    # Create a test cpuset (use CPU 1 if available, otherwise CPU 0)
+    test_cpuset = bitmap_alloc()
+    bitmap_set(test_cpuset, 1)
+
+    # Register a CPU kind with no infos
+    cpukinds_register(topo.hdl, test_cpuset, 50, None)
+
+    # Verify the number of kinds increased
+    new_nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+    assert new_nr_kinds == initial_nr_kinds + 1
+
+    bitmap_free(test_cpuset)

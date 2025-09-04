@@ -2183,3 +2183,102 @@ _LIB.hwloc_obj_type_is_icache.restype = ctypes.c_int
 @_cfndoc
 def obj_type_is_icache(obj_type: hwloc_obj_type_t) -> bool:
     return bool(_LIB.hwloc_obj_type_is_icache(obj_type))
+
+
+####################
+# Kinds of CPU cores
+####################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00170.php
+
+_LIB.hwloc_cpukinds_get_nr.argtypes = [topology_t, ctypes.c_ulong]
+_LIB.hwloc_cpukinds_get_nr.restype = ctypes.c_int
+
+
+@_cfndoc
+def cpukinds_get_nr(topology: topology_t, flags: int) -> int:
+    result = _LIB.hwloc_cpukinds_get_nr(topology, flags)
+    if result < 0:
+        _checkc(result)
+    return result
+
+
+_LIB.hwloc_cpukinds_get_by_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_bitmap_t,
+    ctypes.c_ulong,
+]
+_LIB.hwloc_cpukinds_get_by_cpuset.restype = ctypes.c_int
+
+
+@_cfndoc
+def cpukinds_get_by_cpuset(
+    topology: topology_t, cpuset: hwloc_const_bitmap_t, flags: int
+) -> int:
+    result = _LIB.hwloc_cpukinds_get_by_cpuset(topology, cpuset, flags)
+    if result < 0:
+        _checkc(result)
+    return result
+
+
+_LIB.hwloc_cpukinds_get_info.argtypes = [
+    topology_t,
+    ctypes.c_uint,
+    hwloc_bitmap_t,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.POINTER(ctypes.POINTER(hwloc_infos_s)),
+    ctypes.c_ulong,
+]
+_LIB.hwloc_cpukinds_get_info.restype = ctypes.c_int
+
+
+if TYPE_CHECKING:
+    InfosPtr = ctypes._Pointer[hwloc_infos_s]
+else:
+    InfosPtr = ctypes._Pointer
+
+
+@_cfndoc
+def cpukinds_get_info(
+    topology: topology_t, kind_index: int, flags: int
+) -> tuple[hwloc_bitmap_t, int, InfosPtr]:
+    cpuset = bitmap_alloc()
+    efficiency = ctypes.c_int()
+    infos_ptr = ctypes.POINTER(hwloc_infos_s)()
+    # flags must be 0 for now.
+    _checkc(
+        _LIB.hwloc_cpukinds_get_info(
+            topology,
+            kind_index,
+            cpuset,
+            ctypes.byref(efficiency),
+            ctypes.byref(infos_ptr),
+            flags,
+        )
+    )
+
+    return cpuset, efficiency.value, infos_ptr
+
+
+_LIB.hwloc_cpukinds_register.argtypes = [
+    topology_t,
+    hwloc_bitmap_t,
+    ctypes.c_int,
+    ctypes.POINTER(hwloc_infos_s),
+    ctypes.c_ulong,
+]
+_LIB.hwloc_cpukinds_register.restype = ctypes.c_int
+
+
+@_cfndoc
+def cpukinds_register(
+    topology: topology_t,
+    cpuset: hwloc_bitmap_t,
+    forced_efficiency: int,
+    infos: hwloc_infos_s | None,
+) -> None:
+    pinfos = ctypes.byref(infos) if infos is not None else None
+    # The parameter flags must be 0 for now.
+    _checkc(
+        _LIB.hwloc_cpukinds_register(topology, cpuset, forced_efficiency, pinfos, 0)
+    )
