@@ -2385,7 +2385,7 @@ _LIB.hwloc_bitmap_list_snprintf.restype = ctypes.c_int
 
 @_cfndoc
 def bitmap_list_snprintf(
-    buf: ctypes.c_char_p, buflen: int, bitmap: hwloc_const_bitmap_t
+    buf: ctypes.c_char_p | ctypes.Array, buflen: int, bitmap: hwloc_const_bitmap_t
 ) -> int:
     return _LIB.hwloc_bitmap_list_snprintf(buf, buflen, bitmap)
 
@@ -2428,7 +2428,7 @@ _LIB.hwloc_bitmap_taskset_snprintf.restype = ctypes.c_int
 
 @_cfndoc
 def bitmap_taskset_snprintf(
-    buf: ctypes.c_char_p, buflen: int, bitmap: hwloc_const_bitmap_t
+    buf: ctypes.c_char_p | ctypes.Array, buflen: int, bitmap: hwloc_const_bitmap_t
 ) -> int:
     return _LIB.hwloc_bitmap_taskset_snprintf(buf, buflen, bitmap)
 

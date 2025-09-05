@@ -3,14 +3,14 @@ from typing import cast
 
 from pyhwloc.core import (
     HWLOC_UNKNOWN_INDEX,
-    ObjType,
+    ObjPtr,
     obj_attr_snprintf,
     obj_type_snprintf,
     topology_t,
 )
 
 
-def print_children(topology: topology_t, obj: ObjType, depth: int) -> None:
+def print_children(topology: topology_t, obj: ObjPtr, depth: int) -> None:
     type_buf = ctypes.create_string_buffer(32)
     attr_buf = ctypes.create_string_buffer(1024)
 
