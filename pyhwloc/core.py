@@ -1320,9 +1320,9 @@ _LIB.hwloc_topology_set_type_filter.restype = ctypes.c_int
 
 @_cfndoc
 def topology_set_type_filter(
-    topology: topology_t, obj_type: hwloc_obj_type_t, filter: hwloc_type_filter_e
+    topology: topology_t, obj_type: hwloc_obj_type_t, f: hwloc_type_filter_e
 ) -> None:
-    _checkc(_LIB.hwloc_topology_set_type_filter(topology, obj_type, filter))
+    _checkc(_LIB.hwloc_topology_set_type_filter(topology, obj_type, f))
 
 
 _LIB.hwloc_topology_get_type_filter.argtypes = [
@@ -1337,39 +1337,33 @@ _LIB.hwloc_topology_get_type_filter.restype = ctypes.c_int
 def topology_get_type_filter(
     topology: topology_t, obj_type: hwloc_obj_type_t
 ) -> hwloc_type_filter_e:
-    filter = ctypes.c_int()
-    _checkc(
-        _LIB.hwloc_topology_get_type_filter(topology, obj_type, ctypes.byref(filter))
-    )
-    return hwloc_type_filter_e(filter.value)
+    f = ctypes.c_int()
+    _checkc(_LIB.hwloc_topology_get_type_filter(topology, obj_type, ctypes.byref(f)))
+    return hwloc_type_filter_e(f.value)
 
 
 @_cfndoc
-def topology_set_all_types_filter(
-    topology: topology_t, filter: hwloc_type_filter_e
-) -> None:
-    _checkc(_LIB.hwloc_topology_set_all_types_filter(topology, filter))
+def topology_set_all_types_filter(topology: topology_t, f: hwloc_type_filter_e) -> None:
+    _checkc(_LIB.hwloc_topology_set_all_types_filter(topology, f))
 
 
 @_cfndoc
 def topology_set_cache_types_filter(
-    topology: topology_t, filter: hwloc_type_filter_e
+    topology: topology_t, f: hwloc_type_filter_e
 ) -> None:
-    _checkc(_LIB.hwloc_topology_set_cache_types_filter(topology, filter))
+    _checkc(_LIB.hwloc_topology_set_cache_types_filter(topology, f))
 
 
 @_cfndoc
 def topology_set_icache_types_filter(
-    topology: topology_t, filter: hwloc_type_filter_e
+    topology: topology_t, f: hwloc_type_filter_e
 ) -> None:
-    _checkc(_LIB.hwloc_topology_set_icache_types_filter(topology, filter))
+    _checkc(_LIB.hwloc_topology_set_icache_types_filter(topology, f))
 
 
 @_cfndoc
-def topology_set_io_types_filter(
-    topology: topology_t, filter: hwloc_type_filter_e
-) -> None:
-    _checkc(_LIB.hwloc_topology_set_io_types_filter(topology, filter))
+def topology_set_io_types_filter(topology: topology_t, f: hwloc_type_filter_e) -> None:
+    _checkc(_LIB.hwloc_topology_set_io_types_filter(topology, f))
 
 
 _LIB.hwloc_topology_set_userdata.argtypes = [topology_t, ctypes.c_void_p]

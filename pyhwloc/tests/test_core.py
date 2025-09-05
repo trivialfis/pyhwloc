@@ -18,14 +18,10 @@ import pytest
 
 from pyhwloc.core import (
     HwLocError,
-    _free,
     bitmap_alloc,
-    bitmap_asprintf,
-    bitmap_dup,
     bitmap_free,
     bitmap_iszero,
     bitmap_set,
-    bitmap_singlify,
     bridge_covers_pcibus,
     compare_types,
     cpukinds_get_by_cpuset,
@@ -53,6 +49,7 @@ from pyhwloc.core import (
     hwloc_topology_components_flag_e,
     hwloc_topology_export_synthetic_flags_e,
     hwloc_topology_export_xml_flags_e,
+    hwloc_topology_flags_e,
     hwloc_type_filter_e,
     obj_add_info,
     obj_attr_snprintf,
@@ -61,7 +58,6 @@ from pyhwloc.core import (
     obj_type_is_memory,
     obj_type_is_normal,
     obj_type_snprintf,
-    set_cpubind,
     topology_abi_check,
     topology_check,
     topology_destroy,
@@ -73,6 +69,7 @@ from pyhwloc.core import (
     topology_get_complete_cpuset,
     topology_get_complete_nodeset,
     topology_get_depth,
+    topology_get_flags,
     topology_get_infos,
     topology_get_topology_cpuset,
     topology_get_topology_nodeset,
@@ -80,6 +77,7 @@ from pyhwloc.core import (
     topology_is_thissystem,
     topology_load,
     topology_set_components,
+    topology_set_flags,
     topology_set_io_types_filter,
     topology_set_xmlbuffer,
     topology_t,
@@ -463,32 +461,6 @@ def find_numa_depth() -> int:
     return numa_depth
 
 
-def test_example() -> None:
-    topo = Topology()
-
-    depth = get_type_or_below_depth(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_CORE)
-
-    obj = get_obj_by_depth(topo.hdl, depth, get_nbobjs_by_depth(topo.hdl, depth) - 1)
-    if obj:
-        # Get a copy of its cpuset that we may modify.
-        cpuset = bitmap_dup(obj.contents.cpuset)
-
-        # Get only one logical processor (in case the core is SMT/hyper-threaded).
-        bitmap_singlify(cpuset)
-
-        # And try to bind ourself there
-        set_cpubind(topo.hdl, cpuset, 0)
-        bitmap_str = ctypes.c_char_p()
-        # int error = errno;
-        bitmap_asprintf(ctypes.byref(bitmap_str), obj.contents.cpuset)
-        print(bitmap_str.value)
-        # printf("Couldn't bind to cpuset %s: %s\n", str, strerror(error));
-        _free(bitmap_str)
-
-        # Free our cpuset copy
-        bitmap_free(cpuset)
-
-
 #####################
 # Finding I/O objects
 #####################
@@ -784,9 +756,9 @@ def test_topology_get_nodeset() -> None:
     assert not bitmap_iszero(nodeset)
 
 
-##################################
-# Topology discovery configuration
-##################################
+###########################################
+# Changing the source of topology discovery
+###########################################
 
 
 def test_topology_set_components() -> None:
@@ -815,4 +787,21 @@ def test_topology_set_xmlbuffer() -> None:
     topology_set_xmlbuffer(hdl, buf)
     topology_load(hdl)
     assert not topology_is_thissystem(hdl)
+    topology_destroy(hdl)
+
+
+############################################
+# Topology Detection Configuration and Query
+############################################
+
+
+def test_topology_flags() -> None:
+    hdl = topology_t()
+    topology_init(hdl)
+    topology_set_flags(
+        hdl, hwloc_topology_flags_e.HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED
+    )
+    topology_load(hdl)
+    flags = topology_get_flags(hdl)
+    assert flags == hwloc_topology_flags_e.HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED
     topology_destroy(hdl)
