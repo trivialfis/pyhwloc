@@ -37,6 +37,7 @@ from pyhwloc.core import (
     get_api_version,
     get_cache_type_depth,
     get_depth_type,
+    get_first_largest_obj_inside_cpuset,
     get_memory_parents_depth,
     get_nbobjs_by_depth,
     get_next_bridge,
@@ -852,3 +853,18 @@ def test_topology_restrict() -> None:
 ##################################
 # Finding Objects inside a CPU set
 ##################################
+
+
+def test_get_first_largest_obj_inside_cpuset() -> None:
+    topo = Topology()
+
+    complete_cpuset = topology_get_complete_cpuset(topo.hdl)
+    assert not bitmap_iszero(complete_cpuset)
+
+    largest_obj = get_first_largest_obj_inside_cpuset(topo.hdl, complete_cpuset)
+    assert largest_obj is not None
+
+    # The returned object should have valid properties
+    assert largest_obj.contents.type >= 0
+    assert largest_obj.contents.cpuset is not None
+    assert not bitmap_iszero(largest_obj.contents.cpuset)
