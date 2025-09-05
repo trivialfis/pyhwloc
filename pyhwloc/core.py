@@ -1112,6 +1112,73 @@ def free(topology: topology_t, addr: ctypes.c_void_p, length: int) -> None:
     _checkc(_LIB.hwloc_free(topology, addr, length))
 
 
+###########################################
+# Changing the Source of Topology Discovery
+###########################################
+
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00148.php
+
+
+class hwloc_topology_components_flag_e(IntEnum):
+    HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST = 1 << 0
+
+
+_LIB.hwloc_topology_set_pid.argtypes = [topology_t, hwloc_pid_t]
+_LIB.hwloc_topology_set_pid.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_set_pid(topology: topology_t, pid: hwloc_pid_t) -> None:
+    _checkc(_LIB.hwloc_topology_set_pid(topology, pid))
+
+
+_LIB.hwloc_topology_set_synthetic.argtypes = [topology_t, ctypes.c_char_p]
+_LIB.hwloc_topology_set_synthetic.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_set_synthetic(topology: topology_t, description: str) -> None:
+    description_bytes = description.encode("utf-8")
+    _checkc(_LIB.hwloc_topology_set_synthetic(topology, description_bytes))
+
+
+_LIB.hwloc_topology_set_xml.argtypes = [topology_t, ctypes.c_char_p]
+_LIB.hwloc_topology_set_xml.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_set_xml(topology: topology_t, xmlpath: str) -> None:
+    xmlpath_bytes = xmlpath.encode("utf-8")
+    _checkc(_LIB.hwloc_topology_set_xml(topology, xmlpath_bytes))
+
+
+_LIB.hwloc_topology_set_xmlbuffer.argtypes = [topology_t, ctypes.c_char_p, ctypes.c_int]
+_LIB.hwloc_topology_set_xmlbuffer.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_set_xmlbuffer(topology: topology_t, buf: str) -> None:
+    buffer_bytes = buf.encode("utf-8")
+    _checkc(
+        _LIB.hwloc_topology_set_xmlbuffer(topology, buffer_bytes, len(buffer_bytes))
+    )
+
+
+_LIB.hwloc_topology_set_components.argtypes = [
+    topology_t,
+    ctypes.c_ulong,
+    ctypes.c_char_p,
+]
+_LIB.hwloc_topology_set_components.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_set_components(topology: topology_t, flags: int, name: str) -> None:
+    name_bytes = name.encode("utf-8")
+    _checkc(_LIB.hwloc_topology_set_components(topology, flags, name_bytes))
+
+
 ##########################
 # Looking at Cache Objects
 ##########################
@@ -2084,7 +2151,7 @@ def topology_export_xmlbuffer(topology: topology_t, flags: int) -> str:
         )
     )
     result = xmlbuffer.value.decode("utf-8") if xmlbuffer.value else ""
-    _LIB.hwloc_free_xmlbuffer(topology, xmlbuffer)
+    _free_xmlbuffer(topology, xmlbuffer)
     return result
 
 
@@ -2092,8 +2159,8 @@ _LIB.hwloc_free_xmlbuffer.argtypes = [topology_t, ctypes.c_char_p]
 _LIB.hwloc_free_xmlbuffer.restype = None
 
 
-@_cfndoc
-def free_xmlbuffer(topology: topology_t, xmlbuffer: ctypes.c_char_p) -> None:
+# This function is only used internally since we use python strings.
+def _free_xmlbuffer(topology: topology_t, xmlbuffer: ctypes.c_char_p) -> None:
     _LIB.hwloc_free_xmlbuffer(topology, xmlbuffer)
 
 

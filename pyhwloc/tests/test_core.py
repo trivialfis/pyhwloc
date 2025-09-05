@@ -50,6 +50,7 @@ from pyhwloc.core import (
     hwloc_obj_attr_u,
     hwloc_obj_cache_type_t,
     hwloc_obj_type_t,
+    hwloc_topology_components_flag_e,
     hwloc_topology_export_synthetic_flags_e,
     hwloc_topology_export_xml_flags_e,
     hwloc_type_filter_e,
@@ -76,8 +77,11 @@ from pyhwloc.core import (
     topology_get_topology_cpuset,
     topology_get_topology_nodeset,
     topology_init,
+    topology_is_thissystem,
     topology_load,
+    topology_set_components,
     topology_set_io_types_filter,
+    topology_set_xmlbuffer,
     topology_t,
     type_sscanf,
     type_sscanf_as_depth,
@@ -778,3 +782,37 @@ def test_topology_get_nodeset() -> None:
     nodeset = topology_get_allowed_nodeset(topo.hdl)
     assert nodeset is not None
     assert not bitmap_iszero(nodeset)
+
+
+##################################
+# Topology discovery configuration
+##################################
+
+
+def test_topology_set_components() -> None:
+    # Simple test case from tests/hwloc/hwloc_backends.c
+    hdl = topology_t()
+    topology_init(hdl)
+    topology_set_components(
+        hdl,
+        hwloc_topology_components_flag_e.HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST,
+        "synthetic",
+    )
+    topology_load(hdl)
+    assert topology_is_thissystem(hdl)
+    topology_destroy(hdl)
+
+
+def test_topology_set_xmlbuffer() -> None:
+    topo = Topology()
+    assert topology_is_thissystem(topo.hdl)
+    buf = topology_export_xmlbuffer(
+        topo.hdl, hwloc_topology_export_xml_flags_e.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2
+    )
+
+    hdl = topology_t()
+    topology_init(hdl)
+    topology_set_xmlbuffer(hdl, buf)
+    topology_load(hdl)
+    assert not topology_is_thissystem(hdl)
+    topology_destroy(hdl)
