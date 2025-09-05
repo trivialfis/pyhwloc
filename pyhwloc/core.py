@@ -740,6 +740,378 @@ def obj_set_subtype(topology: topology_t, obj: ObjType, subtype: str) -> None:
     _checkc(_LIB.hwloc_obj_set_subtype(topology, obj, subtype_bytes))
 
 
+#############
+# CPU binding
+#############
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00146.php
+
+
+@_cenumdoc
+class hwloc_cpubind_flags_t(IntEnum):
+    HWLOC_CPUBIND_PROCESS = 1 << 0
+    HWLOC_CPUBIND_THREAD = 1 << 1
+    HWLOC_CPUBIND_STRICT = 1 << 2
+    HWLOC_CPUBIND_NOMEMBIND = 1 << 3
+
+
+_LIB.hwloc_set_cpubind.argtypes = [topology_t, hwloc_const_cpuset_t, ctypes.c_int]
+_LIB.hwloc_set_cpubind.restype = ctypes.c_int
+
+
+@_cfndoc
+def set_cpubind(topology: topology_t, cpuset: hwloc_const_cpuset_t, flags: int) -> None:
+    _checkc(_LIB.hwloc_set_cpubind(topology, cpuset, flags))
+
+
+_LIB.hwloc_get_cpubind.argtypes = [topology_t, hwloc_cpuset_t, ctypes.c_int]
+_LIB.hwloc_get_cpubind.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_cpubind(topology: topology_t, cpuset: hwloc_cpuset_t, flags: int) -> None:
+    _checkc(_LIB.hwloc_get_cpubind(topology, cpuset, flags))
+
+
+_LIB.hwloc_set_proc_cpubind.argtypes = [
+    topology_t,
+    hwloc_pid_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_set_proc_cpubind.restype = ctypes.c_int
+
+
+@_cfndoc
+def set_proc_cpubind(
+    topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_const_cpuset_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_set_proc_cpubind(topology, pid, cpuset, flags))
+
+
+_LIB.hwloc_get_proc_cpubind.argtypes = [
+    topology_t,
+    hwloc_pid_t,
+    hwloc_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_get_proc_cpubind.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_proc_cpubind(
+    topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_get_proc_cpubind(topology, pid, cpuset, flags))
+
+
+hwloc_thread_t = ctypes.c_ulong
+
+_LIB.hwloc_set_thread_cpubind.argtypes = [
+    topology_t,
+    hwloc_thread_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_set_thread_cpubind.restype = ctypes.c_int
+
+
+@_cfndoc
+def set_thread_cpubind(
+    topology: topology_t,
+    thread: hwloc_thread_t,
+    cpuset: hwloc_const_cpuset_t,
+    flags: int,
+) -> None:
+    _checkc(_LIB.hwloc_set_thread_cpubind(topology, thread, cpuset, flags))
+
+
+_LIB.hwloc_get_thread_cpubind.argtypes = [
+    topology_t,
+    hwloc_thread_t,
+    hwloc_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_get_thread_cpubind.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_thread_cpubind(
+    topology: topology_t, thread: hwloc_thread_t, cpuset: hwloc_cpuset_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_get_thread_cpubind(topology, thread, cpuset, flags))
+
+
+_LIB.hwloc_get_last_cpu_location.argtypes = [topology_t, hwloc_cpuset_t, ctypes.c_int]
+_LIB.hwloc_get_last_cpu_location.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_last_cpu_location(
+    topology: topology_t, cpuset: hwloc_cpuset_t, flags: int
+) -> None:
+
+    _checkc(_LIB.hwloc_get_last_cpu_location(topology, cpuset, flags))
+
+
+_LIB.hwloc_get_proc_last_cpu_location.argtypes = [
+    topology_t,
+    hwloc_pid_t,
+    hwloc_cpuset_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_get_proc_last_cpu_location.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_proc_last_cpu_location(
+    topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_get_proc_last_cpu_location(topology, pid, cpuset, flags))
+
+
+################
+# Memory binding
+################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00147.php#gadf87089ef533db40460ccc24b5bc0d65
+
+
+@_cenumdoc
+class hwloc_membind_policy_t(IntEnum):
+    HWLOC_MEMBIND_DEFAULT = 0
+    HWLOC_MEMBIND_FIRSTTOUCH = 1
+    HWLOC_MEMBIND_BIND = 2
+    HWLOC_MEMBIND_INTERLEAVE = 3
+    HWLOC_MEMBIND_WEIGHTED_INTERLEAVE = 5
+    HWLOC_MEMBIND_NEXTTOUCH = 4
+    HWLOC_MEMBIND_MIXED = -1
+
+
+@_cenumdoc
+class hwloc_membind_flags_t(IntEnum):
+    HWLOC_MEMBIND_PROCESS = 1 << 0
+    HWLOC_MEMBIND_THREAD = 1 << 1
+    HWLOC_MEMBIND_STRICT = 1 << 2
+    HWLOC_MEMBIND_MIGRATE = 1 << 3
+    HWLOC_MEMBIND_NOCPUBIND = 1 << 4
+    HWLOC_MEMBIND_BYNODESET = 1 << 5
+
+
+_LIB.hwloc_set_membind.argtypes = [
+    topology_t,
+    const_bitmap_t,
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_LIB.hwloc_set_membind.restype = ctypes.c_int
+
+
+@_cfndoc
+def set_membind(
+    topology: topology_t,
+    set: const_bitmap_t,
+    policy: hwloc_membind_policy_t,
+    flags: int,
+) -> None:
+    _checkc(_LIB.hwloc_set_membind(topology, set, policy, flags))
+
+
+_LIB.hwloc_get_membind.argtypes = [
+    topology_t,
+    bitmap_t,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.c_int,
+]
+_LIB.hwloc_get_membind.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_membind(
+    topology: topology_t, set: bitmap_t, flags: int
+) -> hwloc_membind_policy_t:
+    policy = ctypes.c_int()
+    _checkc(_LIB.hwloc_get_membind(topology, set, ctypes.byref(policy), flags))
+    return hwloc_membind_policy_t(policy.value)
+
+
+_LIB.hwloc_set_proc_membind.argtypes = [
+    topology_t,
+    hwloc_pid_t,
+    const_bitmap_t,
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_LIB.hwloc_set_proc_membind.restype = ctypes.c_int
+
+
+@_cfndoc
+def set_proc_membind(
+    topology: topology_t,
+    pid: hwloc_pid_t,
+    set: const_bitmap_t,
+    policy: hwloc_membind_policy_t,
+    flags: int,
+) -> None:
+    _checkc(_LIB.hwloc_set_proc_membind(topology, pid, set, policy, flags))
+
+
+_LIB.hwloc_get_proc_membind.argtypes = [
+    topology_t,
+    hwloc_pid_t,
+    bitmap_t,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.c_int,
+]
+_LIB.hwloc_get_proc_membind.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_proc_membind(
+    topology: topology_t, pid: hwloc_pid_t, set: bitmap_t, flags: int
+) -> hwloc_membind_policy_t:
+    policy = ctypes.c_int()
+    _checkc(
+        _LIB.hwloc_get_proc_membind(topology, pid, set, ctypes.byref(policy), flags)
+    )
+    return hwloc_membind_policy_t(policy.value)
+
+
+_LIB.hwloc_set_area_membind.argtypes = [
+    topology_t,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    const_bitmap_t,
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_LIB.hwloc_set_area_membind.restype = ctypes.c_int
+
+
+@_cfndoc
+def set_area_membind(
+    topology: topology_t,
+    addr: ctypes.c_void_p,
+    length: int,
+    set: const_bitmap_t,
+    policy: hwloc_membind_policy_t,
+    flags: int,
+) -> None:
+    _checkc(_LIB.hwloc_set_area_membind(topology, addr, length, set, policy, flags))
+
+
+_LIB.hwloc_get_area_membind.argtypes = [
+    topology_t,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    bitmap_t,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.c_int,
+]
+_LIB.hwloc_get_area_membind.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_area_membind(
+    topology: topology_t, addr: ctypes.c_void_p, length: int, set: bitmap_t, flags: int
+) -> hwloc_membind_policy_t:
+    policy = ctypes.c_int()
+    _checkc(
+        _LIB.hwloc_get_area_membind(
+            topology, addr, length, set, ctypes.byref(policy), flags
+        )
+    )
+    return hwloc_membind_policy_t(policy.value)
+
+
+_LIB.hwloc_get_area_memlocation.argtypes = [
+    topology_t,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    bitmap_t,
+    ctypes.c_int,
+]
+_LIB.hwloc_get_area_memlocation.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_area_memlocation(
+    topology: topology_t, addr: ctypes.c_void_p, length: int, set: bitmap_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_get_area_memlocation(topology, addr, length, set, flags))
+
+
+_LIB.hwloc_alloc.argtypes = [topology_t, ctypes.c_size_t]
+_LIB.hwloc_alloc.restype = ctypes.c_void_p
+
+
+@_cfndoc
+def alloc(topology: topology_t, length: int) -> ctypes.c_void_p:
+    result = _LIB.hwloc_alloc(topology, length)
+    if not result:
+        raise HwLocError(-1, 0, b"hwloc_alloc failed")
+    return result
+
+
+_LIB.hwloc_alloc_membind.argtypes = [
+    topology_t,
+    ctypes.c_size_t,
+    const_bitmap_t,
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_LIB.hwloc_alloc_membind.restype = ctypes.c_void_p
+
+
+@_cfndoc
+def alloc_membind(
+    topology: topology_t,
+    length: int,
+    set: const_bitmap_t,
+    policy: hwloc_membind_policy_t,
+    flags: int,
+) -> ctypes.c_void_p:
+    result = _LIB.hwloc_alloc_membind(topology, length, set, policy, flags)
+    if not result:
+        raise HwLocError(-1, 0, b"hwloc_alloc_membind failed")
+    return result
+
+
+_pyhwloc_lib.pyhwloc_alloc_membind_policy.argtypes = [
+    topology_t,
+    ctypes.c_size_t,
+    const_bitmap_t,
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_pyhwloc_lib.pyhwloc_alloc_membind_policy.restype = ctypes.c_void_p
+
+
+@_cfndoc
+def alloc_membind_policy(
+    topology: topology_t,
+    length: int,
+    set: const_bitmap_t,
+    policy: hwloc_membind_policy_t,
+    flags: int,
+) -> ctypes.c_void_p:
+    result = _pyhwloc_lib.pyhwloc_alloc_membind_policy(
+        topology, length, set, policy, flags
+    )
+    if not result:
+        raise HwLocError(-1, 0, b"hwloc_alloc_membind_policy failed")
+    return result
+
+
+_LIB.hwloc_free.argtypes = [topology_t, ctypes.c_void_p, ctypes.c_size_t]
+_LIB.hwloc_free.restype = ctypes.c_int
+
+
+@_cfndoc
+def free(topology: topology_t, addr: ctypes.c_void_p, length: int) -> None:
+    _checkc(_LIB.hwloc_free(topology, addr, length))
+
+
 ##########################
 # Looking at Cache Objects
 ##########################
@@ -2054,380 +2426,22 @@ def topology_set_io_types_filter(
     _checkc(_LIB.hwloc_topology_set_io_types_filter(topology, filter))
 
 
-# void 	hwloc_topology_set_userdata (hwloc_topology_t topology, const void *userdata)
-
-# void * 	hwloc_topology_get_userdata (hwloc_topology_t topology)
-
-#############
-# CPU binding
-#############
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00146.php
-
-
-@_cenumdoc
-class hwloc_cpubind_flags_t(IntEnum):
-    HWLOC_CPUBIND_PROCESS = 1 << 0
-    HWLOC_CPUBIND_THREAD = 1 << 1
-    HWLOC_CPUBIND_STRICT = 1 << 2
-    HWLOC_CPUBIND_NOMEMBIND = 1 << 3
-
-
-_LIB.hwloc_set_cpubind.argtypes = [topology_t, hwloc_const_cpuset_t, ctypes.c_int]
-_LIB.hwloc_set_cpubind.restype = ctypes.c_int
+_LIB.hwloc_topology_set_userdata.argtypes = [topology_t, ctypes.c_void_p]
+_LIB.hwloc_topology_set_userdata.restype = None
 
 
 @_cfndoc
-def set_cpubind(topology: topology_t, cpuset: hwloc_const_cpuset_t, flags: int) -> None:
-    _checkc(_LIB.hwloc_set_cpubind(topology, cpuset, flags))
+def topology_set_userdata(topology: topology_t, userdata: int) -> None:
+    _LIB.hwloc_topology_set_userdata(topology, userdata)
 
 
-_LIB.hwloc_get_cpubind.argtypes = [topology_t, hwloc_cpuset_t, ctypes.c_int]
-_LIB.hwloc_get_cpubind.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_cpubind(topology: topology_t, cpuset: hwloc_cpuset_t, flags: int) -> None:
-    _checkc(_LIB.hwloc_get_cpubind(topology, cpuset, flags))
-
-
-_LIB.hwloc_set_proc_cpubind.argtypes = [
-    topology_t,
-    hwloc_pid_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-]
-_LIB.hwloc_set_proc_cpubind.restype = ctypes.c_int
+_LIB.hwloc_topology_get_userdata.argtypes = [topology_t]
+_LIB.hwloc_topology_get_userdata.restype = ctypes.c_void_p
 
 
 @_cfndoc
-def set_proc_cpubind(
-    topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_const_cpuset_t, flags: int
-) -> None:
-    _checkc(_LIB.hwloc_set_proc_cpubind(topology, pid, cpuset, flags))
-
-
-_LIB.hwloc_get_proc_cpubind.argtypes = [
-    topology_t,
-    hwloc_pid_t,
-    hwloc_cpuset_t,
-    ctypes.c_int,
-]
-_LIB.hwloc_get_proc_cpubind.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_proc_cpubind(
-    topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
-) -> None:
-    _checkc(_LIB.hwloc_get_proc_cpubind(topology, pid, cpuset, flags))
-
-
-hwloc_thread_t = ctypes.c_ulong
-
-_LIB.hwloc_set_thread_cpubind.argtypes = [
-    topology_t,
-    hwloc_thread_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-]
-_LIB.hwloc_set_thread_cpubind.restype = ctypes.c_int
-
-
-@_cfndoc
-def set_thread_cpubind(
-    topology: topology_t,
-    thread: hwloc_thread_t,
-    cpuset: hwloc_const_cpuset_t,
-    flags: int,
-) -> None:
-    _checkc(_LIB.hwloc_set_thread_cpubind(topology, thread, cpuset, flags))
-
-
-_LIB.hwloc_get_thread_cpubind.argtypes = [
-    topology_t,
-    hwloc_thread_t,
-    hwloc_cpuset_t,
-    ctypes.c_int,
-]
-_LIB.hwloc_get_thread_cpubind.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_thread_cpubind(
-    topology: topology_t, thread: hwloc_thread_t, cpuset: hwloc_cpuset_t, flags: int
-) -> None:
-    _checkc(_LIB.hwloc_get_thread_cpubind(topology, thread, cpuset, flags))
-
-
-_LIB.hwloc_get_last_cpu_location.argtypes = [topology_t, hwloc_cpuset_t, ctypes.c_int]
-_LIB.hwloc_get_last_cpu_location.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_last_cpu_location(
-    topology: topology_t, cpuset: hwloc_cpuset_t, flags: int
-) -> None:
-
-    _checkc(_LIB.hwloc_get_last_cpu_location(topology, cpuset, flags))
-
-
-_LIB.hwloc_get_proc_last_cpu_location.argtypes = [
-    topology_t,
-    hwloc_pid_t,
-    hwloc_cpuset_t,
-    ctypes.c_int,
-]
-_LIB.hwloc_get_proc_last_cpu_location.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_proc_last_cpu_location(
-    topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
-) -> None:
-    _checkc(_LIB.hwloc_get_proc_last_cpu_location(topology, pid, cpuset, flags))
-
-
-################
-# Memory binding
-################
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00147.php#gadf87089ef533db40460ccc24b5bc0d65
-
-
-@_cenumdoc
-class hwloc_membind_policy_t(IntEnum):
-    HWLOC_MEMBIND_DEFAULT = 0
-    HWLOC_MEMBIND_FIRSTTOUCH = 1
-    HWLOC_MEMBIND_BIND = 2
-    HWLOC_MEMBIND_INTERLEAVE = 3
-    HWLOC_MEMBIND_WEIGHTED_INTERLEAVE = 5
-    HWLOC_MEMBIND_NEXTTOUCH = 4
-    HWLOC_MEMBIND_MIXED = -1
-
-
-@_cenumdoc
-class hwloc_membind_flags_t(IntEnum):
-    HWLOC_MEMBIND_PROCESS = 1 << 0
-    HWLOC_MEMBIND_THREAD = 1 << 1
-    HWLOC_MEMBIND_STRICT = 1 << 2
-    HWLOC_MEMBIND_MIGRATE = 1 << 3
-    HWLOC_MEMBIND_NOCPUBIND = 1 << 4
-    HWLOC_MEMBIND_BYNODESET = 1 << 5
-
-
-_LIB.hwloc_set_membind.argtypes = [
-    topology_t,
-    const_bitmap_t,
-    ctypes.c_int,
-    ctypes.c_int,
-]
-_LIB.hwloc_set_membind.restype = ctypes.c_int
-
-
-@_cfndoc
-def set_membind(
-    topology: topology_t,
-    set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
-    flags: int,
-) -> None:
-    _checkc(_LIB.hwloc_set_membind(topology, set, policy, flags))
-
-
-_LIB.hwloc_get_membind.argtypes = [
-    topology_t,
-    bitmap_t,
-    ctypes.POINTER(ctypes.c_int),
-    ctypes.c_int,
-]
-_LIB.hwloc_get_membind.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_membind(
-    topology: topology_t, set: bitmap_t, flags: int
-) -> hwloc_membind_policy_t:
-    policy = ctypes.c_int()
-    _checkc(_LIB.hwloc_get_membind(topology, set, ctypes.byref(policy), flags))
-    return hwloc_membind_policy_t(policy.value)
-
-
-_LIB.hwloc_set_proc_membind.argtypes = [
-    topology_t,
-    hwloc_pid_t,
-    const_bitmap_t,
-    ctypes.c_int,
-    ctypes.c_int,
-]
-_LIB.hwloc_set_proc_membind.restype = ctypes.c_int
-
-
-@_cfndoc
-def set_proc_membind(
-    topology: topology_t,
-    pid: hwloc_pid_t,
-    set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
-    flags: int,
-) -> None:
-    _checkc(_LIB.hwloc_set_proc_membind(topology, pid, set, policy, flags))
-
-
-_LIB.hwloc_get_proc_membind.argtypes = [
-    topology_t,
-    hwloc_pid_t,
-    bitmap_t,
-    ctypes.POINTER(ctypes.c_int),
-    ctypes.c_int,
-]
-_LIB.hwloc_get_proc_membind.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_proc_membind(
-    topology: topology_t, pid: hwloc_pid_t, set: bitmap_t, flags: int
-) -> hwloc_membind_policy_t:
-    policy = ctypes.c_int()
-    _checkc(
-        _LIB.hwloc_get_proc_membind(topology, pid, set, ctypes.byref(policy), flags)
-    )
-    return hwloc_membind_policy_t(policy.value)
-
-
-_LIB.hwloc_set_area_membind.argtypes = [
-    topology_t,
-    ctypes.c_void_p,
-    ctypes.c_size_t,
-    const_bitmap_t,
-    ctypes.c_int,
-    ctypes.c_int,
-]
-_LIB.hwloc_set_area_membind.restype = ctypes.c_int
-
-
-@_cfndoc
-def set_area_membind(
-    topology: topology_t,
-    addr: ctypes.c_void_p,
-    length: int,
-    set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
-    flags: int,
-) -> None:
-    _checkc(_LIB.hwloc_set_area_membind(topology, addr, length, set, policy, flags))
-
-
-_LIB.hwloc_get_area_membind.argtypes = [
-    topology_t,
-    ctypes.c_void_p,
-    ctypes.c_size_t,
-    bitmap_t,
-    ctypes.POINTER(ctypes.c_int),
-    ctypes.c_int,
-]
-_LIB.hwloc_get_area_membind.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_area_membind(
-    topology: topology_t, addr: ctypes.c_void_p, length: int, set: bitmap_t, flags: int
-) -> hwloc_membind_policy_t:
-    policy = ctypes.c_int()
-    _checkc(
-        _LIB.hwloc_get_area_membind(
-            topology, addr, length, set, ctypes.byref(policy), flags
-        )
-    )
-    return hwloc_membind_policy_t(policy.value)
-
-
-_LIB.hwloc_get_area_memlocation.argtypes = [
-    topology_t,
-    ctypes.c_void_p,
-    ctypes.c_size_t,
-    bitmap_t,
-    ctypes.c_int,
-]
-_LIB.hwloc_get_area_memlocation.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_area_memlocation(
-    topology: topology_t, addr: ctypes.c_void_p, length: int, set: bitmap_t, flags: int
-) -> None:
-    _checkc(_LIB.hwloc_get_area_memlocation(topology, addr, length, set, flags))
-
-
-_LIB.hwloc_alloc.argtypes = [topology_t, ctypes.c_size_t]
-_LIB.hwloc_alloc.restype = ctypes.c_void_p
-
-
-@_cfndoc
-def alloc(topology: topology_t, length: int) -> ctypes.c_void_p:
-    result = _LIB.hwloc_alloc(topology, length)
-    if not result:
-        raise HwLocError(-1, 0, b"hwloc_alloc failed")
-    return result
-
-
-_LIB.hwloc_alloc_membind.argtypes = [
-    topology_t,
-    ctypes.c_size_t,
-    const_bitmap_t,
-    ctypes.c_int,
-    ctypes.c_int,
-]
-_LIB.hwloc_alloc_membind.restype = ctypes.c_void_p
-
-
-@_cfndoc
-def alloc_membind(
-    topology: topology_t,
-    length: int,
-    set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
-    flags: int,
-) -> ctypes.c_void_p:
-    result = _LIB.hwloc_alloc_membind(topology, length, set, policy, flags)
-    if not result:
-        raise HwLocError(-1, 0, b"hwloc_alloc_membind failed")
-    return result
-
-
-_pyhwloc_lib.pyhwloc_alloc_membind_policy.argtypes = [
-    topology_t,
-    ctypes.c_size_t,
-    const_bitmap_t,
-    ctypes.c_int,
-    ctypes.c_int,
-]
-_pyhwloc_lib.pyhwloc_alloc_membind_policy.restype = ctypes.c_void_p
-
-
-@_cfndoc
-def alloc_membind_policy(
-    topology: topology_t,
-    length: int,
-    set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
-    flags: int,
-) -> ctypes.c_void_p:
-    result = _pyhwloc_lib.pyhwloc_alloc_membind_policy(
-        topology, length, set, policy, flags
-    )
-    if not result:
-        raise HwLocError(-1, 0, b"hwloc_alloc_membind_policy failed")
-    return result
-
-
-_LIB.hwloc_free.argtypes = [topology_t, ctypes.c_void_p, ctypes.c_size_t]
-_LIB.hwloc_free.restype = ctypes.c_int
-
-
-@_cfndoc
-def free(topology: topology_t, addr: ctypes.c_void_p, length: int) -> None:
-    _checkc(_LIB.hwloc_free(topology, addr, length))
+def topology_get_userdata(topology: topology_t) -> int:
+    return _LIB.hwloc_topology_get_userdata(topology)
 
 
 ######################

@@ -771,10 +771,10 @@ def test_topology_get_nodeset() -> None:
     nodeset = topology_get_complete_nodeset(topo.hdl)
     assert not bitmap_iszero(nodeset)
 
-    nodeset = topology_get_topology_cpuset(topo.hdl)
+    nodeset = topology_get_topology_nodeset(topo.hdl)
     assert nodeset is not None
     assert not bitmap_iszero(nodeset)
 
-    nodeset = topology_get_allowed_cpuset(topo.hdl)
+    nodeset = topology_get_allowed_nodeset(topo.hdl)
     assert nodeset is not None
     assert not bitmap_iszero(nodeset)
