@@ -3810,10 +3810,11 @@ _LIB.hwloc_shmem_topology_get_length.restype = ctypes.c_int
 
 def shmem_topology_get_length(
     topology: topology_t,
-    lengthp: ctypes._Pointer,  # [ctypes.c_size_t]
-) -> None:
+) -> int:
+    length = ctypes.c_size_t()
     # flags must be 0 for now.
-    _checkc(_LIB.hwloc_shmem_topology_get_length(topology, lengthp, 0))
+    _checkc(_LIB.hwloc_shmem_topology_get_length(topology, ctypes.byref(length), 0))
+    return length.value
 
 
 _LIB.hwloc_shmem_topology_write.argtypes = [
