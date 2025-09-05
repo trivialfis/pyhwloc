@@ -1179,6 +1179,607 @@ def topology_set_components(topology: topology_t, flags: int, name: str) -> None
     _checkc(_LIB.hwloc_topology_set_components(topology, flags, name_bytes))
 
 
+############################################
+# Topology Detection Configuration and Query
+############################################
+
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00149.php
+
+
+class hwloc_topology_discovery_support(ctypes.Structure):
+    _fields_ = [
+        ("pu", ctypes.c_ubyte),
+        ("numa", ctypes.c_ubyte),
+        ("numa_memory", ctypes.c_ubyte),
+        ("disallowed_pu", ctypes.c_ubyte),
+        ("disallowed_numa", ctypes.c_ubyte),
+        ("cpukind_efficiency", ctypes.c_ubyte),
+    ]
+
+
+class hwloc_topology_cpubind_support(ctypes.Structure):
+    _fields_ = [
+        ("set_thisproc_cpubind", ctypes.c_ubyte),
+        ("get_thisproc_cpubind", ctypes.c_ubyte),
+        ("set_proc_cpubind", ctypes.c_ubyte),
+        ("get_proc_cpubind", ctypes.c_ubyte),
+        ("set_thisthread_cpubind", ctypes.c_ubyte),
+        ("get_thisthread_cpubind", ctypes.c_ubyte),
+        ("set_thread_cpubind", ctypes.c_ubyte),
+        ("get_thread_cpubind", ctypes.c_ubyte),
+        ("get_thisproc_last_cpu_location", ctypes.c_ubyte),
+        ("get_proc_last_cpu_location", ctypes.c_ubyte),
+        ("get_thisthread_last_cpu_location", ctypes.c_ubyte),
+    ]
+
+
+class hwloc_topology_membind_support(ctypes.Structure):
+    _fields_ = [
+        ("set_thisproc_membind", ctypes.c_ubyte),
+        ("get_thisproc_membind", ctypes.c_ubyte),
+        ("set_proc_membind", ctypes.c_ubyte),
+        ("get_proc_membind", ctypes.c_ubyte),
+        ("set_thisthread_membind", ctypes.c_ubyte),
+        ("get_thisthread_membind", ctypes.c_ubyte),
+        ("alloc_membind", ctypes.c_ubyte),
+        ("set_area_membind", ctypes.c_ubyte),
+        ("get_area_membind", ctypes.c_ubyte),
+        ("get_area_memlocation", ctypes.c_ubyte),
+        ("firsttouch_membind", ctypes.c_ubyte),
+        ("bind_membind", ctypes.c_ubyte),
+        ("interleave_membind", ctypes.c_ubyte),
+        ("weighted_interleave_membind", ctypes.c_ubyte),
+        ("nexttouch_membind", ctypes.c_ubyte),
+        ("migrate_membind", ctypes.c_ubyte),
+    ]
+
+
+class hwloc_topology_misc_support(ctypes.Structure):
+    _fields_ = [
+        ("imported_support", ctypes.c_ubyte),
+    ]
+
+
+class hwloc_topology_support(ctypes.Structure):
+    _fields_ = [
+        ("discovery", ctypes.POINTER(hwloc_topology_discovery_support)),
+        ("cpubind", ctypes.POINTER(hwloc_topology_cpubind_support)),
+        ("membind", ctypes.POINTER(hwloc_topology_membind_support)),
+        ("misc", ctypes.POINTER(hwloc_topology_misc_support)),
+    ]
+
+
+@_cenumdoc
+class hwloc_topology_flags_e(IntEnum):
+    HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED = 1 << 0
+    HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM = 1 << 1
+    HWLOC_TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES = 1 << 2
+    HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT = 1 << 3
+    HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING = 1 << 4
+    HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING = 1 << 5
+    HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING = 1 << 6
+    HWLOC_TOPOLOGY_FLAG_NO_DISTANCES = 1 << 7
+    HWLOC_TOPOLOGY_FLAG_NO_MEMATTRS = 1 << 8
+    HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS = 1 << 9
+
+
+@_cenumdoc
+class hwloc_type_filter_e(IntEnum):
+    HWLOC_TYPE_FILTER_KEEP_ALL = 0
+    HWLOC_TYPE_FILTER_KEEP_NONE = 1
+    HWLOC_TYPE_FILTER_KEEP_STRUCTURE = 2
+    HWLOC_TYPE_FILTER_KEEP_IMPORTANT = 3
+
+
+_LIB.hwloc_topology_set_flags.argtypes = [topology_t, ctypes.c_ulong]
+_LIB.hwloc_topology_set_flags.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_set_flags(topology: topology_t, flags: int) -> None:
+    _checkc(_LIB.hwloc_topology_set_flags(topology, flags))
+
+
+_LIB.hwloc_topology_get_flags.argtypes = [topology_t]
+_LIB.hwloc_topology_get_flags.restype = ctypes.c_ulong
+
+
+@_cfndoc
+def topology_get_flags(topology: topology_t) -> int:
+    return _LIB.hwloc_topology_get_flags(topology)
+
+
+_LIB.hwloc_topology_is_thissystem.argtypes = [topology_t]
+_LIB.hwloc_topology_is_thissystem.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_is_thissystem(topology: topology_t) -> bool:
+    return bool(_LIB.hwloc_topology_is_thissystem(topology))
+
+
+_LIB.hwloc_topology_get_support.argtypes = [topology_t]
+_LIB.hwloc_topology_get_support.restype = ctypes.POINTER(hwloc_topology_support)
+
+
+if TYPE_CHECKING:
+    SupportType = ctypes._Pointer[hwloc_topology_support]
+else:
+    SupportType = ctypes._Pointer
+
+
+@_cfndoc
+def topology_get_support(topology: topology_t) -> SupportType:
+    return _LIB.hwloc_topology_get_support(topology)
+
+
+_LIB.hwloc_topology_set_type_filter.argtypes = [topology_t, ctypes.c_int, ctypes.c_int]
+_LIB.hwloc_topology_set_type_filter.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_set_type_filter(
+    topology: topology_t, obj_type: hwloc_obj_type_t, filter: hwloc_type_filter_e
+) -> None:
+    _checkc(_LIB.hwloc_topology_set_type_filter(topology, obj_type, filter))
+
+
+_LIB.hwloc_topology_get_type_filter.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.c_int),
+]
+_LIB.hwloc_topology_get_type_filter.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_get_type_filter(
+    topology: topology_t, obj_type: hwloc_obj_type_t
+) -> hwloc_type_filter_e:
+    filter = ctypes.c_int()
+    _checkc(
+        _LIB.hwloc_topology_get_type_filter(topology, obj_type, ctypes.byref(filter))
+    )
+    return hwloc_type_filter_e(filter.value)
+
+
+@_cfndoc
+def topology_set_all_types_filter(
+    topology: topology_t, filter: hwloc_type_filter_e
+) -> None:
+    _checkc(_LIB.hwloc_topology_set_all_types_filter(topology, filter))
+
+
+@_cfndoc
+def topology_set_cache_types_filter(
+    topology: topology_t, filter: hwloc_type_filter_e
+) -> None:
+    _checkc(_LIB.hwloc_topology_set_cache_types_filter(topology, filter))
+
+
+@_cfndoc
+def topology_set_icache_types_filter(
+    topology: topology_t, filter: hwloc_type_filter_e
+) -> None:
+    _checkc(_LIB.hwloc_topology_set_icache_types_filter(topology, filter))
+
+
+@_cfndoc
+def topology_set_io_types_filter(
+    topology: topology_t, filter: hwloc_type_filter_e
+) -> None:
+    _checkc(_LIB.hwloc_topology_set_io_types_filter(topology, filter))
+
+
+_LIB.hwloc_topology_set_userdata.argtypes = [topology_t, ctypes.c_void_p]
+_LIB.hwloc_topology_set_userdata.restype = None
+
+
+@_cfndoc
+def topology_set_userdata(topology: topology_t, userdata: int) -> None:
+    _LIB.hwloc_topology_set_userdata(topology, userdata)
+
+
+_LIB.hwloc_topology_get_userdata.argtypes = [topology_t]
+_LIB.hwloc_topology_get_userdata.restype = ctypes.c_void_p
+
+
+@_cfndoc
+def topology_get_userdata(topology: topology_t) -> int:
+    return _LIB.hwloc_topology_get_userdata(topology)
+
+
+#############################
+# Modifying a loaded Topology
+#############################
+
+######################
+# Kinds of object Type
+######################
+
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00151.php
+
+
+_LIB.hwloc_obj_type_is_normal.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_normal.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_type_is_normal(obj_type: hwloc_obj_type_t) -> bool:
+    # For the definition of normal:
+    # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00343.php
+    return bool(_LIB.hwloc_obj_type_is_normal(int(obj_type)))
+
+
+_LIB.hwloc_obj_type_is_io.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_io.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_type_is_io(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_io(obj_type))
+
+
+_LIB.hwloc_obj_type_is_memory.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_memory.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_type_is_memory(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_memory(obj_type))
+
+
+_LIB.hwloc_obj_type_is_cache.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_cache.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_type_is_cache(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_cache(obj_type))
+
+
+_LIB.hwloc_obj_type_is_dcache.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_dcache.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_type_is_dcache(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_dcache(obj_type))
+
+
+_LIB.hwloc_obj_type_is_icache.argtypes = [ctypes.c_int]
+_LIB.hwloc_obj_type_is_icache.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_type_is_icache(obj_type: hwloc_obj_type_t) -> bool:
+    return bool(_LIB.hwloc_obj_type_is_icache(obj_type))
+
+
+##################################
+# Finding Objects inside a CPU set
+##################################
+
+_pyhwloc_lib.pyhwloc_get_first_largest_obj_inside_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+]
+_pyhwloc_lib.pyhwloc_get_first_largest_obj_inside_cpuset.restype = obj_t
+
+
+@_cfndoc
+def get_first_largest_obj_inside_cpuset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_first_largest_obj_inside_cpuset(topology, cpuset)
+
+
+_pyhwloc_lib.pyhwloc_get_largest_objs_inside_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.POINTER(obj_t),
+    ctypes.c_int,
+]
+_pyhwloc_lib.pyhwloc_get_largest_objs_inside_cpuset.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_largest_objs_inside_cpuset(
+    topology: topology_t,
+    cpuset: hwloc_const_cpuset_t,
+    objs: ctypes.Array,
+    max_objs: int,
+) -> int:
+    return _pyhwloc_lib.pyhwloc_get_largest_objs_inside_cpuset(
+        topology, cpuset, objs, max_objs
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_depth.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_depth.restype = obj_t
+
+
+@_cfndoc
+def get_next_obj_inside_cpuset_by_depth(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, prev: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_depth(
+        topology, cpuset, depth, prev
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_next_obj_inside_cpuset_by_type(
+    topology: topology_t,
+    cpuset: hwloc_const_cpuset_t,
+    obj_type: hwloc_obj_type_t,
+    prev: ObjType,
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type(
+        topology, cpuset, obj_type, prev
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_depth.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_depth.restype = obj_t
+
+
+@_cfndoc
+def get_obj_inside_cpuset_by_depth(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, idx: int
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_depth(
+        topology, cpuset, depth, idx
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    ctypes.c_uint,
+]
+_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_obj_inside_cpuset_by_type(
+    topology: topology_t,
+    cpuset: hwloc_const_cpuset_t,
+    obj_type: hwloc_obj_type_t,
+    idx: int,
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type(
+        topology, cpuset, obj_type, idx
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_depth.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+]
+_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_depth.restype = ctypes.c_uint
+
+
+@_cfndoc
+def get_nbobjs_inside_cpuset_by_depth(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int
+) -> int:
+    return _pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_depth(
+        topology, cpuset, depth
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+]
+_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_nbobjs_inside_cpuset_by_type(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, obj_type: hwloc_obj_type_t
+) -> int:
+    return _pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type(
+        topology, cpuset, obj_type
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_obj_index_inside_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_obj_index_inside_cpuset.restype = ctypes.c_int
+
+
+@_cfndoc
+def get_obj_index_inside_cpuset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, obj: ObjType
+) -> int:
+    return _pyhwloc_lib.pyhwloc_get_obj_index_inside_cpuset(topology, cpuset, obj)
+
+
+###########################################
+# Finding Objects covering at least CPU set
+###########################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00153.php
+
+
+_pyhwloc_lib.pyhwloc_get_child_covering_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_child_covering_cpuset.restype = obj_t
+
+
+@_cfndoc
+def get_child_covering_cpuset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, parent: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_child_covering_cpuset(topology, cpuset, parent)
+
+
+_pyhwloc_lib.pyhwloc_get_obj_covering_cpuset.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+]
+_pyhwloc_lib.pyhwloc_get_obj_covering_cpuset.restype = obj_t
+
+
+@_cfndoc
+def get_obj_covering_cpuset(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_obj_covering_cpuset(topology, cpuset)
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth.restype = obj_t
+
+
+@_cfndoc
+def get_next_obj_covering_cpuset_by_depth(
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, prev: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth(
+        topology, cpuset, depth, prev
+    )
+
+
+_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_next_obj_covering_cpuset_by_type(
+    topology: topology_t,
+    cpuset: hwloc_const_cpuset_t,
+    obj_type: hwloc_obj_type_t,
+    prev: ObjType,
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type(
+        topology, cpuset, obj_type, prev
+    )
+
+
+#######################################
+# Looking at Ancestor and Child Objects
+#######################################
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00154.php
+
+
+_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth.restype = obj_t
+
+
+@_cfndoc
+def get_ancestor_obj_by_depth(
+    topology: topology_t, depth: int, obj: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth(topology, depth, obj)
+
+
+_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type.argtypes = [
+    topology_t,
+    ctypes.c_int,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type.restype = obj_t
+
+
+@_cfndoc
+def get_ancestor_obj_by_type(
+    topology: topology_t, obj_type: hwloc_obj_type_t, obj: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type(topology, obj_type, obj)
+
+
+_pyhwloc_lib.pyhwloc_get_common_ancestor_obj.argtypes = [
+    topology_t,
+    obj_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_common_ancestor_obj.restype = obj_t
+
+
+@_cfndoc
+def get_common_ancestor_obj(
+    topology: topology_t, obj1: ObjType, obj2: ObjType
+) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_common_ancestor_obj(topology, obj1, obj2)
+
+
+_pyhwloc_lib.pyhwloc_obj_is_in_subtree.argtypes = [
+    topology_t,
+    obj_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_obj_is_in_subtree.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_is_in_subtree(
+    topology: topology_t, obj: ObjType, subtree_root: ObjType
+) -> bool:
+    result = _pyhwloc_lib.pyhwloc_obj_is_in_subtree(topology, obj, subtree_root)
+    return bool(result)
+
+
+_pyhwloc_lib.pyhwloc_get_next_child.argtypes = [
+    topology_t,
+    obj_t,
+    obj_t,
+]
+_pyhwloc_lib.pyhwloc_get_next_child.restype = obj_t
+
+
+@_cfndoc
+def get_next_child(topology: topology_t, parent: ObjType, prev: ObjType) -> ObjType:
+    return _pyhwloc_lib.pyhwloc_get_next_child(topology, parent, prev)
+
+
 ##########################
 # Looking at Cache Objects
 ##########################
@@ -1350,6 +1951,11 @@ def get_obj_with_same_locality(
     return _pyhwloc_lib.pyhwloc_get_obj_with_same_locality(
         topology, src, obj_type, subtype_bytes, nameprefix_bytes, flags
     )
+
+
+####################################
+# Distributing items over a topology
+####################################
 
 
 ########################################
@@ -2300,602 +2906,13 @@ def topology_export_synthetic(
     return n_written
 
 
-############################################
-# Topology Detection Configuration and Query
-############################################
-
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00149.php
-
-
-class hwloc_topology_discovery_support(ctypes.Structure):
-    _fields_ = [
-        ("pu", ctypes.c_ubyte),
-        ("numa", ctypes.c_ubyte),
-        ("numa_memory", ctypes.c_ubyte),
-        ("disallowed_pu", ctypes.c_ubyte),
-        ("disallowed_numa", ctypes.c_ubyte),
-        ("cpukind_efficiency", ctypes.c_ubyte),
-    ]
-
-
-class hwloc_topology_cpubind_support(ctypes.Structure):
-    _fields_ = [
-        ("set_thisproc_cpubind", ctypes.c_ubyte),
-        ("get_thisproc_cpubind", ctypes.c_ubyte),
-        ("set_proc_cpubind", ctypes.c_ubyte),
-        ("get_proc_cpubind", ctypes.c_ubyte),
-        ("set_thisthread_cpubind", ctypes.c_ubyte),
-        ("get_thisthread_cpubind", ctypes.c_ubyte),
-        ("set_thread_cpubind", ctypes.c_ubyte),
-        ("get_thread_cpubind", ctypes.c_ubyte),
-        ("get_thisproc_last_cpu_location", ctypes.c_ubyte),
-        ("get_proc_last_cpu_location", ctypes.c_ubyte),
-        ("get_thisthread_last_cpu_location", ctypes.c_ubyte),
-    ]
-
-
-class hwloc_topology_membind_support(ctypes.Structure):
-    _fields_ = [
-        ("set_thisproc_membind", ctypes.c_ubyte),
-        ("get_thisproc_membind", ctypes.c_ubyte),
-        ("set_proc_membind", ctypes.c_ubyte),
-        ("get_proc_membind", ctypes.c_ubyte),
-        ("set_thisthread_membind", ctypes.c_ubyte),
-        ("get_thisthread_membind", ctypes.c_ubyte),
-        ("alloc_membind", ctypes.c_ubyte),
-        ("set_area_membind", ctypes.c_ubyte),
-        ("get_area_membind", ctypes.c_ubyte),
-        ("get_area_memlocation", ctypes.c_ubyte),
-        ("firsttouch_membind", ctypes.c_ubyte),
-        ("bind_membind", ctypes.c_ubyte),
-        ("interleave_membind", ctypes.c_ubyte),
-        ("weighted_interleave_membind", ctypes.c_ubyte),
-        ("nexttouch_membind", ctypes.c_ubyte),
-        ("migrate_membind", ctypes.c_ubyte),
-    ]
-
-
-class hwloc_topology_misc_support(ctypes.Structure):
-    _fields_ = [
-        ("imported_support", ctypes.c_ubyte),
-    ]
-
-
-class hwloc_topology_support(ctypes.Structure):
-    _fields_ = [
-        ("discovery", ctypes.POINTER(hwloc_topology_discovery_support)),
-        ("cpubind", ctypes.POINTER(hwloc_topology_cpubind_support)),
-        ("membind", ctypes.POINTER(hwloc_topology_membind_support)),
-        ("misc", ctypes.POINTER(hwloc_topology_misc_support)),
-    ]
-
-
-@_cenumdoc
-class hwloc_topology_flags_e(IntEnum):
-    HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED = 1 << 0
-    HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM = 1 << 1
-    HWLOC_TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES = 1 << 2
-    HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT = 1 << 3
-    HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING = 1 << 4
-    HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING = 1 << 5
-    HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING = 1 << 6
-    HWLOC_TOPOLOGY_FLAG_NO_DISTANCES = 1 << 7
-    HWLOC_TOPOLOGY_FLAG_NO_MEMATTRS = 1 << 8
-    HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS = 1 << 9
-
-
-@_cenumdoc
-class hwloc_type_filter_e(IntEnum):
-    HWLOC_TYPE_FILTER_KEEP_ALL = 0
-    HWLOC_TYPE_FILTER_KEEP_NONE = 1
-    HWLOC_TYPE_FILTER_KEEP_STRUCTURE = 2
-    HWLOC_TYPE_FILTER_KEEP_IMPORTANT = 3
-
-
-_LIB.hwloc_topology_set_flags.argtypes = [topology_t, ctypes.c_ulong]
-_LIB.hwloc_topology_set_flags.restype = ctypes.c_int
-
-
-@_cfndoc
-def topology_set_flags(topology: topology_t, flags: int) -> None:
-    _checkc(_LIB.hwloc_topology_set_flags(topology, flags))
-
-
-_LIB.hwloc_topology_get_flags.argtypes = [topology_t]
-_LIB.hwloc_topology_get_flags.restype = ctypes.c_ulong
-
-
-@_cfndoc
-def topology_get_flags(topology: topology_t) -> int:
-    return _LIB.hwloc_topology_get_flags(topology)
-
-
-_LIB.hwloc_topology_is_thissystem.argtypes = [topology_t]
-_LIB.hwloc_topology_is_thissystem.restype = ctypes.c_int
-
-
-@_cfndoc
-def topology_is_thissystem(topology: topology_t) -> bool:
-    return bool(_LIB.hwloc_topology_is_thissystem(topology))
-
-
-_LIB.hwloc_topology_get_support.argtypes = [topology_t]
-_LIB.hwloc_topology_get_support.restype = ctypes.POINTER(hwloc_topology_support)
-
-
-if TYPE_CHECKING:
-    SupportType = ctypes._Pointer[hwloc_topology_support]
-else:
-    SupportType = ctypes._Pointer
-
-
-@_cfndoc
-def topology_get_support(topology: topology_t) -> SupportType:
-    return _LIB.hwloc_topology_get_support(topology)
-
-
-_LIB.hwloc_topology_set_type_filter.argtypes = [topology_t, ctypes.c_int, ctypes.c_int]
-_LIB.hwloc_topology_set_type_filter.restype = ctypes.c_int
-
-
-@_cfndoc
-def topology_set_type_filter(
-    topology: topology_t, obj_type: hwloc_obj_type_t, filter: hwloc_type_filter_e
-) -> None:
-    _checkc(_LIB.hwloc_topology_set_type_filter(topology, obj_type, filter))
-
-
-_LIB.hwloc_topology_get_type_filter.argtypes = [
-    topology_t,
-    ctypes.c_int,
-    ctypes.POINTER(ctypes.c_int),
-]
-_LIB.hwloc_topology_get_type_filter.restype = ctypes.c_int
-
-
-@_cfndoc
-def topology_get_type_filter(
-    topology: topology_t, obj_type: hwloc_obj_type_t
-) -> hwloc_type_filter_e:
-    filter = ctypes.c_int()
-    _checkc(
-        _LIB.hwloc_topology_get_type_filter(topology, obj_type, ctypes.byref(filter))
-    )
-    return hwloc_type_filter_e(filter.value)
-
-
-@_cfndoc
-def topology_set_all_types_filter(
-    topology: topology_t, filter: hwloc_type_filter_e
-) -> None:
-    _checkc(_LIB.hwloc_topology_set_all_types_filter(topology, filter))
-
-
-@_cfndoc
-def topology_set_cache_types_filter(
-    topology: topology_t, filter: hwloc_type_filter_e
-) -> None:
-    _checkc(_LIB.hwloc_topology_set_cache_types_filter(topology, filter))
-
-
-@_cfndoc
-def topology_set_icache_types_filter(
-    topology: topology_t, filter: hwloc_type_filter_e
-) -> None:
-    _checkc(_LIB.hwloc_topology_set_icache_types_filter(topology, filter))
-
-
-@_cfndoc
-def topology_set_io_types_filter(
-    topology: topology_t, filter: hwloc_type_filter_e
-) -> None:
-    _checkc(_LIB.hwloc_topology_set_io_types_filter(topology, filter))
-
-
-_LIB.hwloc_topology_set_userdata.argtypes = [topology_t, ctypes.c_void_p]
-_LIB.hwloc_topology_set_userdata.restype = None
-
-
-@_cfndoc
-def topology_set_userdata(topology: topology_t, userdata: int) -> None:
-    _LIB.hwloc_topology_set_userdata(topology, userdata)
-
-
-_LIB.hwloc_topology_get_userdata.argtypes = [topology_t]
-_LIB.hwloc_topology_get_userdata.restype = ctypes.c_void_p
-
-
-@_cfndoc
-def topology_get_userdata(topology: topology_t) -> int:
-    return _LIB.hwloc_topology_get_userdata(topology)
-
-
-######################
-# Kinds of object Type
-######################
-
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00151.php
-
-
-_LIB.hwloc_obj_type_is_normal.argtypes = [ctypes.c_int]
-_LIB.hwloc_obj_type_is_normal.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_type_is_normal(obj_type: hwloc_obj_type_t) -> bool:
-    # For the definition of normal:
-    # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00343.php
-    return bool(_LIB.hwloc_obj_type_is_normal(int(obj_type)))
-
-
-_LIB.hwloc_obj_type_is_io.argtypes = [ctypes.c_int]
-_LIB.hwloc_obj_type_is_io.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_type_is_io(obj_type: hwloc_obj_type_t) -> bool:
-    return bool(_LIB.hwloc_obj_type_is_io(obj_type))
-
-
-_LIB.hwloc_obj_type_is_memory.argtypes = [ctypes.c_int]
-_LIB.hwloc_obj_type_is_memory.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_type_is_memory(obj_type: hwloc_obj_type_t) -> bool:
-    return bool(_LIB.hwloc_obj_type_is_memory(obj_type))
-
-
-_LIB.hwloc_obj_type_is_cache.argtypes = [ctypes.c_int]
-_LIB.hwloc_obj_type_is_cache.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_type_is_cache(obj_type: hwloc_obj_type_t) -> bool:
-    return bool(_LIB.hwloc_obj_type_is_cache(obj_type))
-
-
-_LIB.hwloc_obj_type_is_dcache.argtypes = [ctypes.c_int]
-_LIB.hwloc_obj_type_is_dcache.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_type_is_dcache(obj_type: hwloc_obj_type_t) -> bool:
-    return bool(_LIB.hwloc_obj_type_is_dcache(obj_type))
-
-
-_LIB.hwloc_obj_type_is_icache.argtypes = [ctypes.c_int]
-_LIB.hwloc_obj_type_is_icache.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_type_is_icache(obj_type: hwloc_obj_type_t) -> bool:
-    return bool(_LIB.hwloc_obj_type_is_icache(obj_type))
-
-
-##################################
-# Finding Objects inside a CPU set
-##################################
-
-_pyhwloc_lib.pyhwloc_get_first_largest_obj_inside_cpuset.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-]
-_pyhwloc_lib.pyhwloc_get_first_largest_obj_inside_cpuset.restype = obj_t
-
-
-@_cfndoc
-def get_first_largest_obj_inside_cpuset(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_first_largest_obj_inside_cpuset(topology, cpuset)
-
-
-_pyhwloc_lib.pyhwloc_get_largest_objs_inside_cpuset.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    ctypes.POINTER(obj_t),
-    ctypes.c_int,
-]
-_pyhwloc_lib.pyhwloc_get_largest_objs_inside_cpuset.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_largest_objs_inside_cpuset(
-    topology: topology_t,
-    cpuset: hwloc_const_cpuset_t,
-    objs: ctypes.Array,
-    max_objs: int,
-) -> int:
-    return _pyhwloc_lib.pyhwloc_get_largest_objs_inside_cpuset(
-        topology, cpuset, objs, max_objs
-    )
-
-
-_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_depth.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_depth.restype = obj_t
-
-
-@_cfndoc
-def get_next_obj_inside_cpuset_by_depth(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, prev: ObjType
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_depth(
-        topology, cpuset, depth, prev
-    )
-
-
-_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type.restype = obj_t
-
-
-@_cfndoc
-def get_next_obj_inside_cpuset_by_type(
-    topology: topology_t,
-    cpuset: hwloc_const_cpuset_t,
-    obj_type: hwloc_obj_type_t,
-    prev: ObjType,
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type(
-        topology, cpuset, obj_type, prev
-    )
-
-
-_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_depth.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-    ctypes.c_uint,
-]
-_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_depth.restype = obj_t
-
-
-@_cfndoc
-def get_obj_inside_cpuset_by_depth(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, idx: int
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_depth(
-        topology, cpuset, depth, idx
-    )
-
-
-_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-    ctypes.c_uint,
-]
-_pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type.restype = obj_t
-
-
-@_cfndoc
-def get_obj_inside_cpuset_by_type(
-    topology: topology_t,
-    cpuset: hwloc_const_cpuset_t,
-    obj_type: hwloc_obj_type_t,
-    idx: int,
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type(
-        topology, cpuset, obj_type, idx
-    )
-
-
-_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_depth.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-]
-_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_depth.restype = ctypes.c_uint
-
-
-@_cfndoc
-def get_nbobjs_inside_cpuset_by_depth(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int
-) -> int:
-    return _pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_depth(
-        topology, cpuset, depth
-    )
-
-
-_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-]
-_pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_nbobjs_inside_cpuset_by_type(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t, obj_type: hwloc_obj_type_t
-) -> int:
-    return _pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type(
-        topology, cpuset, obj_type
-    )
-
-
-_pyhwloc_lib.pyhwloc_get_obj_index_inside_cpuset.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_obj_index_inside_cpuset.restype = ctypes.c_int
-
-
-@_cfndoc
-def get_obj_index_inside_cpuset(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t, obj: ObjType
-) -> int:
-    return _pyhwloc_lib.pyhwloc_get_obj_index_inside_cpuset(topology, cpuset, obj)
-
-
-###########################################
-# Finding Objects covering at least CPU set
-###########################################
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00153.php
-
-
-_pyhwloc_lib.pyhwloc_get_child_covering_cpuset.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_child_covering_cpuset.restype = obj_t
-
-
-@_cfndoc
-def get_child_covering_cpuset(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t, parent: ObjType
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_child_covering_cpuset(topology, cpuset, parent)
-
-
-_pyhwloc_lib.pyhwloc_get_obj_covering_cpuset.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-]
-_pyhwloc_lib.pyhwloc_get_obj_covering_cpuset.restype = obj_t
-
-
-@_cfndoc
-def get_obj_covering_cpuset(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_obj_covering_cpuset(topology, cpuset)
-
-
-_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth.restype = obj_t
-
-
-@_cfndoc
-def get_next_obj_covering_cpuset_by_depth(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, prev: ObjType
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth(
-        topology, cpuset, depth, prev
-    )
-
-
-_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type.argtypes = [
-    topology_t,
-    hwloc_const_cpuset_t,
-    ctypes.c_int,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type.restype = obj_t
-
-
-@_cfndoc
-def get_next_obj_covering_cpuset_by_type(
-    topology: topology_t,
-    cpuset: hwloc_const_cpuset_t,
-    obj_type: hwloc_obj_type_t,
-    prev: ObjType,
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type(
-        topology, cpuset, obj_type, prev
-    )
-
-
-#######################################
-# Looking at Ancestor and Child Objects
-#######################################
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00154.php
-
-
-_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth.argtypes = [
-    topology_t,
-    ctypes.c_int,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth.restype = obj_t
-
-
-@_cfndoc
-def get_ancestor_obj_by_depth(
-    topology: topology_t, depth: int, obj: ObjType
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth(topology, depth, obj)
-
-
-_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type.argtypes = [
-    topology_t,
-    ctypes.c_int,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type.restype = obj_t
-
-
-@_cfndoc
-def get_ancestor_obj_by_type(
-    topology: topology_t, obj_type: hwloc_obj_type_t, obj: ObjType
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type(topology, obj_type, obj)
-
-
-_pyhwloc_lib.pyhwloc_get_common_ancestor_obj.argtypes = [
-    topology_t,
-    obj_t,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_common_ancestor_obj.restype = obj_t
-
-
-@_cfndoc
-def get_common_ancestor_obj(
-    topology: topology_t, obj1: ObjType, obj2: ObjType
-) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_common_ancestor_obj(topology, obj1, obj2)
-
-
-_pyhwloc_lib.pyhwloc_obj_is_in_subtree.argtypes = [
-    topology_t,
-    obj_t,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_obj_is_in_subtree.restype = ctypes.c_int
-
-
-@_cfndoc
-def obj_is_in_subtree(
-    topology: topology_t, obj: ObjType, subtree_root: ObjType
-) -> bool:
-    result = _pyhwloc_lib.pyhwloc_obj_is_in_subtree(topology, obj, subtree_root)
-    return bool(result)
-
-
-_pyhwloc_lib.pyhwloc_get_next_child.argtypes = [
-    topology_t,
-    obj_t,
-    obj_t,
-]
-_pyhwloc_lib.pyhwloc_get_next_child.restype = obj_t
-
-
-@_cfndoc
-def get_next_child(topology: topology_t, parent: ObjType, prev: ObjType) -> ObjType:
-    return _pyhwloc_lib.pyhwloc_get_next_child(topology, parent, prev)
-
+####################################
+# Retrieve distances between objects
+####################################
+
+##########################################
+# Helpers for consulting distance matrices
+##########################################
 
 ####################
 # Kinds of CPU cores
