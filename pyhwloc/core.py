@@ -1388,6 +1388,116 @@ def topology_get_userdata(topology: topology_t) -> int:
 # Modifying a loaded Topology
 #############################
 
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00150.php
+
+
+@_cenumdoc
+class hwloc_restrict_flags_e(IntEnum):
+    HWLOC_RESTRICT_FLAG_REMOVE_CPULESS = 1 << 0
+    HWLOC_RESTRICT_FLAG_ADAPT_MISC = 1 << 1
+    HWLOC_RESTRICT_FLAG_ADAPT_IO = 1 << 2
+    HWLOC_RESTRICT_FLAG_BYNODESET = 1 << 3
+    HWLOC_RESTRICT_FLAG_REMOVE_MEMLESS = 1 << 4
+
+
+@_cenumdoc
+class hwloc_allow_flags_e(IntEnum):
+    HWLOC_ALLOW_FLAG_ALL = 1 << 0
+    HWLOC_ALLOW_FLAG_LOCAL_RESTRICTIONS = 1 << 1
+    HWLOC_ALLOW_FLAG_CUSTOM = 1 << 2
+
+
+_LIB.hwloc_topology_restrict.argtypes = [
+    topology_t,
+    hwloc_const_bitmap_t,
+    ctypes.c_ulong,
+]
+_LIB.hwloc_topology_restrict.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_restrict(
+    topology: topology_t, cpuset: hwloc_const_bitmap_t, flags: int
+) -> None:
+    _checkc(_LIB.hwloc_topology_restrict(topology, cpuset, flags))
+
+
+_LIB.hwloc_topology_allow.argtypes = [
+    topology_t,
+    hwloc_const_cpuset_t,
+    hwloc_const_nodeset_t,
+    ctypes.c_ulong,
+]
+_LIB.hwloc_topology_allow.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_allow(
+    topology: topology_t,
+    cpuset: hwloc_const_cpuset_t,
+    nodeset: hwloc_const_nodeset_t,
+    flags: int,
+) -> None:
+    _checkc(_LIB.hwloc_topology_allow(topology, cpuset, nodeset, flags))
+
+
+_LIB.hwloc_topology_insert_misc_object.argtypes = [topology_t, obj_t, ctypes.c_char_p]
+_LIB.hwloc_topology_insert_misc_object.restype = obj_t
+
+
+@_cfndoc
+def topology_insert_misc_object(
+    topology: topology_t, parent: ObjType, name: str
+) -> ObjType:
+    name_bytes = name.encode("utf-8")
+    return _LIB.hwloc_topology_insert_misc_object(topology, parent, name_bytes)
+
+
+_LIB.hwloc_topology_alloc_group_object.argtypes = [topology_t]
+_LIB.hwloc_topology_alloc_group_object.restype = obj_t
+
+
+@_cfndoc
+def topology_alloc_group_object(topology: topology_t) -> ObjType:
+    return _LIB.hwloc_topology_alloc_group_object(topology)
+
+
+_LIB.hwloc_topology_free_group_object.argtypes = [topology_t, obj_t]
+_LIB.hwloc_topology_free_group_object.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_free_group_object(topology: topology_t, group: ObjType) -> None:
+    _checkc(_LIB.hwloc_topology_free_group_object(topology, group))
+
+
+_LIB.hwloc_topology_insert_group_object.argtypes = [topology_t, obj_t]
+_LIB.hwloc_topology_insert_group_object.restype = obj_t
+
+
+@_cfndoc
+def topology_insert_group_object(topology: topology_t, group: ObjType) -> ObjType:
+    return _LIB.hwloc_topology_insert_group_object(topology, group)
+
+
+_LIB.hwloc_obj_add_other_obj_sets.argtypes = [obj_t, obj_t]
+_LIB.hwloc_obj_add_other_obj_sets.restype = ctypes.c_int
+
+
+@_cfndoc
+def obj_add_other_obj_sets(dst: ObjType, src: ObjType) -> None:
+    _checkc(_LIB.hwloc_obj_add_other_obj_sets(dst, src))
+
+
+_LIB.hwloc_topology_refresh.argtypes = [topology_t]
+_LIB.hwloc_topology_refresh.restype = ctypes.c_int
+
+
+@_cfndoc
+def topology_refresh(topology: topology_t) -> None:
+    _checkc(_LIB.hwloc_topology_refresh(topology))
+
+
 ######################
 # Kinds of object Type
 ######################

@@ -19,9 +19,13 @@ import pytest
 from pyhwloc.core import (
     HwLocError,
     bitmap_alloc,
+    bitmap_copy,
     bitmap_free,
+    bitmap_isequal,
+    bitmap_isset,
     bitmap_iszero,
     bitmap_set,
+    bitmap_weight,
     bridge_covers_pcibus,
     compare_types,
     cpukinds_get_by_cpuset,
@@ -46,6 +50,7 @@ from pyhwloc.core import (
     hwloc_obj_attr_u,
     hwloc_obj_cache_type_t,
     hwloc_obj_type_t,
+    hwloc_restrict_flags_e,
     hwloc_topology_components_flag_e,
     hwloc_topology_export_synthetic_flags_e,
     hwloc_topology_export_xml_flags_e,
@@ -76,6 +81,7 @@ from pyhwloc.core import (
     topology_init,
     topology_is_thissystem,
     topology_load,
+    topology_restrict,
     topology_set_components,
     topology_set_flags,
     topology_set_io_types_filter,
@@ -805,3 +811,44 @@ def test_topology_flags() -> None:
     flags = topology_get_flags(hdl)
     assert flags == hwloc_topology_flags_e.HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED
     topology_destroy(hdl)
+
+
+#############################
+# Modifying a loaded Topology
+#############################
+
+
+def test_topology_restrict() -> None:
+    topo = Topology()
+
+    tmp = topology_get_complete_cpuset(topo.hdl)
+    original_cpuset = bitmap_alloc()
+    bitmap_copy(original_cpuset, tmp)
+    assert not bitmap_iszero(original_cpuset)
+
+    # Create a restricted cpuset with just CPU 0
+    restricted_cpuset = bitmap_alloc()
+    bitmap_set(restricted_cpuset, 0)
+
+    # Test that topology_restrict doesn't raise an exception
+    topology_restrict(topo.hdl, restricted_cpuset, 0)
+
+    # After restriction, the complete cpuset should be different (smaller)
+    new_cpuset = topology_get_complete_cpuset(topo.hdl)
+    assert not bitmap_iszero(new_cpuset)
+
+    assert bitmap_isset(new_cpuset, 0)
+    assert bitmap_weight(new_cpuset) == 1
+
+    # Clean up
+    bitmap_free(restricted_cpuset)
+
+    topo = Topology()
+    reloaded = topology_get_complete_cpuset(topo.hdl)
+    assert bitmap_isequal(reloaded, original_cpuset)
+    bitmap_free(original_cpuset)
+
+
+##################################
+# Finding Objects inside a CPU set
+##################################
