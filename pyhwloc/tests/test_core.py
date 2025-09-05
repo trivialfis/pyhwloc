@@ -13,7 +13,6 @@
 # limitations under the License.
 #
 import ctypes
-
 import pytest
 
 from pyhwloc.core import (
@@ -51,7 +50,6 @@ from pyhwloc.core import (
     hwloc_obj_attr_u,
     hwloc_obj_cache_type_t,
     hwloc_obj_type_t,
-    hwloc_restrict_flags_e,
     hwloc_topology_components_flag_e,
     hwloc_topology_export_synthetic_flags_e,
     hwloc_topology_export_xml_flags_e,

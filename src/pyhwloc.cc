@@ -302,4 +302,32 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_child(hwloc_topology_t topology,
                                                   hwloc_obj_t prev) {
   return hwloc_get_next_child(topology, parent, prev);
 }
+
+// Helpers for consulting distance matrices
+PYHWLOC_EXPORT int
+pyhwloc_distances_obj_index(struct hwloc_distances_s *distances,
+                            hwloc_obj_t obj) {
+  return hwloc_distances_obj_index(distances, obj);
+}
+
+PYHWLOC_EXPORT int pyhwloc_distances_obj_pair_values(
+    struct hwloc_distances_s *distances, hwloc_obj_t obj1, hwloc_obj_t obj2,
+    hwloc_uint64_t *value1to2, hwloc_uint64_t *value2to1) {
+  return hwloc_distances_obj_pair_values(distances, obj1, obj2, value1to2,
+                                         value2to1);
+}
+
+// Distributing items over a topology
+PYHWLOC_EXPORT int pyhwloc_distrib(hwloc_topology_t topology,
+                                   hwloc_obj_t *roots, unsigned n_roots,
+                                   hwloc_cpuset_t *set, unsigned n, int until,
+                                   unsigned long flags) {
+  return hwloc_distrib(topology, roots, n_roots, set, n, until, flags);
+}
+
+// Remove distances between objects
+PYHWLOC_EXPORT int pyhwloc_distances_remove_by_type(hwloc_topology_t topology,
+                                                    hwloc_obj_type_t type) {
+  return hwloc_distances_remove_by_type(topology, type);
+}
 }

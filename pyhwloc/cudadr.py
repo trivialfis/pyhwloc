@@ -16,7 +16,7 @@ import ctypes
 
 import cuda.bindings.driver as cuda
 
-from .core import ObjType, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
+from .core import ObjPtr, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
 
 
 def _check_cu(status: cuda.CUresult) -> None:
@@ -88,14 +88,14 @@ _pyhwloc_lib.pyhwloc_cuda_get_device_pcidev.argtypes = [
 _pyhwloc_lib.pyhwloc_cuda_get_device_pcidev.restype = obj_t
 
 
-def get_device_pcidev(topology: topology_t, cudevice: cuda.CUdevice) -> ObjType:
+def get_device_pcidev(topology: topology_t, cudevice: cuda.CUdevice) -> ObjPtr:
     return _pyhwloc_lib.pyhwloc_cuda_get_device_pcidev(topology, int(cudevice))
 
 
 _pyhwloc_lib.pyhwloc_cuda_get_device_osdev.restype = obj_t
 
 
-def get_device_osdev(topology: topology_t, device: cuda.CUdevice) -> ObjType:
+def get_device_osdev(topology: topology_t, device: cuda.CUdevice) -> ObjPtr:
     dev_obj = _pyhwloc_lib.pyhwloc_cuda_get_device_osdev(topology, int(device))
     return dev_obj
 
@@ -103,6 +103,6 @@ def get_device_osdev(topology: topology_t, device: cuda.CUdevice) -> ObjType:
 _pyhwloc_lib.pyhwloc_cuda_get_device_osdev_by_index.restype = obj_t
 
 
-def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjType:
+def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr:
     dev_obj = _pyhwloc_lib.pyhwloc_cuda_get_device_osdev_by_index(topology, idx)
     return dev_obj

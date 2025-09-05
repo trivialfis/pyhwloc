@@ -16,7 +16,7 @@ import ctypes
 
 import cuda.bindings.runtime as cudart
 
-from .core import ObjType, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
+from .core import ObjPtr, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
 
 ############################################
 # Interoperability with the CUDA Runtime API
@@ -77,13 +77,13 @@ _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev.argtypes = [
 _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev.restype = obj_t
 
 
-def get_device_pcidev(topology: topology_t, idx: int) -> ObjType:
+def get_device_pcidev(topology: topology_t, idx: int) -> ObjPtr:
     return _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev(topology, idx)
 
 
 _pyhwloc_lib.pyhwloc_cudart_get_device_osdev_by_index.restype = obj_t
 
 
-def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjType:
+def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr:
     dev_obj = _pyhwloc_lib.pyhwloc_cudart_get_device_osdev_by_index(topology, idx)
     return dev_obj

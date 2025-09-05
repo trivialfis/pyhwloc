@@ -16,7 +16,7 @@ import ctypes
 
 import pynvml
 
-from .core import ObjType, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
+from .core import ObjPtr, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
 
 #####################################################
 # Interoperability with the NVIDIA Management Library
@@ -47,7 +47,7 @@ _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index.argtypes = [
 _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index.restype = obj_t
 
 
-def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjType:
+def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr:
     return _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index(topology, idx)
 
 
@@ -58,6 +58,6 @@ _pyhwloc_lib.pyhwloc_nvml_get_device_osdev.argtypes = [
 _pyhwloc_lib.pyhwloc_nvml_get_device_osdev.restype = obj_t
 
 
-def get_device_osdev(topology: topology_t, device: pynvml.c_nvmlDevice_t) -> ObjType:
+def get_device_osdev(topology: topology_t, device: pynvml.c_nvmlDevice_t) -> ObjPtr:
     dev_obj = _pyhwloc_lib.pyhwloc_nvml_get_device_osdev(topology, device)
     return dev_obj
