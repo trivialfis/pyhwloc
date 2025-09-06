@@ -478,7 +478,8 @@ def test_bridge_covers_pcibus() -> None:
 
     # Use prev=None to find the first bridge.
     bridge = get_next_bridge(topo.hdl, None)
-    assert bridge is not None
+    assert bridge
+    assert ctypes.cast(bridge, ctypes.c_void_p).value is not None
 
     # Test with bridge attributes if the bridge has PCI attributes
     assert bridge.contents.attr
