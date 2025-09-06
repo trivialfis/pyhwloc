@@ -836,7 +836,10 @@ if platform.system() == "Windows":
             access = THREAD_QUERY_INFORMATION
         else:
             access = THREAD_QUERY_INFORMATION | THREAD_SET_INFORMATION
-        return ctypes.windll.kernel32.OpenThread(access, 0, thread_id)
+        hdl = ctypes.windll.kernel32.OpenThread(access, 0, thread_id)
+        if not hdl:
+            raise ctypes.WinError()
+        return hdl
 
     ctypes.windll.kernel32.CloseHandle.argtypes = [hwloc_thread_t]
     ctypes.windll.kernel32.CloseHandle.restype = ctypes.c_int
@@ -844,13 +847,13 @@ if platform.system() == "Windows":
     def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
         status = ctypes.windll.kernel32.CloseHandle(thread_hdl)
         if status == 0:
-            raise OSError(ctypes.get_last_error())
+            raise ctypes.WinError()
 
 else:
     hwloc_thread_t = ctypes.c_ulong
 
     def open_thread_handle(thread_id: int, read_only=True) -> hwloc_thread_t:
-        return thread_id
+        return hwloc_thread_t(thread_id)
 
     def close_thread_handle(thread_hdl, hwloc_thread_t) -> None:
         pass
