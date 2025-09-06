@@ -13,6 +13,9 @@
 # limitations under the License.
 #
 import os
+import platform
+
+import pytest
 
 from pyhwloc.core import bitmap_free
 from pyhwloc.sched import (
@@ -21,6 +24,9 @@ from pyhwloc.sched import (
 )
 
 
+@pytest.mark.skipif(
+    condition=platform.system() != "Linux", reason="Linux-specific test"
+)
 def test_cpuset_sched_affinity() -> None:
     aff0 = os.sched_getaffinity(0)
     cpuset = cpuset_from_sched_affinity(aff0)

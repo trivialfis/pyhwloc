@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 import ctypes
+
 import pytest
 
 from pyhwloc.core import (

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import ctypes
 import os
+import platform
 from ctypes.util import find_library
 from enum import IntEnum
 from typing import TYPE_CHECKING, Any, Callable, ParamSpec, Type, TypeVar
@@ -25,8 +26,24 @@ def normpath(path: str) -> str:
     return os.path.normpath(os.path.abspath(path))
 
 
-prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
-_LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
+_file_path = normpath(__file__)
+
+if platform.system() == "Linux":
+    prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
+    _LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
+    _libc = ctypes.CDLL(find_library("c"))
+    _lib_path = normpath(
+        os.path.join(
+            os.path.dirname(_file_path), os.path.pardir, "_lib", "libpyhwloc.so"
+        )
+    )
+else:
+    prefix = os.path.expanduser("C:/Users/jiamingy/ws/pyhwloc_dev/bin/")
+    _LIB = ctypes.CDLL(os.path.join(prefix, "hwloc.dll"), use_errno=True)
+    _libc = ctypes.cdll.msvcrt
+    _lib_path = normpath(
+        os.path.join(os.path.dirname(_file_path), os.path.pardir, "_lib", "pyhwloc.dll")
+    )
 
 hwloc_bitmap_t = ctypes.c_void_p
 hwloc_const_bitmap_t = ctypes.c_void_p
@@ -39,15 +56,9 @@ hwloc_pid_t = ctypes.c_int
 HWLOC_UNKNOWN_INDEX = ctypes.c_uint(-1).value
 
 
-_libc = ctypes.CDLL(find_library("c"))
 _libc.strerror.restype = ctypes.c_char_p
 _libc.strerror.argtypes = [ctypes.c_int]
 
-
-_file_path = normpath(__file__)
-_lib_path = normpath(
-    os.path.join(os.path.dirname(_file_path), os.path.pardir, "_lib", "libpyhwloc.so")
-)
 _pyhwloc_lib = ctypes.cdll.LoadLibrary(_lib_path)
 
 
@@ -86,6 +97,8 @@ def _checkc(status: int) -> None:
     if status != 0:
         errno = ctypes.get_errno()
         msg = _libc.strerror(errno)
+        if errno == 40:
+            raise NotImplementedError(msg.decode("utf-8"))
         raise HwLocError(status, errno, msg)
 
 

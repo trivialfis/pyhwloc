@@ -14,6 +14,7 @@
 #
 
 import ctypes
+import platform
 
 from .core import (
     _LIB,
@@ -23,6 +24,9 @@ from .core import (
     hwloc_cpuset_t,
     topology_t,
 )
+
+if platform.system() != "Linux":
+    raise ImportError("This module is only defined for Linux.")
 
 ########################
 # Linux-specific helpers

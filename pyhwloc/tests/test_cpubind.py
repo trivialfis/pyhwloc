@@ -13,7 +13,10 @@
 # limitations under the License.
 #
 import os
+import platform
 import threading
+
+import pytest
 
 from pyhwloc.core import (
     bitmap_alloc,
@@ -71,6 +74,9 @@ def run_cpubind(flags: int) -> None:
     bitmap_free(test_cpuset)
 
 
+@pytest.mark.skipif(
+    condition=platform.system() != "Linux", reason="Linux-specific test"
+)
 def test_cpubind() -> None:
     run_cpubind(0)  # The most portable way
     # Not so portable?
@@ -109,6 +115,7 @@ def test_thread_cpubind() -> None:
     bitmap_free(orig_cpuset)
 
 
+@pytest.mark.xfail("Windows" == platform.system(), reason="HwLoc not implemented.")
 def test_get_last_cpu_location() -> None:
     topo = Topology()
 

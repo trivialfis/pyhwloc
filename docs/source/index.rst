@@ -15,3 +15,4 @@ pyhwloc documentation
 
   core
   c
+  build

@@ -9,7 +9,7 @@ find_package(CUDAToolkit REQUIRED)
 
 add_library(pyhwloc SHARED src/nvml.cc src/cudr.cc src/cudart.cc src/pyhwloc.cc)
 
-target_link_libraries(pyhwloc PRIVATE ${HWLOC_LIBRARY} CUDA::nvml CUDA::cuda_driver)
+target_link_libraries(pyhwloc PRIVATE ${HWLOC_LIBRARY} CUDA::nvml CUDA::cuda_driver CUDA::cudart)
 target_include_directories(pyhwloc PRIVATE ${HWLOC_INCLUDE_DIR})
 
 include(GenerateExportHeader)
