@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import ctypes
+import errno
 import mmap
 import os
 import platform
@@ -114,7 +115,7 @@ def test_shmem_topology_write() -> None:
                 print("Verification successful - data was written to shared memory")
 
         except HwLocError as e:
-            if e.errno == 16:  # EBUSY - Device or resource busy
+            if e.errno == errno.EBUSY:
                 pytest.skip("Shared memory topology mapping is busy on this system")
             else:
                 raise

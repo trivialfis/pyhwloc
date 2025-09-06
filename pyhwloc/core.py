@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import ctypes
+import errno
 import os
 import platform
 from ctypes.util import find_library
@@ -63,9 +64,9 @@ _pyhwloc_lib = ctypes.cdll.LoadLibrary(_lib_path)
 
 
 class HwLocError(RuntimeError):
-    def __init__(self, status: int, errno: int, msg: bytes) -> None:
+    def __init__(self, status: int, err: int, msg: bytes) -> None:
         self.status = status
-        self.errno = errno
+        self.errno = err
         self.msg = msg.decode("utf-8")
 
         super().__init__(
@@ -95,11 +96,11 @@ def _free(ptr: Any) -> None:
 
 def _checkc(status: int) -> None:
     if status != 0:
-        errno = ctypes.get_errno()
-        msg = _libc.strerror(errno)
-        if errno == 40:
+        err = ctypes.get_errno()
+        msg = _libc.strerror(err)
+        if err == errno.ENOSYS:
             raise NotImplementedError(msg.decode("utf-8"))
-        raise HwLocError(status, errno, msg)
+        raise HwLocError(status, err, msg)
 
 
 #############
@@ -2372,9 +2373,9 @@ _LIB.hwloc_bitmap_asprintf.restype = ctypes.c_int
 def bitmap_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
     result = _LIB.hwloc_bitmap_asprintf(strp, bitmap)
     if result == -1:
-        errno = ctypes.get_errno()
-        msg = _libc.strerror(errno)
-        raise HwLocError(-1, errno, msg)
+        err = ctypes.get_errno()
+        msg = _libc.strerror(err)
+        raise HwLocError(-1, err, msg)
     return result
 
 
@@ -2415,9 +2416,9 @@ _LIB.hwloc_bitmap_list_asprintf.restype = ctypes.c_int
 def bitmap_list_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
     result = _LIB.hwloc_bitmap_list_asprintf(strp, bitmap)
     if result == -1:
-        errno = ctypes.get_errno()
-        msg = _libc.strerror(errno)
-        raise HwLocError(-1, errno, msg)
+        err = ctypes.get_errno()
+        msg = _libc.strerror(err)
+        raise HwLocError(-1, err, msg)
     return result
 
 
@@ -2458,9 +2459,9 @@ _LIB.hwloc_bitmap_taskset_asprintf.restype = ctypes.c_int
 def bitmap_taskset_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
     result = _LIB.hwloc_bitmap_taskset_asprintf(strp, bitmap)
     if result == -1:
-        errno = ctypes.get_errno()
-        msg = _libc.strerror(errno)
-        raise HwLocError(-1, errno, msg)
+        err = ctypes.get_errno()
+        msg = _libc.strerror(err)
+        raise HwLocError(-1, err, msg)
     return result
 
 
@@ -3044,9 +3045,9 @@ def topology_export_synthetic(
     # majority of cases.
     n_written = _LIB.hwloc_topology_export_synthetic(topology, buf, buflen, flags)
     if n_written == -1:
-        errno = ctypes.get_errno()
-        msg = _libc.strerror(errno)
-        raise HwLocError(-1, errno, msg)
+        err = ctypes.get_errno()
+        msg = _libc.strerror(err)
+        raise HwLocError(-1, err, msg)
     return n_written
 
 

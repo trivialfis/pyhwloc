@@ -61,7 +61,8 @@ def run_cpubind(flags: int) -> None:
     assert not bitmap_iszero(test_cpuset)
 
     aff = cpuset_to_sched_affinity(test_cpuset)
-    assert aff == set([1]) == os.sched_getaffinity(0)
+    if hasattr(os, "sched_getaffinity"):
+        assert aff == set([1]) == os.sched_getaffinity(0)
 
     aff = cpuset_to_sched_affinity(orig_cpuset)
     set_cpubind(topo.hdl, orig_cpuset, flags)
@@ -74,9 +75,6 @@ def run_cpubind(flags: int) -> None:
     bitmap_free(test_cpuset)
 
 
-@pytest.mark.skipif(
-    condition=platform.system() != "Linux", reason="Linux-specific test"
-)
 def test_cpubind() -> None:
     run_cpubind(0)  # The most portable way
     # Not so portable?
@@ -115,7 +113,11 @@ def test_thread_cpubind() -> None:
     bitmap_free(orig_cpuset)
 
 
-@pytest.mark.xfail("Windows" == platform.system(), reason="HwLoc not implemented.")
+@pytest.mark.xfail(
+    "Windows" == platform.system(),
+    reason="HwLoc not implemented.",
+    raises=NotImplementedError
+)
 def test_get_last_cpu_location() -> None:
     topo = Topology()
 
