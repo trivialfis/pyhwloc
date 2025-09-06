@@ -56,7 +56,11 @@ def _find_mmap_addr(length: int) -> int:
         return 0
 
 
-@pytest.mark.xfail("Windows" == platform.system(), reason="HwLoc not implemented.")
+@pytest.mark.xfail(
+    "Windows" == platform.system(),
+    reason="HwLoc not implemented.",
+    raises=NotImplementedError,
+)
 def test_shmem_topology_get_length() -> None:
     topo = Topology()
 
@@ -69,7 +73,11 @@ def test_shmem_topology_get_length() -> None:
     assert length < 100 * 1024 * 1024
 
 
-@pytest.mark.xfail("Windows" == platform.system(), reason="HwLoc not implemented.")
+@pytest.mark.xfail(
+    "Windows" == platform.system(),
+    reason="HwLoc not implemented.",
+    raises=NotImplementedError,
+)
 def test_shmem_topology_write() -> None:
     """Test writing topology to shared memory."""
     topo = Topology()

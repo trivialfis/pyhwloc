@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import ctypes
 import os
 import platform
 import threading
@@ -19,6 +20,8 @@ import threading
 import pytest
 
 from pyhwloc.core import (
+    _close_thread_handle,
+    _open_thread_handle,
     bitmap_alloc,
     bitmap_free,
     bitmap_isequal,
@@ -86,11 +89,13 @@ def test_thread_cpubind() -> None:
 
     # Get current thread ID
     current_thread = threading.get_ident()
-    thread_id = hwloc_thread_t(current_thread)
+    thread_id = threading.get_native_id()
+
+    thread_hdl = _open_thread_handle(thread_id, read_only=False)
 
     # Preserve the original mask.
     orig_cpuset = bitmap_alloc()
-    get_thread_cpubind(topo.hdl, thread_id, orig_cpuset, 0)
+    get_thread_cpubind(topo.hdl, thread_hdl, orig_cpuset, 0)
     orig_aff = cpuset_to_sched_affinity(orig_cpuset)
 
     # Create a simple cpuset with just CPU 0
@@ -98,25 +103,27 @@ def test_thread_cpubind() -> None:
     bitmap_set(cpuset, 0)
 
     # Test that set_thread_cpubind doesn't raise an exception with valid inputs
-    set_thread_cpubind(topo.hdl, thread_id, cpuset, 0)
-    get_thread_cpubind(topo.hdl, thread_id, cpuset, 0)
+    set_thread_cpubind(topo.hdl, thread_hdl, cpuset, 0)
+    get_thread_cpubind(topo.hdl, thread_hdl, cpuset, 0)
 
     aff = cpuset_to_sched_affinity(cpuset)
     assert aff == set([0])
 
-    set_thread_cpubind(topo.hdl, thread_id, orig_cpuset, 0)
-    get_thread_cpubind(topo.hdl, thread_id, cpuset, 0)
+    set_thread_cpubind(topo.hdl, thread_hdl, orig_cpuset, 0)
+    get_thread_cpubind(topo.hdl, thread_hdl, cpuset, 0)
     aff = cpuset_to_sched_affinity(cpuset)
     assert aff == orig_aff
 
     bitmap_free(cpuset)
     bitmap_free(orig_cpuset)
 
+    _close_thread_handle(thread_hdl)
+
 
 @pytest.mark.xfail(
     "Windows" == platform.system(),
     reason="HwLoc not implemented.",
-    raises=NotImplementedError
+    raises=NotImplementedError,
 )
 def test_get_last_cpu_location() -> None:
     topo = Topology()
