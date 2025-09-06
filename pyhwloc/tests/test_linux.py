@@ -25,7 +25,7 @@ from pyhwloc.core import (
     bitmap_only,
 )
 
-linux = pytest.importorskip("pyhwloc.linux")
+pytest.importorskip("pyhwloc.linux")
 
 from pyhwloc.linux import get_tid_cpubind, get_tid_last_cpu_location, set_tid_cpubind
 
