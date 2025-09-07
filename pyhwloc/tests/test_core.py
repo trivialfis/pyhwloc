@@ -18,6 +18,8 @@ import pytest
 
 from pyhwloc.core import (
     HwLocError,
+    bitmap_first,
+    ObjPtr,
     bitmap_alloc,
     bitmap_copy,
     bitmap_free,
@@ -36,12 +38,14 @@ from pyhwloc.core import (
     cpuset_to_nodeset,
     get_api_version,
     get_cache_type_depth,
+    get_child_covering_cpuset,
     get_depth_type,
     get_first_largest_obj_inside_cpuset,
     get_memory_parents_depth,
     get_nbobjs_by_depth,
     get_next_bridge,
     get_obj_by_depth,
+    get_obj_covering_cpuset,
     get_root_obj,
     get_type_depth,
     get_type_or_above_depth,
@@ -90,6 +94,12 @@ from pyhwloc.core import (
     type_sscanf,
     type_sscanf_as_depth,
 )
+
+
+def is_same_obj(a: ObjPtr, b: ObjPtr) -> bool:
+    return (
+        ctypes.cast(a, ctypes.c_void_p).value == ctypes.cast(b, ctypes.c_void_p).value
+    )
 
 
 def test_get_api_version() -> None:
@@ -310,12 +320,7 @@ def test_get_root_obj() -> None:
 
     # Get the root object
     root_obj = get_root_obj(topo.hdl)
-
-    # Root object should not be None
-    assert root_obj is not None
-
-    # Root object should be at depth 0
-    assert root_obj.contents.depth == 0
+    assert root_obj is not None and root_obj.contents.depth == 0
 
     # Root object should be of type MACHINE
     assert root_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_MACHINE
@@ -344,10 +349,7 @@ def test_get_root_obj() -> None:
 
         # First child should have root as parent
         first_child = root_obj.contents.first_child
-        assert (
-            ctypes.cast(root_obj, ctypes.c_void_p).value
-            == ctypes.cast(first_child.contents.parent, ctypes.c_void_p).value
-        )
+        assert is_same_obj(root_obj, first_child.contents.parent)
 
     # Root object should have valid cpuset and nodeset
     assert root_obj.contents.cpuset is not None
@@ -868,3 +870,63 @@ def test_get_first_largest_obj_inside_cpuset() -> None:
     assert largest_obj.contents.type >= 0
     assert largest_obj.contents.cpuset is not None
     assert not bitmap_iszero(largest_obj.contents.cpuset)
+
+
+###########################################
+# Finding Objects covering at least CPU set
+###########################################
+
+
+def test_get_child_covering_cpuset() -> None:
+    topo = Topology()
+
+    root_obj = get_root_obj(topo.hdl)
+    assert root_obj is not None
+
+    # Get the root's cpuset to use as our test cpuset
+    root_cpuset = root_obj.contents.cpuset
+    assert not bitmap_iszero(root_cpuset)
+
+    # Test with the full root cpuset - should return a child that covers it
+    child_obj = get_child_covering_cpuset(topo.hdl, root_cpuset, root_obj)
+    assert child_obj is not None
+    assert not bitmap_iszero(child_obj.contents.cpuset)
+    assert is_same_obj(root_obj, child_obj.contents.parent)
+
+    # Test with a subset cpuset - create a bitmap with just the first CPU
+    assert bitmap_weight(root_cpuset) > 0
+    # Find first set bit and create a single-CPU cpuset
+    test_cpuset = bitmap_alloc()
+    fst = bitmap_first(root_cpuset)
+    bitmap_set(test_cpuset, fst)
+
+    # Get child covering this single CPU
+    child_obj = get_child_covering_cpuset(topo.hdl, test_cpuset, root_obj)
+    assert child_obj is not None
+
+    bitmap_free(test_cpuset)
+
+
+def test_get_obj_covering_cpuset() -> None:
+    topo = Topology()
+
+    # Get the complete cpuset for the topology
+    complete_cpuset = topology_get_complete_cpuset(topo.hdl)
+    assert not bitmap_iszero(complete_cpuset)
+
+    # Test with the complete cpuset - should return root object
+    covering_obj = get_obj_covering_cpuset(topo.hdl, complete_cpuset)
+    assert covering_obj is not None
+    assert not bitmap_iszero(covering_obj.contents.cpuset)
+
+    # Test with a single CPU cpuset
+    test_cpuset = bitmap_alloc()
+    first_cpu = bitmap_first(complete_cpuset)
+    bitmap_set(test_cpuset, first_cpu)
+
+    # Get object covering this single CPU
+    covering_obj = get_obj_covering_cpuset(topo.hdl, test_cpuset)
+    assert covering_obj is not None
+    assert bitmap_isset(covering_obj.contents.cpuset, first_cpu)
+
+    bitmap_free(test_cpuset)

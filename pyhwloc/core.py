@@ -538,6 +538,7 @@ _pyhwloc_lib.pyhwloc_get_root_obj.restype = ctypes.POINTER(hwloc_obj)
 
 @_cfndoc
 def get_root_obj(topology: topology_t) -> ObjPtr:
+    # This function cannot return NULL.
     return _pyhwloc_lib.pyhwloc_get_root_obj(topology)
 
 
@@ -597,9 +598,6 @@ _LIB.hwloc_get_obj_by_depth.restype = ctypes.POINTER(hwloc_obj)
 def get_obj_by_depth(topology: topology_t, depth: int, idx: int) -> ObjPtr:
     return _LIB.hwloc_get_obj_by_depth(topology, depth, idx)
 
-
-_LIB.hwloc_bitmap_dup.argtypes = [bitmap_t]
-_LIB.hwloc_bitmap_dup.restype = bitmap_t
 
 #############################################################
 # Converting between Object Types and Attributes, and Strings
@@ -1795,8 +1793,11 @@ _pyhwloc_lib.pyhwloc_get_child_covering_cpuset.restype = obj_t
 @_cfndoc
 def get_child_covering_cpuset(
     topology: topology_t, cpuset: hwloc_const_cpuset_t, parent: ObjPtr
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_child_covering_cpuset(topology, cpuset, parent)
+) -> ObjPtr | None:
+    child_obj = _pyhwloc_lib.pyhwloc_get_child_covering_cpuset(topology, cpuset, parent)
+    if not child_obj:
+        return None
+    return child_obj
 
 
 _pyhwloc_lib.pyhwloc_get_obj_covering_cpuset.argtypes = [
@@ -1809,8 +1810,11 @@ _pyhwloc_lib.pyhwloc_get_obj_covering_cpuset.restype = obj_t
 @_cfndoc
 def get_obj_covering_cpuset(
     topology: topology_t, cpuset: hwloc_const_cpuset_t
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_obj_covering_cpuset(topology, cpuset)
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_obj_covering_cpuset(topology, cpuset)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth.argtypes = [
@@ -1825,10 +1829,13 @@ _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth.restype = obj_t
 @_cfndoc
 def get_next_obj_covering_cpuset_by_depth(
     topology: topology_t, cpuset: hwloc_const_cpuset_t, depth: int, prev: ObjPtr
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth(
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_depth(
         topology, cpuset, depth, prev
     )
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type.argtypes = [
@@ -1846,10 +1853,13 @@ def get_next_obj_covering_cpuset_by_type(
     cpuset: hwloc_const_cpuset_t,
     obj_type: hwloc_obj_type_t,
     prev: ObjPtr,
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type(
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type(
         topology, cpuset, obj_type, prev
     )
+    if not obj:
+        return None
+    return obj
 
 
 #######################################
@@ -1868,8 +1878,13 @@ _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth.restype = obj_t
 
 
 @_cfndoc
-def get_ancestor_obj_by_depth(topology: topology_t, depth: int, obj: ObjPtr) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth(topology, depth, obj)
+def get_ancestor_obj_by_depth(
+    topology: topology_t, depth: int, obj: ObjPtr
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_depth(topology, depth, obj)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type.argtypes = [
@@ -1883,8 +1898,11 @@ _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type.restype = obj_t
 @_cfndoc
 def get_ancestor_obj_by_type(
     topology: topology_t, obj_type: hwloc_obj_type_t, obj: ObjPtr
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type(topology, obj_type, obj)
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type(topology, obj_type, obj)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_common_ancestor_obj.argtypes = [
@@ -1897,6 +1915,7 @@ _pyhwloc_lib.pyhwloc_get_common_ancestor_obj.restype = obj_t
 
 @_cfndoc
 def get_common_ancestor_obj(topology: topology_t, obj1: ObjPtr, obj2: ObjPtr) -> ObjPtr:
+    # This function cannot return NULL.
     return _pyhwloc_lib.pyhwloc_get_common_ancestor_obj(topology, obj1, obj2)
 
 
@@ -1923,8 +1942,11 @@ _pyhwloc_lib.pyhwloc_get_next_child.restype = obj_t
 
 
 @_cfndoc
-def get_next_child(topology: topology_t, parent: ObjPtr, prev: ObjPtr) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_next_child(topology, parent, prev)
+def get_next_child(topology: topology_t, parent: ObjPtr, prev: ObjPtr) -> ObjPtr | None:
+    child_obj = _pyhwloc_lib.pyhwloc_get_next_child(topology, parent, prev)
+    if not child_obj:
+        return None
+    return child_obj
 
 
 ##########################

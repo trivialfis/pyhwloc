@@ -14,7 +14,7 @@
 #
 import pytest
 
-pytest.importorskip("pyhwloc.windows")
+pytest.importorskip("pyhwloc.windows", exc_type=ImportError)
 
 from pyhwloc.core import bitmap_alloc, bitmap_free
 from pyhwloc.sched import cpuset_to_sched_affinity

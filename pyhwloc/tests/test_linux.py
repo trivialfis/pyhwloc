@@ -25,7 +25,7 @@ from pyhwloc.core import (
     bitmap_only,
 )
 
-pytest.importorskip("pyhwloc.linux")
+pytest.importorskip("pyhwloc.linux", exc_type=ImportError)
 
 from pyhwloc.linux import get_tid_cpubind, get_tid_last_cpu_location, set_tid_cpubind
 
