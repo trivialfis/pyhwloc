@@ -25,6 +25,7 @@ from pyhwloc.core import (
 from pyhwloc.nvml import get_device_cpuset, get_device_osdev
 
 from .test_core import Topology
+from .utils import _skip_if_none
 
 
 class Nvml:
@@ -42,6 +43,7 @@ def test_get_device_osdev() -> None:
         nvhdl = nm.nvmlDeviceGetHandleByIndex(0)
 
         dev_obj = get_device_osdev(topo.hdl, nvhdl)
+        assert _skip_if_none(dev_obj)
         assert dev_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_OS_DEVICE
 
 

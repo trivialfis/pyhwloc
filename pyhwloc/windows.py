@@ -50,7 +50,9 @@ _LIB.hwloc_windows_get_processor_group_cpuset.argtypes = [
 _LIB.hwloc_windows_get_processor_group_cpuset.restype = ctypes.c_int
 
 
-def windows_get_processor_group_cpuset(topology, pg_index: int, cpuset) -> None:
+def windows_get_processor_group_cpuset(
+    topology: topology_t, pg_index: int, cpuset: hwloc_cpuset_t
+) -> None:
     # flags must be 0
     # cpuset is the output.
     _checkc(

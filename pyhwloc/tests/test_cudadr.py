@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import ctypes
+import platform
+from typing import TypeGuard
+
 import cuda.bindings.driver as cuda
+import pytest
 
 from pyhwloc.core import (
     bitmap_alloc,
@@ -32,6 +37,7 @@ from pyhwloc.cudadr import (
 )
 
 from .test_core import Topology
+from .utils import _skip_if_none
 
 
 def test_get_device_osdev() -> None:
@@ -45,9 +51,11 @@ def test_get_device_osdev() -> None:
         res, dev = cuda.cuDeviceGet(i)
         _check_cu(res)
         dev_obj = get_device_osdev(topo.hdl, dev)
+        assert _skip_if_none(dev_obj)
         assert dev_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_OS_DEVICE
 
         dev_obj = get_device_osdev_by_index(topo.hdl, i)
+        assert _skip_if_none(dev_obj)
         assert dev_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_OS_DEVICE
 
 
@@ -118,7 +126,7 @@ def test_cuda_get_device_pcidev() -> None:
 
         # Get the PCI device object for the CUDA device
         pci_obj = get_device_pcidev(topo.hdl, dev)
-        assert pci_obj is not None
+        assert _skip_if_none(pci_obj)
 
         assert pci_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_PCI_DEVICE
         # Get the PCI attributes

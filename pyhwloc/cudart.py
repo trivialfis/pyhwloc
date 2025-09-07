@@ -77,13 +77,18 @@ _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev.argtypes = [
 _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev.restype = obj_t
 
 
-def get_device_pcidev(topology: topology_t, idx: int) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev(topology, idx)
+def get_device_pcidev(topology: topology_t, idx: int) -> ObjPtr | None:
+    dev_obj = _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev(topology, idx)
+    if not dev_obj:
+        return None
+    return dev_obj
 
 
 _pyhwloc_lib.pyhwloc_cudart_get_device_osdev_by_index.restype = obj_t
 
 
-def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr:
+def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr | None:
     dev_obj = _pyhwloc_lib.pyhwloc_cudart_get_device_osdev_by_index(topology, idx)
+    if not dev_obj:
+        return None
     return dev_obj

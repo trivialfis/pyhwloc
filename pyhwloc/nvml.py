@@ -47,8 +47,11 @@ _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index.argtypes = [
 _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index.restype = obj_t
 
 
-def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index(topology, idx)
+def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr | None:
+    dev_obj = _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index(topology, idx)
+    if not dev_obj:
+        return None
+    return dev_obj
 
 
 _pyhwloc_lib.pyhwloc_nvml_get_device_osdev.argtypes = [
@@ -58,6 +61,10 @@ _pyhwloc_lib.pyhwloc_nvml_get_device_osdev.argtypes = [
 _pyhwloc_lib.pyhwloc_nvml_get_device_osdev.restype = obj_t
 
 
-def get_device_osdev(topology: topology_t, device: pynvml.c_nvmlDevice_t) -> ObjPtr:
+def get_device_osdev(
+    topology: topology_t, device: pynvml.c_nvmlDevice_t
+) -> ObjPtr | None:
     dev_obj = _pyhwloc_lib.pyhwloc_nvml_get_device_osdev(topology, device)
+    if not dev_obj:
+        return None
     return dev_obj

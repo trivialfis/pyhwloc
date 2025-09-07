@@ -28,6 +28,7 @@ from pyhwloc.sched import (
     condition=platform.system() != "Linux", reason="Linux-specific test"
 )
 def test_cpuset_sched_affinity() -> None:
+    assert hasattr(os, "sched_getaffinity")
     aff0 = os.sched_getaffinity(0)
     cpuset = cpuset_from_sched_affinity(aff0)
     aff1 = cpuset_to_sched_affinity(cpuset)

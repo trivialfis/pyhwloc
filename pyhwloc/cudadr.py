@@ -88,21 +88,28 @@ _pyhwloc_lib.pyhwloc_cuda_get_device_pcidev.argtypes = [
 _pyhwloc_lib.pyhwloc_cuda_get_device_pcidev.restype = obj_t
 
 
-def get_device_pcidev(topology: topology_t, cudevice: cuda.CUdevice) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_cuda_get_device_pcidev(topology, int(cudevice))
+def get_device_pcidev(topology: topology_t, cudevice: cuda.CUdevice) -> ObjPtr | None:
+    dev_obj = _pyhwloc_lib.pyhwloc_cuda_get_device_pcidev(topology, int(cudevice))
+    if not dev_obj:
+        return None
+    return dev_obj
 
 
 _pyhwloc_lib.pyhwloc_cuda_get_device_osdev.restype = obj_t
 
 
-def get_device_osdev(topology: topology_t, device: cuda.CUdevice) -> ObjPtr:
+def get_device_osdev(topology: topology_t, device: cuda.CUdevice) -> ObjPtr | None:
     dev_obj = _pyhwloc_lib.pyhwloc_cuda_get_device_osdev(topology, int(device))
+    if not dev_obj:
+        return None
     return dev_obj
 
 
 _pyhwloc_lib.pyhwloc_cuda_get_device_osdev_by_index.restype = obj_t
 
 
-def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr:
+def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr | None:
     dev_obj = _pyhwloc_lib.pyhwloc_cuda_get_device_osdev_by_index(topology, idx)
+    if not dev_obj:
+        return None
     return dev_obj

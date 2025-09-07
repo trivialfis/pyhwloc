@@ -18,6 +18,7 @@ import ctypes
 import errno
 import os
 import platform
+import sys
 from ctypes.util import find_library
 from enum import IntEnum
 from typing import TYPE_CHECKING, Any, Callable, ParamSpec, Type, TypeVar
@@ -819,7 +820,7 @@ def get_proc_cpubind(
     _checkc(_LIB.hwloc_get_proc_cpubind(topology, pid, cpuset, flags))
 
 
-if platform.system() == "Windows":
+if sys.platform == "win32":
     hwloc_thread_t = ctypes.c_void_p
 
     ctypes.windll.kernel32.OpenThread.restype = hwloc_thread_t
@@ -829,7 +830,7 @@ if platform.system() == "Windows":
         ctypes.c_int,
     ]
 
-    def _open_thread_handle(thread_id: int, read_only=True) -> hwloc_thread_t:
+    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
         THREAD_SET_INFORMATION = 0x0020
         THREAD_QUERY_INFORMATION = 0x0040
         if read_only:
@@ -852,10 +853,10 @@ if platform.system() == "Windows":
 else:
     hwloc_thread_t = ctypes.c_ulong
 
-    def open_thread_handle(thread_id: int, read_only=True) -> hwloc_thread_t:
+    def open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
         return hwloc_thread_t(thread_id)
 
-    def close_thread_handle(thread_hdl, hwloc_thread_t) -> None:
+    def close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
         pass
 
 
