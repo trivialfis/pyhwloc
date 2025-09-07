@@ -18,10 +18,10 @@ import pytest
 
 from pyhwloc.core import (
     HwLocError,
-    bitmap_first,
     ObjPtr,
     bitmap_alloc,
     bitmap_copy,
+    bitmap_first,
     bitmap_free,
     bitmap_isequal,
     bitmap_isset,
@@ -36,14 +36,18 @@ from pyhwloc.core import (
     cpukinds_register,
     cpuset_from_nodeset,
     cpuset_to_nodeset,
+    get_ancestor_obj_by_depth,
+    get_ancestor_obj_by_type,
     get_api_version,
     get_cache_type_depth,
     get_child_covering_cpuset,
+    get_common_ancestor_obj,
     get_depth_type,
     get_first_largest_obj_inside_cpuset,
     get_memory_parents_depth,
     get_nbobjs_by_depth,
     get_next_bridge,
+    get_next_child,
     get_obj_by_depth,
     get_obj_covering_cpuset,
     get_root_obj,
@@ -63,6 +67,7 @@ from pyhwloc.core import (
     obj_add_info,
     obj_attr_snprintf,
     obj_get_info_by_name,
+    obj_is_in_subtree,
     obj_set_subtype,
     obj_type_is_memory,
     obj_type_is_normal,
@@ -930,3 +935,107 @@ def test_get_obj_covering_cpuset() -> None:
     assert bitmap_isset(covering_obj.contents.cpuset, first_cpu)
 
     bitmap_free(test_cpuset)
+
+
+#######################################
+# Looking at Ancestor and Child Objects
+#######################################
+
+
+def test_get_ancestor_obj_by_depth() -> None:
+    topo = Topology()
+
+    # Get a leaf object (processing unit) to test with
+    depth = topology_get_depth(topo.hdl)
+    assert depth > 1
+    leaf_obj = get_obj_by_depth(topo.hdl, depth - 1, 0)
+    assert leaf_obj is not None
+
+    # Test getting ancestor at root depth (depth 0)
+    root_ancestor = get_ancestor_obj_by_depth(topo.hdl, 0, leaf_obj)
+    assert root_ancestor is not None
+    assert root_ancestor.contents.depth == 0
+
+    # Test with invalid depth (deeper than the object)
+    invalid_ancestor = get_ancestor_obj_by_depth(topo.hdl, depth + 1, leaf_obj)
+    assert invalid_ancestor is None
+
+
+def test_get_ancestor_obj_by_type() -> None:
+    topo = Topology()
+
+    # Get a leaf object (processing unit) to test with
+    depth = topology_get_depth(topo.hdl)
+    assert depth > 1
+    leaf_obj = get_obj_by_depth(topo.hdl, depth - 1, 0)
+    assert leaf_obj is not None
+
+    # Test getting ancestor of type MACHINE (root)
+    machine_ancestor = get_ancestor_obj_by_type(
+        topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_MACHINE, leaf_obj
+    )
+    assert machine_ancestor is not None
+    assert machine_ancestor.contents.type == hwloc_obj_type_t.HWLOC_OBJ_MACHINE
+
+    # Test with a type that doesn't exist as ancestor
+    nonexistent_ancestor = get_ancestor_obj_by_type(
+        topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_MISC, leaf_obj
+    )
+    assert nonexistent_ancestor is None
+
+
+def test_get_common_ancestor_obj() -> None:
+    topo = Topology()
+
+    # Get two different objects to find their common ancestor
+    depth = topology_get_depth(topo.hdl)
+    assert depth > 1
+
+    # Get two leaf objects (processing units)
+    obj1 = get_obj_by_depth(topo.hdl, depth - 1, 0)
+    assert obj1 is not None
+
+    # Try to get a second object, or use the same one if only one exists
+    num_objs = get_nbobjs_by_depth(topo.hdl, depth - 1)
+    if num_objs > 1:
+        obj2 = get_obj_by_depth(topo.hdl, depth - 1, 1)
+        assert obj2 is not None
+    else:
+        obj2 = obj1
+
+    # Find common ancestor
+    common_ancestor = get_common_ancestor_obj(topo.hdl, obj1, obj2)
+    assert common_ancestor is not None
+
+    # Common ancestor should be at a depth less than or equal to both objects
+    assert common_ancestor.contents.depth <= obj1.contents.depth
+    assert common_ancestor.contents.depth <= obj2.contents.depth
+
+    # Test with the same object - should return the object itself
+    same_obj_ancestor = get_common_ancestor_obj(topo.hdl, obj1, obj1)
+    assert same_obj_ancestor is not None
+    assert is_same_obj(same_obj_ancestor, obj1)
+
+
+def test_get_next_child_is_in_subtree() -> None:
+    topo = Topology()
+
+    root_obj = get_root_obj(topo.hdl)
+    assert root_obj is not None
+    assert root_obj.contents.arity > 0
+
+    depth = topology_get_depth(topo.hdl)
+    assert depth > 1
+    leaf_obj = get_obj_by_depth(topo.hdl, depth - 1, 0)
+    assert leaf_obj is not None
+
+    # The leaf object should be in the subtree of root
+    assert obj_is_in_subtree(topo.hdl, leaf_obj, root_obj) is True
+    # The root object should be in its own subtree
+    assert obj_is_in_subtree(topo.hdl, root_obj, root_obj) is True
+    # The root object should NOT be in the subtree of leaf
+    assert obj_is_in_subtree(topo.hdl, root_obj, leaf_obj) is False
+
+    first_child = get_next_child(topo.hdl, root_obj, None)
+    assert first_child is not None
+    assert is_same_obj(first_child.contents.parent, root_obj)
