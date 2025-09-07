@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ctypes
 import os
 import platform
 import threading
@@ -33,7 +32,6 @@ from pyhwloc.core import (
     get_thread_cpubind,
     hwloc_cpubind_flags_t,
     hwloc_pid_t,
-    hwloc_thread_t,
     set_cpubind,
     set_thread_cpubind,
 )
@@ -88,8 +86,11 @@ def test_thread_cpubind() -> None:
     topo = Topology()
 
     # Get current thread ID
-    current_thread = threading.get_ident()
-    thread_id = threading.get_native_id()
+    thread_id = threading.get_ident()
+    # For Windows, `threading.get_ident` and `threading.get_native_id` are the same. On
+    # Linux, only `get_ident` returns the valid thread handle, while `get_native_id`
+    # returns an integer.
+    # print(thread_id, threading.get_native_id())
 
     thread_hdl = _open_thread_handle(thread_id, read_only=False)
 
