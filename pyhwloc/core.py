@@ -19,9 +19,10 @@ import errno
 import os
 import platform
 import sys
-from ctypes.util import find_library
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Callable, ParamSpec, Type, TypeVar
+from typing import TYPE_CHECKING, Callable, ParamSpec, Type, TypeVar
+
+from .libc import strerror as cstrerror
 
 
 def normpath(path: str) -> str:
@@ -33,7 +34,6 @@ _file_path = normpath(__file__)
 if platform.system() == "Linux":
     prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
     _LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
-    _libc = ctypes.CDLL(find_library("c"))
     _lib_path = normpath(
         os.path.join(
             os.path.dirname(_file_path), os.path.pardir, "_lib", "libpyhwloc.so"
@@ -42,7 +42,6 @@ if platform.system() == "Linux":
 else:
     prefix = os.path.expanduser("C:/Users/jiamingy/ws/pyhwloc_dev/bin/")
     _LIB = ctypes.CDLL(os.path.join(prefix, "hwloc.dll"), use_errno=True)
-    _libc = ctypes.cdll.msvcrt
     _lib_path = normpath(
         os.path.join(os.path.dirname(_file_path), os.path.pardir, "_lib", "pyhwloc.dll")
     )
@@ -58,17 +57,17 @@ hwloc_pid_t = ctypes.c_int
 HWLOC_UNKNOWN_INDEX = ctypes.c_uint(-1).value
 
 
-_libc.strerror.restype = ctypes.c_char_p
-_libc.strerror.argtypes = [ctypes.c_int]
-
 _pyhwloc_lib = ctypes.cdll.LoadLibrary(_lib_path)
 
 
 class HwLocError(RuntimeError):
-    def __init__(self, status: int, err: int, msg: bytes) -> None:
+    def __init__(self, status: int, err: int, msg: bytes | str | None) -> None:
         self.status = status
         self.errno = err
-        self.msg = msg.decode("utf-8")
+        if isinstance(msg, bytes):
+            self.msg: str | None = msg.decode("utf-8")
+        else:
+            self.msg = msg
 
         super().__init__(
             f"status: {self.status}, errno: {self.errno}, error: {self.msg}"
@@ -91,16 +90,12 @@ def _cenumdoc(enum: Type) -> Type:
     return enum
 
 
-def _free(ptr: Any) -> None:
-    _libc.free(ptr)
-
-
 def _checkc(status: int) -> None:
     if status != 0:
         err = ctypes.get_errno()
-        msg = _libc.strerror(err)
+        msg = cstrerror(err)
         if err == errno.ENOSYS:
-            raise NotImplementedError(msg.decode("utf-8"))
+            raise NotImplementedError(msg)
         raise HwLocError(status, err, msg)
 
 
@@ -903,7 +898,6 @@ _LIB.hwloc_get_last_cpu_location.restype = ctypes.c_int
 def get_last_cpu_location(
     topology: topology_t, cpuset: hwloc_cpuset_t, flags: int
 ) -> None:
-
     _checkc(_LIB.hwloc_get_last_cpu_location(topology, cpuset, flags))
 
 
@@ -1001,12 +995,12 @@ _LIB.hwloc_set_proc_membind.restype = ctypes.c_int
 @_cfndoc
 def set_proc_membind(
     topology: topology_t,
-    pid: hwloc_pid_t,
+    pid: int,
     set: const_bitmap_t,
     policy: hwloc_membind_policy_t,
     flags: int,
 ) -> None:
-    _checkc(_LIB.hwloc_set_proc_membind(topology, pid, set, policy, flags))
+    _checkc(_LIB.hwloc_set_proc_membind(topology, hwloc_pid_t(pid), set, policy, flags))
 
 
 _LIB.hwloc_get_proc_membind.argtypes = [
@@ -1021,11 +1015,13 @@ _LIB.hwloc_get_proc_membind.restype = ctypes.c_int
 
 @_cfndoc
 def get_proc_membind(
-    topology: topology_t, pid: hwloc_pid_t, set: bitmap_t, flags: int
+    topology: topology_t, pid: int, set: bitmap_t, flags: int
 ) -> hwloc_membind_policy_t:
     policy = ctypes.c_int()
     _checkc(
-        _LIB.hwloc_get_proc_membind(topology, pid, set, ctypes.byref(policy), flags)
+        _LIB.hwloc_get_proc_membind(
+            topology, hwloc_pid_t(pid), set, ctypes.byref(policy), flags
+        )
     )
     return hwloc_membind_policy_t(policy.value)
 
@@ -2413,7 +2409,7 @@ def bitmap_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) -> int:
     result = _LIB.hwloc_bitmap_asprintf(strp, bitmap)
     if result == -1:
         err = ctypes.get_errno()
-        msg = _libc.strerror(err)
+        msg = cstrerror(err)
         raise HwLocError(-1, err, msg)
     return result
 
@@ -2456,7 +2452,7 @@ def bitmap_list_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t) ->
     result = _LIB.hwloc_bitmap_list_asprintf(strp, bitmap)
     if result == -1:
         err = ctypes.get_errno()
-        msg = _libc.strerror(err)
+        msg = cstrerror(err)
         raise HwLocError(-1, err, msg)
     return result
 
@@ -2499,7 +2495,7 @@ def bitmap_taskset_asprintf(strp: ctypes._Pointer, bitmap: hwloc_const_bitmap_t)
     result = _LIB.hwloc_bitmap_taskset_asprintf(strp, bitmap)
     if result == -1:
         err = ctypes.get_errno()
-        msg = _libc.strerror(err)
+        msg = cstrerror(err)
         raise HwLocError(-1, err, msg)
     return result
 
@@ -3085,7 +3081,7 @@ def topology_export_synthetic(
     n_written = _LIB.hwloc_topology_export_synthetic(topology, buf, buflen, flags)
     if n_written == -1:
         err = ctypes.get_errno()
-        msg = _libc.strerror(err)
+        msg = cstrerror(err)
         raise HwLocError(-1, err, msg)
     return n_written
 
@@ -3491,7 +3487,9 @@ _LIB.hwloc_memattr_get_by_name.restype = ctypes.c_int
 
 
 def memattr_get_by_name(
-    topology: topology_t, name: bytes, idx: ctypes._Pointer  # [hwloc_memattr_id_t]
+    topology: topology_t,
+    name: bytes,
+    idx: ctypes._Pointer,  # [hwloc_memattr_id_t]
 ) -> None:
     _checkc(_LIB.hwloc_memattr_get_by_name(topology, name, idx))
 
