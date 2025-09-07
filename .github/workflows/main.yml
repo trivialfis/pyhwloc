@@ -28,3 +28,38 @@ jobs:
         black --check .
         isort --profile=black --check .
         mypy .
+  Linux-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'fales'
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        environment-file: dev/pyhwloc_dev.yml
+        miniforge-version: latest
+        activate-environment: pyhwloc_dev
+    - name: Install hwloc
+      shell: bash -l {0}
+      run: |
+        # Install the latest hwloc
+        git clone https://github.com/open-mpi/hwloc.git
+        cd hwloc
+        ./autogen.sh
+        mkdir build
+        cd build
+        ../configure --prefix=$CONDA_PREFIX --enable-tests
+        make -j$(nproc) install
+        cd ../../
+        rm -rf hwloc
+        # Install pyhwloc
+        mkdir build
+        cd build
+        cmake ..
+        make -j$(nproc)
+        cd ..
+        pip install -e . --no-deps --no-build-isolation
