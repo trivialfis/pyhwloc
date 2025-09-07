@@ -16,7 +16,6 @@
 #include "pyhwloc_export.h"
 #include <hwloc/cuda.h>
 
-extern "C" {
 PYHWLOC_EXPORT int pyhwloc_cuda_get_device_pci_ids(
     hwloc_topology_t topology __hwloc_attribute_unused, CUdevice cudevice,
     int *domain, int *bus, int *dev) {
@@ -42,5 +41,4 @@ pyhwloc_cuda_get_device_osdev(hwloc_topology_t topology, CUdevice cudevice) {
 PYHWLOC_EXPORT hwloc_obj_t pyhwloc_cuda_get_device_osdev_by_index(
     hwloc_topology_t topology, unsigned idx) {
   return hwloc_cuda_get_device_osdev_by_index(topology, idx);
-}
 }
