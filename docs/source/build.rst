@@ -22,3 +22,11 @@ The default build includes tests. Afterward, we can build pyhwloc from source:
     ninja
 
 Most of the tests are failing at the moment.
+
+#############
+Running Tests
+#############
+
+.. code-block:: sh
+
+    pytest ./pyhwloc/tests/ --cov=pyhwloc --cov-report=html
