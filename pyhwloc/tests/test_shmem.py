@@ -50,6 +50,7 @@ def _find_mmap_addr(length: int) -> int:
         test_map.close()
 
         print(f" Test mmap succeeded, got address 0x{test_addr:x}")
+        assert test_addr is not None
         return test_addr
     except OSError as e:
         print(f" Test mmap failed (errno {e.errno})")

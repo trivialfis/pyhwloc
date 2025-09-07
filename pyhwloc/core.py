@@ -853,10 +853,10 @@ if sys.platform == "win32":
 else:
     hwloc_thread_t = ctypes.c_ulong
 
-    def open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
+    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
         return hwloc_thread_t(thread_id)
 
-    def close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
+    def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
         pass
 
 
