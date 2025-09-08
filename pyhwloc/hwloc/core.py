@@ -41,10 +41,7 @@ _LIB.hwloc_get_api_version.restype = ctypes.c_uint
 
 @_cfndoc
 def get_api_version() -> int:
-    # major = v >> 16
-    # minor = (v >> 8) & 0xFF
-    # rev = v & 0xFF
-    return _LIB.hwloc_get_api_version()
+    return int(_LIB.hwloc_get_api_version())
 
 
 ##################################################

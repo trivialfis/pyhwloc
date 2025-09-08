@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import ctypes
 from collections.abc import Iterable
-from typing import Iterator, List
+from typing import Iterator, Sequence
 
 from .hwloc import bitmap as _bitmap
 
@@ -55,7 +55,7 @@ class Bitmap:
         return bitmap
 
     @classmethod
-    def from_ulongs(cls, mask: List[int]) -> Bitmap:
+    def from_ulongs(cls, mask: Sequence[int]) -> Bitmap:
         bitmap = Bitmap()
         ptr = (ctypes.c_ulong * len(mask))(*mask)
         _bitmap.bitmap_from_ulongs(bitmap._hdl, len(mask), ptr)
