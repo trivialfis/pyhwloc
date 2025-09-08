@@ -17,10 +17,12 @@ import platform
 
 import pytest
 
-from pyhwloc.core import (
+from pyhwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_only,
+)
+from pyhwloc.core import (
     get_area_membind,
     get_membind,
     hwloc_membind_flags_t,

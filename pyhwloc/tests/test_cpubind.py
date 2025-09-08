@@ -18,14 +18,16 @@ import threading
 
 import pytest
 
-from pyhwloc.core import (
-    _close_thread_handle,
-    _open_thread_handle,
+from pyhwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_isequal,
     bitmap_iszero,
     bitmap_set,
+)
+from pyhwloc.core import (
+    _close_thread_handle,
+    _open_thread_handle,
     get_cpubind,
     get_last_cpu_location,
     get_proc_last_cpu_location,

@@ -12,18 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ctypes
-import platform
-from typing import TypeGuard
-
 import cuda.bindings.driver as cuda
-import pytest
 
-from pyhwloc.core import (
+from pyhwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_iszero,
     bitmap_weight,
+)
+from pyhwloc.core import (
     hwloc_obj_type_t,
     hwloc_type_filter_e,
 )

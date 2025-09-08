@@ -16,10 +16,10 @@
 import ctypes
 import platform
 
+from .bitmap import bitmap_t
 from .core import (
     _LIB,
     _checkc,
-    hwloc_bitmap_t,
     hwloc_const_cpuset_t,
     hwloc_cpuset_t,
     topology_t,
@@ -63,24 +63,22 @@ def get_tid_cpubind(topology: topology_t, tid: int, cpuset: hwloc_cpuset_t) -> N
 _LIB.hwloc_linux_get_tid_last_cpu_location.argtypes = [
     topology_t,
     ctypes.c_int,  # pid_t (typically int on Linux)
-    hwloc_bitmap_t,
+    bitmap_t,
 ]
 _LIB.hwloc_linux_get_tid_last_cpu_location.restype = ctypes.c_int
 
 
-def get_tid_last_cpu_location(
-    topology: topology_t, tid: int, cpuset: hwloc_bitmap_t
-) -> None:
+def get_tid_last_cpu_location(topology: topology_t, tid: int, cpuset: bitmap_t) -> None:
     _checkc(_LIB.hwloc_linux_get_tid_last_cpu_location(topology, tid, cpuset))
 
 
 _LIB.hwloc_linux_read_path_as_cpumask.argtypes = [
     ctypes.c_char_p,  # const char *path
-    hwloc_bitmap_t,
+    bitmap_t,
 ]
 _LIB.hwloc_linux_read_path_as_cpumask.restype = ctypes.c_int
 
 
-def read_path_as_cpumask(path: str, cpuset: hwloc_bitmap_t) -> None:
+def read_path_as_cpumask(path: str, cpuset: bitmap_t) -> None:
     path_bytes = path.encode("utf-8")
     _checkc(_LIB.hwloc_linux_read_path_as_cpumask(path_bytes, cpuset))

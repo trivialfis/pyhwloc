@@ -14,11 +14,13 @@
 #
 import pynvml as nm
 
-from pyhwloc.core import (
+from pyhwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_iszero,
     bitmap_weight,
+)
+from pyhwloc.core import (
     hwloc_obj_type_t,
     hwloc_type_filter_e,
 )

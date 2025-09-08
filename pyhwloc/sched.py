@@ -14,11 +14,13 @@
 #
 from typing import Set
 
-from .core import (
+from .bitmap import (
     bitmap_alloc,
     bitmap_first,
     bitmap_next,
     bitmap_set,
+)
+from .core import (
     hwloc_const_cpuset_t,
     hwloc_cpuset_t,
 )

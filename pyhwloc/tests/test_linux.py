@@ -17,7 +17,7 @@ import platform
 
 import pytest
 
-from pyhwloc.core import (
+from pyhwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_isequal,
