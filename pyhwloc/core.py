@@ -3159,8 +3159,10 @@ _LIB.hwloc_distances_get.restype = ctypes.c_int
 
 if TYPE_CHECKING:
     DistancesPtr = ctypes._Pointer[hwloc_distances_s]
-    DistancesPtrPtr = ctypes._Pointer[ctypes._Pointer[hwloc_distances_s]]
-    UintPtr = ctypes._Pointer[ctypes.c_uint]
+    DistancesPtrPtr = (
+        ctypes._Pointer[ctypes._Pointer[hwloc_distances_s]] | ctypes._CArgObject
+    )
+    UintPtr = ctypes._Pointer[ctypes.c_uint] | ctypes._CArgObject
 else:
     DistancesPtr = ctypes._Pointer
     DistancesPtrPtr = ctypes._Pointer
@@ -3172,9 +3174,9 @@ def distances_get(
     nr: UintPtr,
     distances: DistancesPtrPtr,
     kind: int,
-    flags: int,
 ) -> None:
-    _checkc(_LIB.hwloc_distances_get(topology, nr, distances, kind, flags))
+    # flag must be 0 for now.
+    _checkc(_LIB.hwloc_distances_get(topology, nr, distances, kind, 0))
 
 
 _LIB.hwloc_distances_get_by_depth.argtypes = [
@@ -3215,13 +3217,13 @@ _LIB.hwloc_distances_get_by_type.restype = ctypes.c_int
 def distances_get_by_type(
     topology: topology_t,
     obj_type: hwloc_obj_type_t,
-    nr: UintPtr,
+    nr: UintPtr,  # this is both input and output
     distances: DistancesPtrPtr,
     kind: int,
-    flags: int,
 ) -> None:
+    # flags must be 0 for now
     _checkc(
-        _LIB.hwloc_distances_get_by_type(topology, obj_type, nr, distances, kind, flags)
+        _LIB.hwloc_distances_get_by_type(topology, obj_type, nr, distances, kind, 0)
     )
 
 
@@ -3325,14 +3327,15 @@ def distances_obj_pair_values(
     distances: DistancesPtr,
     obj1: ObjPtr,
     obj2: ObjPtr,
-    value1to2: ctypes._Pointer,  # (hwloc_uint64_t)
-    value2to1: ctypes._Pointer,  # (hwloc_uint64_t)
-) -> None:
+) -> tuple[int, int]:
+    value1to2 = ctypes.c_uint64(0)
+    value2to1 = ctypes.c_uint64(0)
     _checkc(
         _pyhwloc_lib.pyhwloc_distances_obj_pair_values(
-            distances, obj1, obj2, value1to2, value2to1
+            distances, obj1, obj2, ctypes.byref(value1to2), ctypes.byref(value2to1)
         )
     )
+    return int(value1to2.value), int(value2to1.value)
 
 
 ###############################
@@ -3341,7 +3344,8 @@ def distances_obj_pair_values(
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00166.php
 
-
+# This is an opaque pointer of hwloc_internal_distances_s
+# FIXME(jiamingy): How to make sure this is not leaked?
 hwloc_distances_add_handle_t = ctypes.c_void_p
 
 
@@ -3362,10 +3366,17 @@ _LIB.hwloc_distances_add_create.restype = hwloc_distances_add_handle_t
 
 @_cfndoc
 def distances_add_create(
-    topology: topology_t, name: str, kind: int, flags: int
+    topology: topology_t, name: str, kind: int
 ) -> hwloc_distances_add_handle_t:
+    # The distance from object i to object j is in slot i*nbobjs+j. (row-major)
     name_bytes = name.encode("utf-8")
-    return _LIB.hwloc_distances_add_create(topology, name_bytes, kind, flags)
+    # flags must be 0 for now
+    dist_obj = _LIB.hwloc_distances_add_create(topology, name_bytes, kind, 0)
+    if not dist_obj:
+        err = ctypes.get_errno()
+        msg = cstrerror(err)
+        raise HwLocError(-1, err, msg)
+    return dist_obj
 
 
 _LIB.hwloc_distances_add_values.argtypes = [
@@ -3386,11 +3397,9 @@ def distances_add_values(
     nbobjs: int,
     objs: ctypes.Array,
     values: ctypes.Array,
-    flags: int,
 ) -> None:
-    _checkc(
-        _LIB.hwloc_distances_add_values(topology, handle, nbobjs, objs, values, flags)
-    )
+    # flags must be 0 for now
+    _checkc(_LIB.hwloc_distances_add_values(topology, handle, nbobjs, objs, values, 0))
 
 
 _LIB.hwloc_distances_add_commit.argtypes = [
