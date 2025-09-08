@@ -14,6 +14,6 @@
 #
 from __future__ import annotations
 
-from hwloc import __version__
+from .hwloc import __version__
 
 __all__ = ["__version__"]
