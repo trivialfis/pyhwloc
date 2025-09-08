@@ -1,6 +1,6 @@
-###################
-Low Level Interface
-###################
+###########
+PyHwloc API
+###########
 
 .. automodule:: pyhwloc.bitmap
   :members:
