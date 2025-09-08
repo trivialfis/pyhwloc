@@ -17,12 +17,12 @@ import platform
 
 import pytest
 
-from pyhwloc.bitmap import (
+from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_only,
 )
-from pyhwloc.core import (
+from pyhwloc.hwloc.core import (
     get_area_membind,
     get_membind,
     hwloc_membind_flags_t,
@@ -31,8 +31,8 @@ from pyhwloc.core import (
     set_membind,
     set_proc_membind,
 )
-from pyhwloc.libc import free as cfree
-from pyhwloc.libc import malloc as cmalloc
+from pyhwloc.hwloc.libc import free as cfree
+from pyhwloc.hwloc.libc import malloc as cmalloc
 
 from .test_core import Topology
 

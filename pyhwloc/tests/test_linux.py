@@ -17,7 +17,7 @@ import platform
 
 import pytest
 
-from pyhwloc.bitmap import (
+from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_isequal,
@@ -27,7 +27,11 @@ from pyhwloc.bitmap import (
 
 pytest.importorskip("pyhwloc.linux", exc_type=ImportError)
 
-from pyhwloc.linux import get_tid_cpubind, get_tid_last_cpu_location, set_tid_cpubind
+from pyhwloc.hwloc.linux import (
+    get_tid_cpubind,
+    get_tid_last_cpu_location,
+    set_tid_cpubind,
+)
 
 from .test_core import Topology
 

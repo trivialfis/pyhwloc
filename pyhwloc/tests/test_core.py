@@ -16,7 +16,7 @@ import ctypes
 
 import pytest
 
-from pyhwloc.bitmap import (
+from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
     bitmap_copy,
     bitmap_first,
@@ -27,7 +27,7 @@ from pyhwloc.bitmap import (
     bitmap_set,
     bitmap_weight,
 )
-from pyhwloc.core import (
+from pyhwloc.hwloc.core import (
     HwLocError,
     ObjPtr,
     bridge_covers_pcibus,

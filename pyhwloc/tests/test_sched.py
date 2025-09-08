@@ -17,8 +17,8 @@ import platform
 
 import pytest
 
-from pyhwloc.bitmap import bitmap_free
-from pyhwloc.sched import (
+from pyhwloc.hwloc.bitmap import bitmap_free
+from pyhwloc.hwloc.sched import (
     cpuset_from_sched_affinity,
     cpuset_to_sched_affinity,
 )

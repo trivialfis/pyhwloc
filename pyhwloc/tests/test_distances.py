@@ -20,7 +20,7 @@
 import ctypes
 from functools import partial
 
-from pyhwloc.core import (
+from pyhwloc.hwloc.core import (
     distances_add_commit,
     distances_add_create,
     distances_add_values,

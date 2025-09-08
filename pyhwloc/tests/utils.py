@@ -3,7 +3,7 @@ from typing import TypeGuard
 
 import pytest
 
-from pyhwloc.core import ObjPtr
+from pyhwloc.hwloc.core import ObjPtr
 
 
 def _skip_if_none(dev_obj: ObjPtr | None) -> TypeGuard[ObjPtr]:

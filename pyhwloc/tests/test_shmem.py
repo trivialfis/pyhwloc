@@ -23,7 +23,7 @@ import tempfile
 
 import pytest
 
-from pyhwloc.core import (
+from pyhwloc.hwloc.core import (
     HwLocError,
     shmem_topology_get_length,
     shmem_topology_write,

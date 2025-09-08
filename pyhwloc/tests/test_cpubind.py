@@ -18,14 +18,14 @@ import threading
 
 import pytest
 
-from pyhwloc.bitmap import (
+from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_isequal,
     bitmap_iszero,
     bitmap_set,
 )
-from pyhwloc.core import (
+from pyhwloc.hwloc.core import (
     _close_thread_handle,
     _open_thread_handle,
     get_cpubind,
@@ -37,7 +37,7 @@ from pyhwloc.core import (
     set_cpubind,
     set_thread_cpubind,
 )
-from pyhwloc.sched import cpuset_to_sched_affinity
+from pyhwloc.hwloc.sched import cpuset_to_sched_affinity
 
 from .test_core import Topology
 

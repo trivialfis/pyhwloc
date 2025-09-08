@@ -24,6 +24,7 @@ from .core import (
     hwloc_cpuset_t,
     topology_t,
 )
+from .lib import _cfndoc
 
 if platform.system() != "Linux":
     raise ImportError("This module is only defined for Linux.")
@@ -42,6 +43,7 @@ _LIB.hwloc_linux_set_tid_cpubind.argtypes = [
 _LIB.hwloc_linux_set_tid_cpubind.restype = ctypes.c_int
 
 
+@_cfndoc
 def set_tid_cpubind(
     topology: topology_t, tid: int, cpuset: hwloc_const_cpuset_t
 ) -> None:
@@ -56,6 +58,7 @@ _LIB.hwloc_linux_get_tid_cpubind.argtypes = [
 _LIB.hwloc_linux_get_tid_cpubind.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_tid_cpubind(topology: topology_t, tid: int, cpuset: hwloc_cpuset_t) -> None:
     _checkc(_LIB.hwloc_linux_get_tid_cpubind(topology, tid, cpuset))
 
@@ -68,6 +71,7 @@ _LIB.hwloc_linux_get_tid_last_cpu_location.argtypes = [
 _LIB.hwloc_linux_get_tid_last_cpu_location.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_tid_last_cpu_location(topology: topology_t, tid: int, cpuset: bitmap_t) -> None:
     _checkc(_LIB.hwloc_linux_get_tid_last_cpu_location(topology, tid, cpuset))
 
@@ -79,6 +83,7 @@ _LIB.hwloc_linux_read_path_as_cpumask.argtypes = [
 _LIB.hwloc_linux_read_path_as_cpumask.restype = ctypes.c_int
 
 
+@_cfndoc
 def read_path_as_cpumask(path: str, cpuset: bitmap_t) -> None:
     path_bytes = path.encode("utf-8")
     _checkc(_LIB.hwloc_linux_read_path_as_cpumask(path_bytes, cpuset))

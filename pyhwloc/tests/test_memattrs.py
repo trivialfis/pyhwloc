@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import ctypes
 
-from pyhwloc.core import (
+from pyhwloc.hwloc.core import (
     get_obj_by_type,
     hwloc_location,
     hwloc_location_type_e,

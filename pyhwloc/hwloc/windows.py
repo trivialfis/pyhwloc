@@ -17,6 +17,7 @@ import ctypes
 import platform
 
 from .core import _LIB, _checkc, hwloc_cpuset_t, topology_t
+from .lib import _cfndoc
 
 if platform.system() != "Windows":
     raise ImportError("This module is only defined for Windows.")
@@ -33,6 +34,7 @@ _LIB.hwloc_windows_get_nr_processor_groups.argtypes = [topology_t, ctypes.c_ulon
 _LIB.hwloc_windows_get_nr_processor_groups.restype = ctypes.c_int
 
 
+@_cfndoc
 def windows_get_nr_processor_groups(topology: topology_t) -> int:
     # flags must be 0
     nr = _LIB.hwloc_windows_get_nr_processor_groups(topology, 0)
@@ -50,6 +52,7 @@ _LIB.hwloc_windows_get_processor_group_cpuset.argtypes = [
 _LIB.hwloc_windows_get_processor_group_cpuset.restype = ctypes.c_int
 
 
+@_cfndoc
 def windows_get_processor_group_cpuset(
     topology: topology_t, pg_index: int, cpuset: hwloc_cpuset_t
 ) -> None:

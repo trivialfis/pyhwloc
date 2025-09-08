@@ -14,17 +14,17 @@
 #
 import cuda.bindings.runtime as cudart
 
-from pyhwloc.bitmap import (
+from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_iszero,
     bitmap_weight,
 )
-from pyhwloc.core import (
+from pyhwloc.hwloc.core import (
     hwloc_obj_type_t,
     hwloc_type_filter_e,
 )
-from pyhwloc.cudart import (
+from pyhwloc.hwloc.cudart import (
     _check_cudart,
     get_device_cpuset,
     get_device_osdev_by_index,

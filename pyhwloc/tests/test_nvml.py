@@ -14,17 +14,17 @@
 #
 import pynvml as nm
 
-from pyhwloc.bitmap import (
+from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
     bitmap_iszero,
     bitmap_weight,
 )
-from pyhwloc.core import (
+from pyhwloc.hwloc.core import (
     hwloc_obj_type_t,
     hwloc_type_filter_e,
 )
-from pyhwloc.nvml import get_device_cpuset, get_device_osdev
+from pyhwloc.hwloc.nvml import get_device_cpuset, get_device_osdev
 
 from .test_core import Topology
 from .utils import _skip_if_none

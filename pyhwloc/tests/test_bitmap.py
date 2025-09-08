@@ -14,7 +14,7 @@
 #
 import ctypes
 
-from pyhwloc.bitmap import (
+from pyhwloc.hwloc.bitmap import (
     bitmap_allbut,
     bitmap_alloc,
     bitmap_alloc_full,
