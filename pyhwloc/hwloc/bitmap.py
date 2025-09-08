@@ -15,8 +15,10 @@
 from __future__ import annotations
 
 import ctypes
+from typing import Callable
 
 from .lib import _LIB, HwLocError, _cfndoc, _checkc, _pyhwloc_lib
+from .libc import free as cfree
 from .libc import strerror as cstrerror
 
 ################
@@ -64,7 +66,7 @@ _LIB.hwloc_bitmap_dup.restype = bitmap_t
 
 @_cfndoc
 def bitmap_dup(bitmap: const_bitmap_t) -> bitmap_t:
-    return _LIB.hwloc_bitmap_dup(bitmap)
+    return ctypes.cast(_LIB.hwloc_bitmap_dup(bitmap), bitmap_t)
 
 
 _LIB.hwloc_bitmap_copy.argtypes = [bitmap_t, const_bitmap_t]
@@ -102,15 +104,30 @@ _LIB.hwloc_bitmap_asprintf.argtypes = [
 _LIB.hwloc_bitmap_asprintf.restype = ctypes.c_int
 
 
-# ctypes.POINTER(ctypes.c_char_p)
-@_cfndoc
-def bitmap_asprintf(strp: ctypes._Pointer, bitmap: const_bitmap_t) -> int:
-    result = _LIB.hwloc_bitmap_asprintf(strp, bitmap)
-    if result == -1:
+def _asprintf_impl(bitmap: const_bitmap_t, fn: Callable) -> str:
+    strp = ctypes.c_char_p(0)
+    n_written = fn(ctypes.byref(strp), bitmap)
+    if n_written == -1:
         err = ctypes.get_errno()
         msg = cstrerror(err)
+        if strp:
+            cfree(strp)
         raise HwLocError(-1, err, msg)
-    return result
+
+    if n_written > 0:
+        assert strp.value is not None
+        string = strp.value.decode("utf-8")
+        assert len(string) == n_written
+    else:
+        string = ""
+    if strp:
+        cfree(strp)
+    return string
+
+
+@_cfndoc
+def bitmap_asprintf(bitmap: const_bitmap_t) -> str:
+    return _asprintf_impl(bitmap, _LIB.hwloc_bitmap_asprintf)
 
 
 _LIB.hwloc_bitmap_sscanf.argtypes = [bitmap_t, ctypes.c_char_p]
@@ -145,15 +162,9 @@ _LIB.hwloc_bitmap_list_asprintf.argtypes = [
 _LIB.hwloc_bitmap_list_asprintf.restype = ctypes.c_int
 
 
-# ctypes.POINTER(ctypes.c_char_p)
 @_cfndoc
-def bitmap_list_asprintf(strp: ctypes._Pointer, bitmap: const_bitmap_t) -> int:
-    result = _LIB.hwloc_bitmap_list_asprintf(strp, bitmap)
-    if result == -1:
-        err = ctypes.get_errno()
-        msg = cstrerror(err)
-        raise HwLocError(-1, err, msg)
-    return result
+def bitmap_list_asprintf(bitmap: const_bitmap_t) -> str:
+    return _asprintf_impl(bitmap, _LIB.hwloc_bitmap_list_asprintf)
 
 
 _LIB.hwloc_bitmap_list_sscanf.argtypes = [bitmap_t, ctypes.c_char_p]
@@ -188,15 +199,9 @@ _LIB.hwloc_bitmap_taskset_asprintf.argtypes = [
 _LIB.hwloc_bitmap_taskset_asprintf.restype = ctypes.c_int
 
 
-# ctypes.POINTER(ctypes.c_char_p)
 @_cfndoc
-def bitmap_taskset_asprintf(strp: ctypes._Pointer, bitmap: const_bitmap_t) -> int:
-    result = _LIB.hwloc_bitmap_taskset_asprintf(strp, bitmap)
-    if result == -1:
-        err = ctypes.get_errno()
-        msg = cstrerror(err)
-        raise HwLocError(-1, err, msg)
-    return result
+def bitmap_taskset_asprintf(bitmap: const_bitmap_t) -> str:
+    return _asprintf_impl(bitmap, _LIB.hwloc_bitmap_taskset_asprintf)
 
 
 _LIB.hwloc_bitmap_taskset_sscanf.argtypes = [bitmap_t, ctypes.c_char_p]
@@ -252,7 +257,7 @@ _LIB.hwloc_bitmap_from_ulong.restype = ctypes.c_int
 
 @_cfndoc
 def bitmap_from_ulong(bitmap: bitmap_t, mask: int) -> None:
-    _checkc(_LIB.hwloc_bitmap_from_ulong(bitmap, mask))
+    _checkc(_LIB.hwloc_bitmap_from_ulong(bitmap, ctypes.c_ulong(mask)))
 
 
 _LIB.hwloc_bitmap_from_ith_ulong.argtypes = [
@@ -265,7 +270,7 @@ _LIB.hwloc_bitmap_from_ith_ulong.restype = ctypes.c_int
 
 @_cfndoc
 def bitmap_from_ith_ulong(bitmap: bitmap_t, i: int, mask: int) -> None:
-    _checkc(_LIB.hwloc_bitmap_from_ith_ulong(bitmap, i, mask))
+    _checkc(_LIB.hwloc_bitmap_from_ith_ulong(bitmap, i, ctypes.c_ulong(mask)))
 
 
 _LIB.hwloc_bitmap_from_ulongs.argtypes = [
@@ -278,7 +283,9 @@ _LIB.hwloc_bitmap_from_ulongs.restype = ctypes.c_int
 
 # ctypes.POINTER(ctypes.c_ulong)
 @_cfndoc
-def bitmap_from_ulongs(bitmap: bitmap_t, nr: int, masks: ctypes._Pointer) -> None:
+def bitmap_from_ulongs(
+    bitmap: bitmap_t, nr: int, masks: ctypes._Pointer | ctypes.Array
+) -> None:
     _checkc(_LIB.hwloc_bitmap_from_ulongs(bitmap, nr, masks))
 
 

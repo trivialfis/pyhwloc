@@ -24,7 +24,7 @@ else:
     _libc = ctypes.CDLL(find_library("c"))
 
 
-def free(ptr: ctypes._Pointer | ctypes.c_void_p) -> None:
+def free(ptr: ctypes._Pointer | ctypes.c_void_p | ctypes.c_char_p) -> None:
     _libc.free(ptr)
 
 
