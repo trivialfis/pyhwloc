@@ -1,6 +1,6 @@
 name: pyhwloc CI
 
-on: [push, pull_request]
+on: [push]
 
 permissions:
   contents: read  # to fetch code (actions/checkout)

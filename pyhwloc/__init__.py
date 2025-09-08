@@ -14,7 +14,6 @@
 #
 from __future__ import annotations
 
-from .bitmap import Bitmap
 from .hwloc import __version__
 
-__all__ = ["__version__", "Bitmap"]
+__all__ = ["__version__"]
