@@ -20,8 +20,7 @@ from enum import IntEnum
 from typing import TYPE_CHECKING, Callable
 
 from .bitmap import bitmap_alloc, bitmap_t, const_bitmap_t
-from .lib import _LIB, HwLocError, _cenumdoc, _cfndoc, _checkc, _pyhwloc_lib
-from .libc import strerror as cstrerror
+from .lib import _LIB, _cenumdoc, _cfndoc, _checkc, _pyhwloc_lib, hwloc_error
 
 hwloc_uint64_t = ctypes.c_uint64
 hwloc_pid_t = ctypes.c_int
@@ -1067,7 +1066,7 @@ _LIB.hwloc_alloc.restype = ctypes.c_void_p
 def alloc(topology: topology_t, length: int) -> ctypes.c_void_p:
     result = _LIB.hwloc_alloc(topology, length)
     if not result:
-        raise HwLocError(-1, 0, b"hwloc_alloc failed")
+        raise hwloc_error("hwloc_alloc")
     return result
 
 
@@ -1091,7 +1090,7 @@ def alloc_membind(
 ) -> ctypes.c_void_p:
     result = _LIB.hwloc_alloc_membind(topology, length, set, policy, flags)
     if not result:
-        raise HwLocError(-1, 0, b"hwloc_alloc_membind failed")
+        raise hwloc_error("hwloc_alloc_membind")
     return result
 
 
@@ -1117,7 +1116,7 @@ def alloc_membind_policy(
         topology, length, set, policy, flags
     )
     if not result:
-        raise HwLocError(-1, 0, b"hwloc_alloc_membind_policy failed")
+        raise hwloc_error("hwloc_alloc_membind_policy")
     return result
 
 
@@ -1147,8 +1146,8 @@ _LIB.hwloc_topology_set_pid.restype = ctypes.c_int
 
 
 @_cfndoc
-def topology_set_pid(topology: topology_t, pid: hwloc_pid_t) -> None:
-    _checkc(_LIB.hwloc_topology_set_pid(topology, pid))
+def topology_set_pid(topology: topology_t, pid: int) -> None:
+    _checkc(_LIB.hwloc_topology_set_pid(topology, hwloc_pid_t(pid)))
 
 
 _LIB.hwloc_topology_set_synthetic.argtypes = [topology_t, ctypes.c_char_p]
@@ -2512,9 +2511,7 @@ def topology_export_synthetic(
     # majority of cases.
     n_written = _LIB.hwloc_topology_export_synthetic(topology, buf, buflen, flags)
     if n_written == -1:
-        err = ctypes.get_errno()
-        msg = cstrerror(err)
-        raise HwLocError(-1, err, msg)
+        raise hwloc_error("hwloc_topology_export_synthetic")
     return n_written
 
 
@@ -2786,9 +2783,7 @@ def distances_add_create(
     # flags must be 0 for now
     dist_obj = _LIB.hwloc_distances_add_create(topology, name_bytes, kind, 0)
     if not dist_obj:
-        err = ctypes.get_errno()
-        msg = cstrerror(err)
-        raise HwLocError(-1, err, msg)
+        raise hwloc_error("hwloc_distances_add_create")
     return dist_obj
 
 

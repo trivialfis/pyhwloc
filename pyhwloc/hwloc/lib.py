@@ -72,6 +72,22 @@ class HwLocError(RuntimeError):
         )
 
 
+def hwloc_error(name: str) -> HwLocError:
+    """Alternative constructor for the :py:class:`HwLocError` for functions that don't
+    have int status as return.
+
+    """
+    err = ctypes.get_errno()
+    msg = f"`{name}` failed"
+    internal_msg = cstrerror(err)
+    if internal_msg is not None:
+        msg += ":\n"
+        msg + internal_msg
+    else:
+        msg += "."
+    return HwLocError(-1, err, msg)
+
+
 def _checkc(status: int) -> None:
     if status != 0:
         err = ctypes.get_errno()

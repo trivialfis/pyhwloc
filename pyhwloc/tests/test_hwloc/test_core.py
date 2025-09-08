@@ -28,7 +28,6 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_weight,
 )
 from pyhwloc.hwloc.core import (
-    HwLocError,
     ObjPtr,
     bridge_covers_pcibus,
     compare_types,
@@ -101,6 +100,7 @@ from pyhwloc.hwloc.core import (
     type_sscanf,
     type_sscanf_as_depth,
 )
+from pyhwloc.hwloc.lib import HwLocError
 
 
 def is_same_obj(a: ObjPtr, b: ObjPtr) -> bool:

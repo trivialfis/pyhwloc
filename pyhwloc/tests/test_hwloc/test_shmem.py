@@ -24,10 +24,10 @@ import tempfile
 import pytest
 
 from pyhwloc.hwloc.core import (
-    HwLocError,
     shmem_topology_get_length,
     shmem_topology_write,
 )
+from pyhwloc.hwloc.lib import HwLocError
 
 from .test_core import Topology
 
