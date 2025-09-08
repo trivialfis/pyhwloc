@@ -107,22 +107,22 @@ _LIB.hwloc_bitmap_asprintf.restype = ctypes.c_int
 def _asprintf_impl(bitmap: const_bitmap_t, fn: Callable) -> str:
     strp = ctypes.c_char_p(0)
     n_written = fn(ctypes.byref(strp), bitmap)
-    if n_written == -1:
-        err = ctypes.get_errno()
-        msg = cstrerror(err)
+    try:
+        if n_written == -1:
+            err = ctypes.get_errno()
+            msg = cstrerror(err)
+            raise HwLocError(-1, err, msg)
+
+        if n_written > 0:
+            assert strp.value is not None
+            string = strp.value.decode("utf-8")
+            assert len(string) == n_written
+        else:
+            string = ""
+        return string
+    finally:
         if strp:
             cfree(strp)
-        raise HwLocError(-1, err, msg)
-
-    if n_written > 0:
-        assert strp.value is not None
-        string = strp.value.decode("utf-8")
-        assert len(string) == n_written
-    else:
-        string = ""
-    if strp:
-        cfree(strp)
-    return string
 
 
 @_cfndoc
