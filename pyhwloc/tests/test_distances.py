@@ -79,8 +79,9 @@ def test_distances_comprehensive() -> None:
 
     # Get NUMA node objects
     for i in range(n_nodes):
-        objs[i] = get_obj_by_type(topo, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE, i)
-        assert objs[i]
+        obj = get_obj_by_type(topo, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE, i)
+        assert obj is not None
+        objs[i] = obj
 
     # Create distance matrix - initialize all to 8
     for i in range(n_nodes * n_nodes):
@@ -140,11 +141,13 @@ def test_distances_comprehensive() -> None:
 
     # Test helper functions
     numa_node_2 = get_obj_by_type(topo, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE, 2)
+    assert numa_node_2 is not None
     index = distances_obj_index(distances[0], numa_node_2)
     assert index == 2
 
     # Test distance pair values
     numa_node_1 = get_obj_by_type(topo, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE, 1)
+    assert numa_node_1 is not None
     value1to2, value2to1 = distances_obj_pair_values(
         distances,
         numa_node_1,
@@ -155,6 +158,7 @@ def test_distances_comprehensive() -> None:
 
     # Test error cases - PU objects should not be in NUMA distance matrix
     pu_obj = get_obj_by_type(topo, hwloc_obj_type_t.HWLOC_OBJ_PU, 0)
+    assert pu_obj is not None
     pu_index = distances_obj_index(distances[0], pu_obj)
     assert pu_index == -1, "PU object should not be in NUMA distances."
 
