@@ -543,7 +543,7 @@ def test_topology_export_synthetic() -> None:
 def test_cpukinds_get_info() -> None:
     topo = Topology()
 
-    nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+    nr_kinds = cpukinds_get_nr(topo.hdl)
     assert isinstance(nr_kinds, int)
     assert nr_kinds >= 0
 
@@ -552,7 +552,7 @@ def test_cpukinds_register_and_get_functions() -> None:
     topo = Topology()
 
     # Get initial number of CPU kinds
-    initial_nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+    initial_nr_kinds = cpukinds_get_nr(topo.hdl)
 
     # Create a test cpuset (use first CPU)
     test_cpuset = bitmap_alloc()
@@ -571,16 +571,16 @@ def test_cpukinds_register_and_get_functions() -> None:
     cpukinds_register(topo.hdl, test_cpuset, 100, infos)
 
     # Verify the number of kinds increased
-    new_nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+    new_nr_kinds = cpukinds_get_nr(topo.hdl)
     assert new_nr_kinds == initial_nr_kinds + 1
 
     # Test cpukinds_get_by_cpuset
-    kind_index = cpukinds_get_by_cpuset(topo.hdl, test_cpuset, 0)
+    kind_index = cpukinds_get_by_cpuset(topo.hdl, test_cpuset)
     assert isinstance(kind_index, int)
     assert kind_index >= 0
 
     # Test cpukinds_get_info
-    cpuset, efficiency, ninfos = cpukinds_get_info(topo.hdl, kind_index, 0)
+    cpuset, efficiency, ninfos = cpukinds_get_info(topo.hdl, kind_index)
     assert cpuset is not None
     assert isinstance(efficiency, int)
     assert efficiency == 100 or efficiency == -1
@@ -603,7 +603,7 @@ def test_cpukinds_register_empty_infos() -> None:
     topo = Topology()
 
     # Get initial number of CPU kinds
-    initial_nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+    initial_nr_kinds = cpukinds_get_nr(topo.hdl)
 
     # Create a test cpuset (use CPU 1 if available, otherwise CPU 0)
     test_cpuset = bitmap_alloc()
@@ -613,7 +613,7 @@ def test_cpukinds_register_empty_infos() -> None:
     cpukinds_register(topo.hdl, test_cpuset, 50, None)
 
     # Verify the number of kinds increased
-    new_nr_kinds = cpukinds_get_nr(topo.hdl, 0)
+    new_nr_kinds = cpukinds_get_nr(topo.hdl)
     assert new_nr_kinds == initial_nr_kinds + 1
 
     bitmap_free(test_cpuset)

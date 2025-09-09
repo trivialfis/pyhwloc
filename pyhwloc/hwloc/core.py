@@ -3281,8 +3281,9 @@ _LIB.hwloc_cpukinds_get_nr.restype = ctypes.c_int
 
 
 @_cfndoc
-def cpukinds_get_nr(topology: topology_t, flags: int) -> int:
-    result = _LIB.hwloc_cpukinds_get_nr(topology, flags)
+def cpukinds_get_nr(topology: topology_t) -> int:
+    # flags must be 0 for now.
+    result = _LIB.hwloc_cpukinds_get_nr(topology, 0)
     if result < 0:
         _checkc(result)
     return result
@@ -3297,10 +3298,9 @@ _LIB.hwloc_cpukinds_get_by_cpuset.restype = ctypes.c_int
 
 
 @_cfndoc
-def cpukinds_get_by_cpuset(
-    topology: topology_t, cpuset: const_bitmap_t, flags: int
-) -> int:
-    result = _LIB.hwloc_cpukinds_get_by_cpuset(topology, cpuset, flags)
+def cpukinds_get_by_cpuset(topology: topology_t, cpuset: const_bitmap_t) -> int:
+    # flags must be 0 for now.
+    result = _LIB.hwloc_cpukinds_get_by_cpuset(topology, cpuset)
     if result < 0:
         _checkc(result)
     return result
@@ -3319,7 +3319,7 @@ _LIB.hwloc_cpukinds_get_info.restype = ctypes.c_int
 
 @_cfndoc
 def cpukinds_get_info(
-    topology: topology_t, kind_index: int, flags: int
+    topology: topology_t, kind_index: int
 ) -> tuple[bitmap_t, int, InfosPtr]:
     cpuset = bitmap_alloc()
     efficiency = ctypes.c_int()
@@ -3332,7 +3332,7 @@ def cpukinds_get_info(
             cpuset,
             ctypes.byref(efficiency),
             ctypes.byref(infos_ptr),
-            flags,
+            0,
         )
     )
 
