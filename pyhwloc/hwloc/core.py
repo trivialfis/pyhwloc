@@ -524,7 +524,7 @@ _pyhwloc_lib.pyhwloc_get_next_obj_by_depth.restype = ctypes.POINTER(hwloc_obj)
 
 @_cfndoc
 def get_next_obj_by_depth(
-    topology: topology_t, depth: int, prev: ObjPtr
+    topology: topology_t, depth: int, prev: ObjPtr | None
 ) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_next_obj_by_depth(topology, depth, prev)
     if not obj:
@@ -542,7 +542,7 @@ _pyhwloc_lib.pyhwloc_get_next_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
 
 @_cfndoc
 def get_next_obj_by_type(
-    topology: topology_t, obj_type: hwloc_obj_type_t, prev: ObjPtr
+    topology: topology_t, obj_type: hwloc_obj_type_t, prev: ObjPtr | None
 ) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_next_obj_by_type(topology, obj_type, prev)
     if not obj:
