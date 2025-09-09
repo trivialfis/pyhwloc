@@ -171,7 +171,7 @@ class Topology:
         return cls.from_native_handle(hdl)
 
     @classmethod
-    def from_xml_file(cls, xml_path: str) -> Topology:
+    def from_xml_file(cls, xml_path: os.PathLike | str) -> Topology:
         """Create topology from XML file.
 
         Parameters
@@ -184,10 +184,11 @@ class Topology:
         -------
         New Topology instance loaded from XML file.
         """
+        path = os.fspath(os.path.expanduser(xml_path))
         hdl = _core.topology_t(0)
         try:
             _core.topology_init(hdl)
-            _core.topology_set_xml(hdl, xml_path)
+            _core.topology_set_xml(hdl, path)
             _core.topology_load(hdl)
         except (_lib.HwLocError, NotImplementedError) as e:
             if hdl:
