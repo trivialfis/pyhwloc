@@ -273,7 +273,6 @@ class Topology:
             del self._hdl
 
     def __enter__(self) -> Topology:
-        """Context manager entry."""
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
         return self
@@ -284,16 +283,13 @@ class Topology:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        """Context manager exit - cleanup topology."""
         self.destroy()
 
     def __del__(self) -> None:
-        """Automatic cleanup if not used as context manager."""
-        if hasattr(self, "_hdl"):
-            try:
-                self.destroy()
-            except Exception as e:
-                logging.warning(str(e))
+        try:
+            self.destroy()
+        except Exception as e:
+            logging.warning(str(e))
 
     def __copy__(self) -> Topology:
         new = _core.topology_dup(self._hdl)
