@@ -19,6 +19,7 @@ author = "Jiaming Yuan"
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
     "breathe",
 ]
 
@@ -36,6 +37,8 @@ autodoc_type_aliases = {
 
 html_theme = "alabaster"
 html_static_path = ["_static"]
+
+intersphinx_mapping = {"python": ("https://docs.python.org/3.10", None)}
 
 # Breathe
 breathe_default_project = "pyhwloc"
