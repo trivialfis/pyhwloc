@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import copy
+
 import pytest
 
 from pyhwloc.hwloc.lib import HwLocError
-from pyhwloc.topology import Topology
+from pyhwloc.topology import ExportXmlFlags, Topology
 
 
 def test_context_manager_current_system():
@@ -135,3 +137,29 @@ def test_context_manager_exception_cleanup():
 
     # Topology should still be cleaned up after exception
     assert not topo_ref.is_loaded
+
+
+def test_copy_exprt() -> None:
+    desc = "node:2 core:2 pu:2"
+    try:
+        topo = Topology.from_synthetic(desc)
+        cp = copy.copy(topo)
+        dcp = copy.deepcopy(topo)
+        assert (
+            cp.export_synthetic(0)
+            == topo.export_synthetic(0)
+            == dcp.export_synthetic(0)
+        )
+        assert (
+            cp.export_xmlbuffer(0)
+            == topo.export_xmlbuffer(0)
+            == dcp.export_xmlbuffer(0)
+        )
+        assert (
+            len(cp.export_xmlbuffer(ExportXmlFlags.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2))
+            > 2
+        )
+    finally:
+        topo.destroy()
+        cp.destroy()
+        dcp.destroy()

@@ -2376,7 +2376,7 @@ _LIB.hwloc_free_xmlbuffer.argtypes = [topology_t, ctypes.c_char_p]
 _LIB.hwloc_free_xmlbuffer.restype = None
 
 
-# This function is only used internally since we use python strings.
+# This function is only used internally since we return python strings.
 def _free_xmlbuffer(topology: topology_t, xmlbuffer: ctypes.c_char_p) -> None:
     _LIB.hwloc_free_xmlbuffer(topology, xmlbuffer)
 
