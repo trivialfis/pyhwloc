@@ -287,7 +287,7 @@ class Topology:
             try:
                 self.destroy()
             except Exception as e:
-                logging.warn(str(e))
+                logging.warning(str(e))
 
     def __copy__(self) -> Topology:
         new = _core.topology_dup(self._hdl)
