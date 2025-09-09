@@ -523,8 +523,13 @@ _pyhwloc_lib.pyhwloc_get_next_obj_by_depth.restype = ctypes.POINTER(hwloc_obj)
 
 
 @_cfndoc
-def get_next_obj_by_depth(topology: topology_t, depth: int, prev: ObjPtr) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_next_obj_by_depth(topology, depth, prev)
+def get_next_obj_by_depth(
+    topology: topology_t, depth: int, prev: ObjPtr
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_next_obj_by_depth(topology, depth, prev)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_next_obj_by_type.argtypes = [
@@ -538,8 +543,11 @@ _pyhwloc_lib.pyhwloc_get_next_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
 @_cfndoc
 def get_next_obj_by_type(
     topology: topology_t, obj_type: hwloc_obj_type_t, prev: ObjPtr
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_next_obj_by_type(topology, obj_type, prev)
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_next_obj_by_type(topology, obj_type, prev)
+    if not obj:
+        return None
+    return obj
 
 
 @_cfndoc
@@ -1463,9 +1471,14 @@ _LIB.hwloc_topology_insert_misc_object.restype = obj_t
 @_cfndoc
 def topology_insert_misc_object(
     topology: topology_t, parent: ObjPtr, name: str
-) -> ObjPtr:
+) -> ObjPtr | None:
     name_bytes = name.encode("utf-8")
-    return _LIB.hwloc_topology_insert_misc_object(topology, parent, name_bytes)
+    obj = _LIB.hwloc_topology_insert_misc_object(topology, parent, name_bytes)
+    # fixme: null return can be caused by error and filter, how do we know which one is
+    # the case?
+    if not obj:
+        return None
+    return obj
 
 
 _LIB.hwloc_topology_alloc_group_object.argtypes = [topology_t]
@@ -1474,7 +1487,10 @@ _LIB.hwloc_topology_alloc_group_object.restype = obj_t
 
 @_cfndoc
 def topology_alloc_group_object(topology: topology_t) -> ObjPtr:
-    return _LIB.hwloc_topology_alloc_group_object(topology)
+    obj = _LIB.hwloc_topology_alloc_group_object(topology)
+    if not obj:
+        raise hwloc_error("hwloc_topology_alloc_group_object")
+    return obj
 
 
 _LIB.hwloc_topology_free_group_object.argtypes = [topology_t, obj_t]
@@ -1491,8 +1507,13 @@ _LIB.hwloc_topology_insert_group_object.restype = obj_t
 
 
 @_cfndoc
-def topology_insert_group_object(topology: topology_t, group: ObjPtr) -> ObjPtr:
-    return _LIB.hwloc_topology_insert_group_object(topology, group)
+def topology_insert_group_object(topology: topology_t, group: ObjPtr) -> ObjPtr | None:
+    # fixme: null return can be caused by error and filter, how do we know which one is
+    # the case?
+    obj = _LIB.hwloc_topology_insert_group_object(topology, group)
+    if not obj:
+        return None
+    return obj
 
 
 _LIB.hwloc_obj_add_other_obj_sets.argtypes = [obj_t, obj_t]
@@ -1968,8 +1989,11 @@ _pyhwloc_lib.pyhwloc_get_cache_covering_cpuset.restype = obj_t
 @_cfndoc
 def get_cache_covering_cpuset(
     topology: topology_t, cpuset: hwloc_const_cpuset_t
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_cache_covering_cpuset(topology, cpuset)
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_cache_covering_cpuset(topology, cpuset)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_shared_cache_covering_obj.argtypes = [topology_t, obj_t]
@@ -1977,8 +2001,11 @@ _pyhwloc_lib.pyhwloc_get_shared_cache_covering_obj.restype = obj_t
 
 
 @_cfndoc
-def get_shared_cache_covering_obj(topology: topology_t, obj: ObjPtr) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_shared_cache_covering_obj(topology, obj)
+def get_shared_cache_covering_obj(topology: topology_t, obj: ObjPtr) -> ObjPtr | None:
+    robj = _pyhwloc_lib.pyhwloc_get_shared_cache_covering_obj(topology, obj)
+    if not robj:
+        return None
+    return robj
 
 
 ########################################
@@ -2009,8 +2036,11 @@ _pyhwloc_lib.pyhwloc_get_pu_obj_by_os_index.restype = obj_t
 
 
 @_cfndoc
-def get_pu_obj_by_os_index(topology: topology_t, os_index: int) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_pu_obj_by_os_index(topology, os_index)
+def get_pu_obj_by_os_index(topology: topology_t, os_index: int) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_pu_obj_by_os_index(topology, os_index)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_numanode_obj_by_os_index.argtypes = [topology_t, ctypes.c_uint]
@@ -2018,8 +2048,11 @@ _pyhwloc_lib.pyhwloc_get_numanode_obj_by_os_index.restype = obj_t
 
 
 @_cfndoc
-def get_numanode_obj_by_os_index(topology: topology_t, os_index: int) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_numanode_obj_by_os_index(topology, os_index)
+def get_numanode_obj_by_os_index(topology: topology_t, os_index: int) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_numanode_obj_by_os_index(topology, os_index)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_closest_objs.argtypes = [
@@ -2055,10 +2088,11 @@ def get_obj_below_by_type(
     idx1: int,
     type2: hwloc_obj_type_t,
     idx2: int,
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_obj_below_by_type(
-        topology, type1, idx1, type2, idx2
-    )
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_obj_below_by_type(topology, type1, idx1, type2, idx2)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_obj_below_array_by_type.argtypes = [
@@ -2076,8 +2110,11 @@ def get_obj_below_array_by_type(
     nr: int,
     typev: ctypes.Array,
     idxv: ctypes.Array,
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_obj_below_array_by_type(topology, nr, typev, idxv)
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_obj_below_array_by_type(topology, nr, typev, idxv)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_obj_with_same_locality.argtypes = [
@@ -2099,12 +2136,15 @@ def get_obj_with_same_locality(
     subtype: str | None,
     nameprefix: str | None,
     flags: int,
-) -> ObjPtr:
+) -> ObjPtr | None:
     subtype_bytes = subtype.encode("utf-8") if subtype else None
     nameprefix_bytes = nameprefix.encode("utf-8") if nameprefix else None
-    return _pyhwloc_lib.pyhwloc_get_obj_with_same_locality(
+    obj = _pyhwloc_lib.pyhwloc_get_obj_with_same_locality(
         topology, src, obj_type, subtype_bytes, nameprefix_bytes, flags
     )
+    if not obj:
+        return None
+    return obj
 
 
 ####################################
@@ -2259,6 +2299,7 @@ _pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.restype = ctypes.POINTER(hwloc_obj)
 
 @_cfndoc
 def get_non_io_ancestor_obj(topology: topology_t, ioobj: ObjPtr) -> ObjPtr:
+    # This function cannot return NULL.
     return _pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj(topology, ioobj)
 
 
@@ -2267,8 +2308,11 @@ _pyhwloc_lib.pyhwloc_get_next_pcidev.restype = ctypes.POINTER(hwloc_obj)
 
 
 @_cfndoc
-def get_next_pcidev(topology: topology_t, prev: ObjPtr) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_next_pcidev(topology, prev)
+def get_next_pcidev(topology: topology_t, prev: ObjPtr) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_next_pcidev(topology, prev)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_pcidev_by_busid.argtypes = [
@@ -2284,8 +2328,11 @@ _pyhwloc_lib.pyhwloc_get_pcidev_by_busid.restype = ctypes.POINTER(hwloc_obj)
 @_cfndoc
 def get_pcidev_by_busid(
     topology: topology_t, domain: int, bus: int, dev: int, func: int
-) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_pcidev_by_busid(topology, domain, bus, dev, func)
+) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_pcidev_by_busid(topology, domain, bus, dev, func)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.argtypes = [topology_t, ctypes.c_char_p]
@@ -2293,10 +2340,13 @@ _pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.restype = ctypes.POINTER(hwloc_ob
 
 
 @_cfndoc
-def get_pcidev_by_busidstring(topology: topology_t, busid: str) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring(
+def get_pcidev_by_busidstring(topology: topology_t, busid: str) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring(
         topology, busid.encode("utf-8")
     )
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_next_osdev.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
@@ -2304,8 +2354,11 @@ _pyhwloc_lib.pyhwloc_get_next_osdev.restype = ctypes.POINTER(hwloc_obj)
 
 
 @_cfndoc
-def get_next_osdev(topology: topology_t, prev: ObjPtr) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_next_osdev(topology, prev)
+def get_next_osdev(topology: topology_t, prev: ObjPtr) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_next_osdev(topology, prev)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_get_next_bridge.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
@@ -2313,8 +2366,11 @@ _pyhwloc_lib.pyhwloc_get_next_bridge.restype = ctypes.POINTER(hwloc_obj)
 
 
 @_cfndoc
-def get_next_bridge(topology: topology_t, prev: ObjPtr | None) -> ObjPtr:
-    return _pyhwloc_lib.pyhwloc_get_next_bridge(topology, prev)
+def get_next_bridge(topology: topology_t, prev: ObjPtr | None) -> ObjPtr | None:
+    obj = _pyhwloc_lib.pyhwloc_get_next_bridge(topology, prev)
+    if not obj:
+        return None
+    return obj
 
 
 _pyhwloc_lib.pyhwloc_bridge_covers_pcibus.argtypes = [
