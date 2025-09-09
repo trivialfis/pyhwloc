@@ -267,3 +267,86 @@ def test_get_nbobjs_by_type_unloaded_topology() -> None:
     # Properties should also raise RuntimeError
     with pytest.raises(RuntimeError, match="Topology is not loaded"):
         _ = topo.n_cpus
+
+
+def test_object_iteration() -> None:
+    """Test topology object iteration methods."""
+    desc = "node:2 core:2 pu:2"
+
+    with Topology.from_synthetic(desc) as topo:
+        # Test basic properties
+        assert topo.depth > 0
+        assert topo.num_cpus == 8  # 2 nodes * 2 cores * 2 PUs
+        assert topo.num_cores == 4  # 2 nodes * 2 cores
+        assert topo.num_numa_nodes == 2  # 2 nodes
+
+        # Test object counts by depth
+        total_objects = 0
+        for depth in range(topo.depth):
+            count = topo.get_nbobjs_by_depth(depth)
+            assert count > 0
+            total_objects += count
+
+            # Verify depth type
+            obj_type = topo.get_depth_type(depth)
+            assert isinstance(obj_type, ObjType)
+
+        # Test object access by depth and index
+        root = topo.get_obj_by_depth(0, 0)
+        assert root is not None
+
+        # Test object access by type
+        machine = topo.get_obj_by_type(ObjType.HWLOC_OBJ_MACHINE, 0)
+        assert machine is not None
+
+        # Test iteration by depth
+        depth_objects = []
+        for depth in range(topo.depth):
+            objects = list(topo.iter_objects_by_depth(depth))
+            assert len(objects) == topo.get_nbobjs_by_depth(depth)
+            depth_objects.extend(objects)
+
+        # Test iteration by type
+        cpu_objects = list(topo.iter_cpus())
+        core_objects = list(topo.iter_cores())
+        numa_objects = list(topo.iter_numa_nodes())
+
+        assert len(cpu_objects) == topo.num_cpus
+        assert len(core_objects) == topo.num_cores
+        assert len(numa_objects) == topo.num_numa_nodes
+
+        # Test iteration of all objects
+        all_objects = list(topo.iter_all_objects())
+        assert len(all_objects) == total_objects
+        assert len(all_objects) == len(depth_objects)
+
+
+def test_object_iteration_unloaded() -> None:
+    """Test that object iteration methods raise errors on unloaded topology."""
+    topo = Topology()
+    topo.destroy()  # Make it unloaded
+
+    # All methods should raise RuntimeError
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        topo.get_obj_by_depth(0, 0)
+
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        topo.get_obj_by_type(ObjType.HWLOC_OBJ_MACHINE, 0)
+
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        topo.get_nbobjs_by_depth(0)
+
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        list(topo.iter_objects_by_depth(0))
+
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        list(topo.iter_objects_by_type(ObjType.HWLOC_OBJ_PU))
+
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        list(topo.iter_all_objects())
+
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        topo.get_depth_type(0)

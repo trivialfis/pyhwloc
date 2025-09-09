@@ -23,17 +23,17 @@ import ctypes
 import logging
 import os
 from types import TracebackType
-from typing import Callable, Type, TypeAlias
+from typing import Callable, Iterator, Type, TypeAlias
 
 from .hwloc import core as _core
 from .hwloc import lib as _lib
+from .hwobject import Object, ObjType
 
 __all__ = [
     "Topology",
     "ExportXmlFlags",
     "ExportSyntheticFlags",
     "TypeFilter",
-    "ObjType",
 ]
 
 
@@ -52,10 +52,10 @@ def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
     return hdl
 
 
+ObjPtr = _core.ObjPtr
 ExportXmlFlags: TypeAlias = _core.hwloc_topology_export_xml_flags_e
 ExportSyntheticFlags: TypeAlias = _core.hwloc_topology_export_synthetic_flags_e
 TypeFilter: TypeAlias = _core.hwloc_type_filter_e
-ObjType: TypeAlias = _core.hwloc_obj_type_t
 
 
 class Topology:
@@ -386,31 +386,118 @@ class Topology:
             _core.topology_set_icache_types_filter, type_filter
         )
 
-    def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
-        """Get the number of objects of a specific type in the topology.
+    def get_obj_by_depth(self, depth: int, idx: int) -> Object | None:
+        """Get object at specific depth and index.
+
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+        idx
+            Index of object at that depth
+
+        Returns
+        -------
+        Object instance or None if not found
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+        ptr = _core.get_obj_by_depth(self._hdl, depth, idx)
+        return Object(ptr) if ptr else None
+
+    def get_obj_by_depth_raw(self, depth: int, idx: int) -> ObjPtr | None:
+        """Get raw object pointer at specific depth and index.
+
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+        idx
+            Index of object at that depth
+
+        Returns
+        -------
+        Raw object pointer or None if not found
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+        return _core.get_obj_by_depth(self._hdl, depth, idx)
+
+    def get_obj_by_type(self, obj_type: ObjType, idx: int) -> Object | None:
+        """Get object by type and index.
 
         Parameters
         ----------
         obj_type
-            The object type to count.
+            Type of object to find
+        idx
+            Index of object of that type
 
         Returns
         -------
-        Number of objects of the specified type
+        Object instance or None if not found
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+        ptr = _core.get_obj_by_type(self._hdl, obj_type, idx)
+        return Object(ptr) if ptr else None
 
-        Examples
-        --------
-        .. code-block::
+    def get_nbobjs_by_depth(self, depth: int) -> int:
+        """Get number of objects at specific depth.
 
-            with Topology() as topo:
-                n_cpus = topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
-                n_cores = topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE)
-                print(f"CPUs: {n_cpus}, Cores: {n_cores}")
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+
+        Returns
+        -------
+        Number of objects at that depth
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+        return _core.get_nbobjs_by_depth(self._hdl, depth)
+
+    def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
+        """Get number of objects of specific type.
+
+        Parameters
+        ----------
+        obj_type
+            Type of object to count
+
+        Returns
+        -------
+        Number of objects of that type
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+        return _core.get_nbobjs_by_type(self._hdl, obj_type)
+
+    def iter_objects_by_depth(self, depth: int) -> Iterator[Object]:
+        """Iterate over all objects at specific depth.
+
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+
+        Yields
+        ------
+        Object instances at that depth
+
         """
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
 
-        return _core.get_nbobjs_by_type(self._hdl, ObjType(obj_type))
+        prev = None
+        while True:
+            ptr = _core.get_next_obj_by_depth(self._hdl, depth, prev)
+            if ptr is None:
+                break
+            obj = Object(ptr)
+            yield obj
+            prev = ptr
 
     @property
     def n_cores(self) -> int:
@@ -421,6 +508,156 @@ class Topology:
         Number of core objects in the topology
         """
         return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE)
+
+    def iter_objects_by_depth_raw(self, depth: int) -> Iterator[ObjPtr]:
+        """Iterate over all raw object pointers at specific depth.
+
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+
+        Yields
+        ------
+        Raw object pointers at that depth
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        prev = None
+        while True:
+            obj = _core.get_next_obj_by_depth(self._hdl, depth, prev)
+            if obj is None:
+                break
+            yield obj
+            prev = obj
+
+    def iter_objects_by_type(self, obj_type: ObjType) -> Iterator[Object]:
+        """Iterate over all objects of specific type.
+
+        Parameters
+        ----------
+        obj_type
+            Type of object to iterate
+
+        Yields
+        ------
+        Object instances of that type
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        prev = None
+        while True:
+            ptr = _core.get_next_obj_by_type(self._hdl, obj_type, prev)
+            if ptr is None:
+                break
+            obj = Object(ptr)
+            yield obj
+            prev = ptr
+
+    def iter_objects_by_type_raw(self, obj_type: ObjType) -> Iterator[ObjPtr]:
+        """Iterate over all raw object pointers of specific type.
+
+        Parameters
+        ----------
+        obj_type
+            Type of object to iterate
+
+        Yields
+        ------
+        Raw object pointers of that type
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        prev = None
+        while True:
+            obj = _core.get_next_obj_by_type(self._hdl, obj_type, prev)
+            if obj is None:
+                break
+            yield obj
+            prev = obj
+
+    def iter_all_objects(self) -> Iterator[Object]:
+        """Iterate over all objects in the topology.
+
+        Yields
+        ------
+        All object instances in depth-first order
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        for depth in range(self.depth):
+            for obj in self.iter_objects_by_depth(depth):
+                yield obj
+
+    def iter_all_objects_raw(self) -> Iterator[ObjPtr]:
+        """Iterate over all raw object pointers in the topology.
+
+        Yields
+        ------
+        All raw object pointers in depth-first order
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        for depth in range(self.depth):
+            for obj in self.iter_objects_by_depth_raw(depth):
+                yield obj
+
+    def get_depth_type(self, depth: int) -> ObjType:
+        """Get the object type at specific depth.
+
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+
+        Returns
+        -------
+        Object type at that depth
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+        return _core.get_depth_type(self._hdl, depth)
+
+    def iter_cpus(self) -> Iterator[Object]:
+        """Iterate over all processing units (CPUs).
+
+        Yields
+        ------
+        All PU (processing unit) object instances
+        """
+        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_PU)
+
+    def iter_cores(self) -> Iterator[Object]:
+        """Iterate over all cores.
+
+        Yields
+        ------
+        All core object instances
+        """
+        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_CORE)
+
+    def iter_numa_nodes(self) -> Iterator[Object]:
+        """Iterate over all NUMA nodes.
+
+        Yields
+        ------
+        All NUMA node object instances
+        """
+        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_NUMANODE)
+
+    def iter_packages(self) -> Iterator[Object]:
+        """Iterate over all packages (sockets).
+
+        Yields
+        ------
+        All package object instances
+        """
+        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_PACKAGE)
 
     @property
     def n_cpus(self) -> int:
@@ -471,3 +708,20 @@ class Topology:
         Number of OS device objects in the topology
         """
         return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE)
+
+    def is_in_subtree(self, obj: Object, subtree_root: Object) -> bool:
+        """Check if this object is in the subtree of another object.
+
+        Parameters
+        ----------
+        obj :
+            The object to check.
+        subtree_root :
+            Root object of the subtree to check
+
+        Returns
+        -------
+        True if this object is in the subtree.
+        """
+
+        return _core.obj_is_in_subtree(self._hdl, obj.native_handle, subtree_root._hdl)
