@@ -94,7 +94,7 @@ class Topology:
         self._loaded = True
 
     @classmethod
-    def from_native_hdl(cls, hdl: _core.topology_t) -> Topology:
+    def from_native_handle(cls, hdl: _core.topology_t) -> Topology:
         topo = cls.__new__(cls)
         topo._hdl = hdl
         topo._loaded = True
@@ -125,7 +125,7 @@ class Topology:
                 _core.topology_destroy(hdl)
             raise e
 
-        return cls.from_native_hdl(hdl)
+        return cls.from_native_handle(hdl)
 
     @classmethod
     def from_synthetic(cls, description: str) -> Topology:
@@ -151,7 +151,7 @@ class Topology:
                 _core.topology_destroy(hdl)
             raise e
 
-        return cls.from_native_hdl(hdl)
+        return cls.from_native_handle(hdl)
 
     @classmethod
     def from_xml_file(cls, xml_path: str) -> Topology:
@@ -177,7 +177,7 @@ class Topology:
                 _core.topology_destroy(hdl)
             raise e
 
-        return cls.from_native_hdl(hdl)
+        return cls.from_native_handle(hdl)
 
     @classmethod
     def from_xml_buffer(cls, xml_buffer: str) -> Topology:
@@ -203,7 +203,7 @@ class Topology:
                 _core.topology_destroy(hdl)
             raise e
 
-        return cls.from_native_hdl(hdl)
+        return cls.from_native_handle(hdl)
 
     def check(self) -> None:
         _core.topology_check(self._hdl)
@@ -291,7 +291,7 @@ class Topology:
 
     def __copy__(self) -> Topology:
         new = _core.topology_dup(self._hdl)
-        return Topology.from_native_hdl(new)
+        return Topology.from_native_handle(new)
 
     def __deepcopy__(self, memo: dict) -> Topology:
         return self.__copy__()
