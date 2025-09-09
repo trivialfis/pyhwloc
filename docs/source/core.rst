@@ -23,5 +23,6 @@ Low Level Interface
 .. automodule:: pyhwloc.hwloc.sched
   :members:
 
-.. automodule:: pyhwloc.hwloc.windows
-  :members:
+..
+   .. automodule:: pyhwloc.hwloc.windows
+     :members:
