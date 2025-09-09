@@ -20,8 +20,7 @@ from pyhwloc.hwloc.lib import HwLocError
 from pyhwloc.topology import ExportXmlFlags, Topology
 
 
-def test_context_manager_current_system():
-    """Test context manager usage with current system topology."""
+def test_context_manager_current_system() -> None:
     with Topology() as topo:
         # Verify topology is loaded and accessible
         assert topo.is_loaded
@@ -35,8 +34,7 @@ def test_context_manager_current_system():
         _ = topo.depth
 
 
-def test_direct_usage_current_system():
-    """Test direct usage with manual cleanup for current system topology."""
+def test_direct_usage_current_system() -> None:
     topo = Topology()
     try:
         # Verify topology is loaded and accessible
@@ -74,8 +72,7 @@ def test_context_manager_synthetic() -> None:
             pass
 
 
-def test_direct_usage_synthetic():
-    """Test direct usage with manual cleanup for synthetic topology."""
+def test_direct_usage_synthetic() -> None:
     synthetic_desc = "node:2 core:2 pu:2"
 
     topo = Topology.from_synthetic(synthetic_desc)
@@ -94,21 +91,31 @@ def test_direct_usage_synthetic():
     assert not topo.is_loaded
 
 
-def test_double_destroy_safety():
-    """Test that calling destroy() multiple times is safe."""
+def test_destroy_safety() -> None:
+    # Test that calling destroy() multiple times is safe.
     topo = Topology()
-
     # First destroy should work
     topo.destroy()
     assert not topo.is_loaded
-
     # Second destroy should be safe (no exception)
     topo.destroy()
     assert not topo.is_loaded
 
+    topo_ref = None
+    try:
+        with Topology() as topo:
+            topo_ref = topo
+            assert topo.is_loaded
+            # Simulate an exception in the context
+            raise ValueError("Test exception")
+    except ValueError:
+        pass  # Expected exception
 
-def test_access_after_destroy_fails():
-    """Test that accessing properties after destroy raises RuntimeError."""
+    # Topology should still be cleaned up after exception
+    assert topo_ref is not None
+    assert not topo_ref.is_loaded
+
+    # Test access after destroy
     topo = Topology()
     topo.destroy()
 
@@ -120,23 +127,6 @@ def test_access_after_destroy_fails():
 
     # But these should still work
     assert not topo.is_loaded
-
-
-def test_context_manager_exception_cleanup():
-    """Test that topology is properly cleaned up even if exception occurs in context."""
-    topo_ref = None
-
-    try:
-        with Topology() as topo:
-            topo_ref = topo
-            assert topo.is_loaded
-            # Simulate an exception in the context
-            raise ValueError("Test exception")
-    except ValueError:
-        pass  # Expected exception
-
-    # Topology should still be cleaned up after exception
-    assert not topo_ref.is_loaded
 
 
 def test_copy_exprt() -> None:
@@ -151,12 +141,12 @@ def test_copy_exprt() -> None:
             == dcp.export_synthetic(0)
         )
         assert (
-            cp.export_xmlbuffer(0)
-            == topo.export_xmlbuffer(0)
-            == dcp.export_xmlbuffer(0)
+            cp.export_xml_buffer(0)
+            == topo.export_xml_buffer(0)
+            == dcp.export_xml_buffer(0)
         )
         assert (
-            len(cp.export_xmlbuffer(ExportXmlFlags.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2))
+            len(cp.export_xml_buffer(ExportXmlFlags.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2))
             > 2
         )
     finally:

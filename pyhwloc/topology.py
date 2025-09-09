@@ -66,33 +66,35 @@ class Topology:
             print(f"Topology depth: {topo.depth}")
         finally:
             topo.destroy()
+
+    The default `Topology` constructor initializes a topology object based on the
+    current system. For alternative topology sources, use the class methods:
+
+    - :meth:`from_pid`
+    - :meth:`from_synthetic`
+    - :meth:`from_xml_file`
+    - :meth:`from_xml_buffer`
+
     """
 
     def __init__(self) -> None:
         """Initialize a new topology for the current system.
 
-        For other topology sources, use the class methods:
-        - Topology.from_pid(pid)
-        - Topology.from_synthetic(description)
-        - Topology.from_xml_file(path)
-        - Topology.from_xml_buffer(xml_string)
+
         """
-        self._hdl = _core.topology_t()
-        self._loaded = False
+        hdl = _core.topology_t()
 
         try:
             # Initialize and load the current system topology
-            _core.topology_init(self._hdl)
-            _core.topology_load(self._hdl)
-            self._loaded = True
+            _core.topology_init(hdl)
+            _core.topology_load(hdl)
+        except (_lib.HwLocError, NotImplementedError) as e:
+            if hdl:
+                _core.topology_destroy(hdl)
+            raise e
 
-        except Exception:
-            # If initialization fails, clean up
-            try:
-                _core.topology_destroy(self._hdl)
-            except Exception:
-                pass
-            raise
+        self._hdl = hdl
+        self._loaded = True
 
     @classmethod
     def from_native_hdl(cls, hdl: _core.topology_t) -> Topology:
@@ -216,13 +218,11 @@ class Topology:
             raise RuntimeError("Topology has been destroyed")
         return self._hdl
 
-    @_lib._cfndoc
-    def export_xmlbuffer(self, flags: ExportXmlFlags | int) -> str:
+    def export_xml_buffer(self, flags: ExportXmlFlags | int) -> str:
         "See :py:func:`~pyhwloc.hwloc.core.topology_export_xmlbuffer`."
         return _core.topology_export_xmlbuffer(self._hdl, flags)
 
-    @_lib._cfndoc
-    def export_xmlfile(
+    def export_xml_file(
         self, path: os.PathLike | str, flags: ExportXmlFlags | int
     ) -> None:
         "See :py:func:`~pyhwloc.hwloc.core.topology_export_xml`."
