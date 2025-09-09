@@ -14,6 +14,7 @@
 #
 from __future__ import annotations
 
+import logging
 from types import TracebackType
 from typing import Type
 
@@ -67,7 +68,6 @@ class Topology:
         """
         self._hdl = _core.topology_t()
         self._loaded = False
-        self._destroyed = False
 
         try:
             # Initialize and load the current system topology
@@ -77,12 +77,10 @@ class Topology:
 
         except Exception:
             # If initialization fails, clean up
-            if not self._destroyed:
-                try:
-                    _core.topology_destroy(self._hdl)
-                except Exception:
-                    pass
-                self._destroyed = True
+            try:
+                _core.topology_destroy(self._hdl)
+            except Exception:
+                pass
             raise
 
     @classmethod
@@ -90,7 +88,6 @@ class Topology:
         topo = cls.__new__(cls)
         topo._hdl = hdl
         topo._loaded = True
-        topo._destroyed = False
         topo.check()
         return topo
 
@@ -107,7 +104,6 @@ class Topology:
         instance = cls.__new__(cls)
         instance._hdl = _core.topology_t()
         instance._loaded = False
-        instance._destroyed = False
 
         try:
             _core.topology_init(instance._hdl)
@@ -116,13 +112,10 @@ class Topology:
             instance._loaded = True
 
         except Exception:
-            if not instance._destroyed:
-                try:
-                    _core.topology_destroy(instance._hdl)
-                except Exception:
-                    pass
-                instance._destroyed = True
-            raise
+            try:
+                _core.topology_destroy(instance._hdl)
+            except Exception:
+                pass
 
         return instance
 
@@ -165,7 +158,6 @@ class Topology:
         instance = cls.__new__(cls)
         instance._hdl = _core.topology_t()
         instance._loaded = False
-        instance._destroyed = False
 
         try:
             _core.topology_init(instance._hdl)
@@ -174,13 +166,10 @@ class Topology:
             instance._loaded = True
 
         except Exception:
-            if not instance._destroyed:
-                try:
-                    _core.topology_destroy(instance._hdl)
-                except Exception:
-                    pass
-                instance._destroyed = True
-            raise
+            try:
+                _core.topology_destroy(instance._hdl)
+            except Exception:
+                pass
 
         return instance
 
@@ -197,7 +186,6 @@ class Topology:
         instance = cls.__new__(cls)
         instance._hdl = _core.topology_t()
         instance._loaded = False
-        instance._destroyed = False
 
         try:
             _core.topology_init(instance._hdl)
@@ -206,12 +194,10 @@ class Topology:
             instance._loaded = True
 
         except Exception:
-            if not instance._destroyed:
-                try:
-                    _core.topology_destroy(instance._hdl)
-                except Exception:
-                    pass
-                instance._destroyed = True
+            try:
+                _core.topology_destroy(instance._hdl)
+            except Exception:
+                pass
             raise
 
         return instance
@@ -222,14 +208,14 @@ class Topology:
     @property
     def native_handle(self) -> _core.topology_t:
         """Get the native hwloc topology handle."""
-        if self._destroyed:
+        if not hasattr(self, "_hdl"):
             raise RuntimeError("Topology has been destroyed")
         return self._hdl
 
     @property
     def is_loaded(self) -> bool:
         """Check if topology is loaded and ready for use."""
-        return self._loaded and not self._destroyed
+        return hasattr(self, "_hdl") and self._loaded
 
     @property
     def is_this_system(self) -> bool:
@@ -247,10 +233,10 @@ class Topology:
 
     def destroy(self) -> None:
         """Explicitly destroy the topology and free resources."""
-        if not self._destroyed:
+        if hasattr(self, "_hdl"):
             _core.topology_destroy(self._hdl)
-            self._destroyed = True
             self._loaded = False
+            del self._hdl
 
     def __enter__(self) -> Topology:
         """Context manager entry."""
@@ -269,8 +255,8 @@ class Topology:
 
     def __del__(self) -> None:
         """Automatic cleanup if not used as context manager."""
-        if hasattr(self, "_destroyed") and not self._destroyed:
+        if hasattr(self, "_hdl"):
             try:
                 self.destroy()
-            except Exception:
-                pass
+            except Exception as e:
+                logging.warn(str(e))
