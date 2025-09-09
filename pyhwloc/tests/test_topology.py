@@ -129,7 +129,7 @@ def test_destroy_safety() -> None:
     assert not topo.is_loaded
 
 
-def test_copy_exprt() -> None:
+def test_copy_export() -> None:
     desc = "node:2 core:2 pu:2"
     try:
         topo = Topology.from_synthetic(desc)
