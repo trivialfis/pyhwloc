@@ -112,3 +112,31 @@ def _cenumdoc(enum: Type) -> Type:
     doc = f"""See :c:enum:`{enum.__name__}`."""
     enum.__doc__ = doc
     return enum
+
+
+def _cstructdoc(parent: str | None = None) -> Callable[[Type], Type]:
+
+    def _decorator(struct: Type) -> Type:
+        assert issubclass(struct, ctypes.Structure), struct
+        if parent is not None:
+            doc = f"""See :c:struct:`{parent}.{struct.__name__}`"""
+        else:
+            doc = f"""See :c:struct:`{struct.__name__}`"""
+        struct.__doc__ = doc
+        return struct
+
+    return _decorator
+
+
+def _cuniondoc(parent: str | None = None) -> Callable[[Type], Type]:
+
+    def _decorator(union: Type) -> Type:
+        assert issubclass(union, ctypes.Union)
+        if parent is not None:
+            doc = f"""See :c:union:`{parent}.{union.__name__}`"""
+        else:
+            doc = f"""See :c:union:`{union.__name__}`"""
+        union.__doc__ = doc
+        return union
+
+    return _decorator
