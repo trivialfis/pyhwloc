@@ -28,7 +28,7 @@ from typing import Type, TypeAlias
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 
-__all__ = ["Topology"]
+__all__ = ["Topology", "ExportXmlFlags", "ExportSyntheticFlags"]
 
 
 def _from_xml_buffer(xml_buffer: str) -> _core.topology_t:
@@ -46,16 +46,14 @@ def _from_xml_buffer(xml_buffer: str) -> _core.topology_t:
 
 
 # fixme:
-# - don't set the handle if the initialization failes
 # - use filter
-# - remove manual destroy
 
 ExportXmlFlags: TypeAlias = _core.hwloc_topology_export_xml_flags_e
 ExportSyntheticFlags: TypeAlias = _core.hwloc_topology_export_synthetic_flags_e
 
 
 class Topology:
-    """High-level pythonic interface for hwloc topology.
+    """High-level interface for the hwloc topology.
 
     This class provides a context manager interface for working with hardware
     topology information. It automatically handles topology initialization,
@@ -69,18 +67,22 @@ class Topology:
 
         # Synthetic topology
         with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
-            print(f"Synthetic depth: {topo.depth}")
+            print(f"Topology depth: {topo.depth}")
 
         # Load from XML file
         with Topology.from_xml_file("/path/to/topology.xml") as topo:
-            print(f"XML depth: {topo.depth}")
+            print(f"Topology depth: {topo.depth}")
 
-        # Direct usage (manual cleanup is recommended)
+        # Direct usage,  cleanup is recommended but not required.
         try:
             topo = Topology()
             print(f"Topology depth: {topo.depth}")
         finally:
             topo.destroy()
+
+        # Uses automatic cleanup in the `__del__` method instead. This depends on the gc
+        # and doesn't propagate exceptions raised inside the destroy method.
+        topo = Topology()
 
     The default `Topology` constructor initializes a topology object based on the
     current system. For alternative topology sources, use the class methods:

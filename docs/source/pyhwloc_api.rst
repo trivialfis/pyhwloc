@@ -17,6 +17,8 @@ PyHwloc API
 
 .. class:: pyhwloc.topology.ExportXmlFlags
 .. autoclass:: pyhwloc.topology.ExportXmlFlags
+  :no-index:
 
 .. class:: pyhwloc.topology.ExportSyntheticFlags
 .. autoclass:: pyhwloc.topology.ExportSyntheticFlags
+  :no-index:
