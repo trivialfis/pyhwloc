@@ -72,23 +72,8 @@ class HwLocError(RuntimeError):
         )
 
 
-def hwloc_error(name: str) -> HwLocError:
-    """Alternative constructor for the :py:class:`HwLocError` for functions that don't
-    have int status as return.
-
-    """
-    err = ctypes.get_errno()
-    msg = f"`{name}` failed"
-    internal_msg = cstrerror(err)
-    if internal_msg is not None:
-        msg += ":\n"
-        msg + internal_msg
-    else:
-        msg += "."
-    return HwLocError(-1, err, msg)
-
-
 def _checkc(status: int) -> None:
+    """Raise errors for hwloc functions."""
     if status != 0:
         err = ctypes.get_errno()
         msg = cstrerror(err)
@@ -97,17 +82,61 @@ def _checkc(status: int) -> None:
         raise HwLocError(status, err, msg)
 
 
+def _hwloc_error(name: str) -> HwLocError:
+    """Alternative constructor for the :py:class:`HwLocError` for functions that don't
+    have status code as return value.
+
+    """
+    err = ctypes.get_errno()
+    msg = f"`{name}` failed"
+    c_msg = cstrerror(err)
+    if c_msg is not None:
+        msg += ":\n"
+        msg + c_msg
+    else:
+        msg += "."
+    return HwLocError(-1, err, msg)
+
+
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
 
 
 def _cfndoc(fn: Callable[_P, _R]) -> Callable[_P, _R]:
-    doc = f"See :cpp:func:`hwloc_{fn.__name__}`"
+    doc = f"See :c:func:`hwloc_{fn.__name__}`"
     fn.__doc__ = doc
     return fn
 
 
 def _cenumdoc(enum: Type) -> Type:
-    doc = f"""See :cpp:enum:`{enum.__name__}`."""
+    doc = f"""See :c:enum:`{enum.__name__}`."""
     enum.__doc__ = doc
     return enum
+
+
+def _cstructdoc(parent: str | None = None) -> Callable[[Type], Type]:
+
+    def _decorator(struct: Type) -> Type:
+        assert issubclass(struct, ctypes.Structure), struct
+        if parent is not None:
+            doc = f"""See :c:struct:`{parent}.{struct.__name__}`"""
+        else:
+            doc = f"""See :c:struct:`{struct.__name__}`"""
+        struct.__doc__ = doc
+        return struct
+
+    return _decorator
+
+
+def _cuniondoc(parent: str | None = None) -> Callable[[Type], Type]:
+
+    def _decorator(union: Type) -> Type:
+        assert issubclass(union, ctypes.Union)
+        if parent is not None:
+            doc = f"""See :c:union:`{parent}.{union.__name__}`"""
+        else:
+            doc = f"""See :c:union:`{union.__name__}`"""
+        union.__doc__ = doc
+        return union
+
+    return _decorator

@@ -20,7 +20,16 @@ from enum import IntEnum
 from typing import TYPE_CHECKING, Callable
 
 from .bitmap import bitmap_alloc, bitmap_t, const_bitmap_t
-from .lib import _LIB, _cenumdoc, _cfndoc, _checkc, _pyhwloc_lib, hwloc_error
+from .lib import (
+    _LIB,
+    _cenumdoc,
+    _cfndoc,
+    _checkc,
+    _cstructdoc,
+    _cuniondoc,
+    _hwloc_error,
+    _pyhwloc_lib,
+)
 
 hwloc_uint64_t = ctypes.c_uint64
 hwloc_pid_t = ctypes.c_int
@@ -132,6 +141,7 @@ def compare_types(type1: hwloc_obj_type_t, type2: hwloc_obj_type_t) -> int:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00141.php
 
 
+@_cstructdoc()
 class hwloc_info_s(ctypes.Structure):
     _fields_ = [
         ("name", ctypes.c_char_p),  # Info name
@@ -139,6 +149,7 @@ class hwloc_info_s(ctypes.Structure):
     ]
 
 
+@_cstructdoc()
 class hwloc_infos_s(ctypes.Structure):
     _fields_ = [
         ("array", ctypes.POINTER(hwloc_info_s)),
@@ -153,6 +164,7 @@ else:
     InfosPtr = ctypes._Pointer
 
 
+@_cstructdoc(parent="hwloc_obj_attr_u")
 class hwloc_memory_page_type_s(ctypes.Structure):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of pages
@@ -160,7 +172,10 @@ class hwloc_memory_page_type_s(ctypes.Structure):
     ]
 
 
+@_cstructdoc(parent="hwloc_obj_attr_u")
 class hwloc_numanode_attr_s(ctypes.Structure):
+    """See :c:struct:`hwloc_obj_attr_u.hwloc_numanode_attr_s`"""
+
     _fields_ = [
         ("local_memory", hwloc_uint64_t),  # Local memory (in bytes)
         ("page_types_len", ctypes.c_uint),  # Size of array page_types
@@ -171,6 +186,7 @@ class hwloc_numanode_attr_s(ctypes.Structure):
     ]
 
 
+@_cstructdoc("hwloc_obj_attr_u")
 class hwloc_cache_attr_s(ctypes.Structure):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of cache in bytes
@@ -184,6 +200,7 @@ class hwloc_cache_attr_s(ctypes.Structure):
     ]
 
 
+@_cstructdoc("hwloc_obj_attr_u")
 class hwloc_group_attr_s(ctypes.Structure):
     _fields_ = [
         ("depth", ctypes.c_uint),  # Depth of group object
@@ -199,6 +216,7 @@ class hwloc_group_attr_s(ctypes.Structure):
     ]
 
 
+@_cstructdoc("hwloc_obj_attr_u")
 class hwloc_pcidev_attr_s(ctypes.Structure):
     _fields_ = [
         (
@@ -225,6 +243,7 @@ class hwloc_pcidev_attr_s(ctypes.Structure):
     ]
 
 
+@_cuniondoc("hwloc_obj_attr_u.hwloc_bridge_attr_s")
 class hwloc_bridge_upstream_u(ctypes.Union):
     _fields_ = [
         (
@@ -234,6 +253,7 @@ class hwloc_bridge_upstream_u(ctypes.Union):
     ]
 
 
+@_cstructdoc("hwloc_obj_attr_u.hwloc_bridge_downstream_u")
 class hwloc_bridge_downstream_pci_s(ctypes.Structure):
     _fields_ = [
         ("domain", ctypes.c_uint),  # Domain number the downstream PCI buses
@@ -242,12 +262,14 @@ class hwloc_bridge_downstream_pci_s(ctypes.Structure):
     ]
 
 
+@_cuniondoc("hwloc_obj_attr_u")
 class hwloc_bridge_downstream_u(ctypes.Union):
     _fields_ = [
         ("pci", hwloc_bridge_downstream_pci_s),
     ]
 
 
+@_cstructdoc("hwloc_obj_attr_u")
 class hwloc_bridge_attr_s(ctypes.Structure):
     _fields_ = [
         ("upstream", hwloc_bridge_upstream_u),
@@ -264,6 +286,7 @@ class hwloc_bridge_attr_s(ctypes.Structure):
     ]
 
 
+@_cstructdoc("hwloc_obj_attr_u")
 class hwloc_osdev_attr_s(ctypes.Structure):
     _fields_ = [
         (
@@ -274,6 +297,7 @@ class hwloc_osdev_attr_s(ctypes.Structure):
 
 
 # Main attribute union
+@_cuniondoc()
 class hwloc_obj_attr_u(ctypes.Union):
     _fields_ = [
         ("numanode", hwloc_numanode_attr_s),  # NUMA node-specific Object Attributes
@@ -285,6 +309,7 @@ class hwloc_obj_attr_u(ctypes.Union):
     ]
 
 
+@_cstructdoc()
 class hwloc_obj(ctypes.Structure):
     pass
 
@@ -1074,7 +1099,7 @@ _LIB.hwloc_alloc.restype = ctypes.c_void_p
 def alloc(topology: topology_t, length: int) -> ctypes.c_void_p:
     result = _LIB.hwloc_alloc(topology, length)
     if not result:
-        raise hwloc_error("hwloc_alloc")
+        raise _hwloc_error("hwloc_alloc")
     return result
 
 
@@ -1098,7 +1123,7 @@ def alloc_membind(
 ) -> ctypes.c_void_p:
     result = _LIB.hwloc_alloc_membind(topology, length, set, policy, flags)
     if not result:
-        raise hwloc_error("hwloc_alloc_membind")
+        raise _hwloc_error("hwloc_alloc_membind")
     return result
 
 
@@ -1124,7 +1149,7 @@ def alloc_membind_policy(
         topology, length, set, policy, flags
     )
     if not result:
-        raise hwloc_error("hwloc_alloc_membind_policy")
+        raise _hwloc_error("hwloc_alloc_membind_policy")
     return result
 
 
@@ -1212,6 +1237,7 @@ def topology_set_components(topology: topology_t, flags: int, name: str) -> None
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00149.php
 
 
+@_cstructdoc()
 class hwloc_topology_discovery_support(ctypes.Structure):
     _fields_ = [
         ("pu", ctypes.c_ubyte),
@@ -1223,6 +1249,7 @@ class hwloc_topology_discovery_support(ctypes.Structure):
     ]
 
 
+@_cstructdoc()
 class hwloc_topology_cpubind_support(ctypes.Structure):
     _fields_ = [
         ("set_thisproc_cpubind", ctypes.c_ubyte),
@@ -1239,6 +1266,7 @@ class hwloc_topology_cpubind_support(ctypes.Structure):
     ]
 
 
+@_cstructdoc()
 class hwloc_topology_membind_support(ctypes.Structure):
     _fields_ = [
         ("set_thisproc_membind", ctypes.c_ubyte),
@@ -1260,12 +1288,14 @@ class hwloc_topology_membind_support(ctypes.Structure):
     ]
 
 
+@_cstructdoc()
 class hwloc_topology_misc_support(ctypes.Structure):
     _fields_ = [
         ("imported_support", ctypes.c_ubyte),
     ]
 
 
+@_cstructdoc()
 class hwloc_topology_support(ctypes.Structure):
     _fields_ = [
         ("discovery", ctypes.POINTER(hwloc_topology_discovery_support)),
@@ -1489,7 +1519,7 @@ _LIB.hwloc_topology_alloc_group_object.restype = obj_t
 def topology_alloc_group_object(topology: topology_t) -> ObjPtr:
     obj = _LIB.hwloc_topology_alloc_group_object(topology)
     if not obj:
-        raise hwloc_error("hwloc_topology_alloc_group_object")
+        raise _hwloc_error("hwloc_topology_alloc_group_object")
     return obj
 
 
@@ -2567,7 +2597,7 @@ def topology_export_synthetic(
     # majority of cases.
     n_written = _LIB.hwloc_topology_export_synthetic(topology, buf, buflen, flags)
     if n_written == -1:
-        raise hwloc_error("hwloc_topology_export_synthetic")
+        raise _hwloc_error("hwloc_topology_export_synthetic")
     return n_written
 
 
@@ -2596,6 +2626,7 @@ class hwloc_distances_transform_e(IntEnum):
     HWLOC_DISTANCES_TRANSFORM_TRANSITIVE_CLOSURE = 3
 
 
+@_cstructdoc()
 class hwloc_distances_s(ctypes.Structure):
     _fields_ = [
         ("nbobjs", ctypes.c_uint),
@@ -2839,7 +2870,7 @@ def distances_add_create(
     # flags must be 0 for now
     dist_obj = _LIB.hwloc_distances_add_create(topology, name_bytes, kind, 0)
     if not dist_obj:
-        raise hwloc_error("hwloc_distances_add_create")
+        raise _hwloc_error("hwloc_distances_add_create")
     return dist_obj
 
 
@@ -2960,6 +2991,7 @@ class hwloc_local_numanode_flag_e(IntEnum):
     HWLOC_LOCAL_NUMANODE_FLAG_INTERSECT_LOCALITY = 1 << 3
 
 
+@_cuniondoc("hwloc_location")
 class hwloc_location_u(ctypes.Union):
     _fields_ = [
         ("cpuset", hwloc_cpuset_t),
@@ -2967,6 +2999,7 @@ class hwloc_location_u(ctypes.Union):
     ]
 
 
+@_cstructdoc()
 class hwloc_location(ctypes.Structure):
     _fields_ = [
         ("type", ctypes.c_int),  # hwloc_location_type_e
@@ -3300,7 +3333,7 @@ _LIB.hwloc_cpukinds_get_by_cpuset.restype = ctypes.c_int
 @_cfndoc
 def cpukinds_get_by_cpuset(topology: topology_t, cpuset: const_bitmap_t) -> int:
     # flags must be 0 for now.
-    result = _LIB.hwloc_cpukinds_get_by_cpuset(topology, cpuset)
+    result = _LIB.hwloc_cpukinds_get_by_cpuset(topology, cpuset, 0)
     if result < 0:
         _checkc(result)
     return result
