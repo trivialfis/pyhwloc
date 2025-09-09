@@ -20,7 +20,7 @@ from enum import IntEnum
 from typing import TYPE_CHECKING, Callable
 
 from .bitmap import bitmap_alloc, bitmap_t, const_bitmap_t
-from .lib import _LIB, _cenumdoc, _cfndoc, _checkc, _pyhwloc_lib, hwloc_error
+from .lib import _LIB, _cenumdoc, _cfndoc, _checkc, _pyhwloc_lib, _hwloc_error
 
 hwloc_uint64_t = ctypes.c_uint64
 hwloc_pid_t = ctypes.c_int
@@ -1074,7 +1074,7 @@ _LIB.hwloc_alloc.restype = ctypes.c_void_p
 def alloc(topology: topology_t, length: int) -> ctypes.c_void_p:
     result = _LIB.hwloc_alloc(topology, length)
     if not result:
-        raise hwloc_error("hwloc_alloc")
+        raise _hwloc_error("hwloc_alloc")
     return result
 
 
@@ -1098,7 +1098,7 @@ def alloc_membind(
 ) -> ctypes.c_void_p:
     result = _LIB.hwloc_alloc_membind(topology, length, set, policy, flags)
     if not result:
-        raise hwloc_error("hwloc_alloc_membind")
+        raise _hwloc_error("hwloc_alloc_membind")
     return result
 
 
@@ -1124,7 +1124,7 @@ def alloc_membind_policy(
         topology, length, set, policy, flags
     )
     if not result:
-        raise hwloc_error("hwloc_alloc_membind_policy")
+        raise _hwloc_error("hwloc_alloc_membind_policy")
     return result
 
 
@@ -1489,7 +1489,7 @@ _LIB.hwloc_topology_alloc_group_object.restype = obj_t
 def topology_alloc_group_object(topology: topology_t) -> ObjPtr:
     obj = _LIB.hwloc_topology_alloc_group_object(topology)
     if not obj:
-        raise hwloc_error("hwloc_topology_alloc_group_object")
+        raise _hwloc_error("hwloc_topology_alloc_group_object")
     return obj
 
 
@@ -2567,7 +2567,7 @@ def topology_export_synthetic(
     # majority of cases.
     n_written = _LIB.hwloc_topology_export_synthetic(topology, buf, buflen, flags)
     if n_written == -1:
-        raise hwloc_error("hwloc_topology_export_synthetic")
+        raise _hwloc_error("hwloc_topology_export_synthetic")
     return n_written
 
 
@@ -2839,7 +2839,7 @@ def distances_add_create(
     # flags must be 0 for now
     dist_obj = _LIB.hwloc_distances_add_create(topology, name_bytes, kind, 0)
     if not dist_obj:
-        raise hwloc_error("hwloc_distances_add_create")
+        raise _hwloc_error("hwloc_distances_add_create")
     return dist_obj
 
 
@@ -3300,7 +3300,7 @@ _LIB.hwloc_cpukinds_get_by_cpuset.restype = ctypes.c_int
 @_cfndoc
 def cpukinds_get_by_cpuset(topology: topology_t, cpuset: const_bitmap_t) -> int:
     # flags must be 0 for now.
-    result = _LIB.hwloc_cpukinds_get_by_cpuset(topology, cpuset)
+    result = _LIB.hwloc_cpukinds_get_by_cpuset(topology, cpuset, 0)
     if result < 0:
         _checkc(result)
     return result

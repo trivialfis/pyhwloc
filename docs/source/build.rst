@@ -22,22 +22,25 @@ The default build includes tests. Afterward, we can build pyhwloc from source:
     cmake -GNinja -DCMAKE_PREFIX_PATH=C:\${SOME_PATH}\pyhwloc_dev -DCMAKE_INSTALL_PREFIX=C:\${SOME_PATH}\pyhwloc_dev  -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..\..\pyhwloc\
     ninja
 
-Most of the tests are failing at the moment.
+Most of the tests are failing on Windows at the moment.
 
 #####################
 Building the Document
 #####################
 
 We use the ``breathe`` project to generate sphinx doc for low-level API from the C doxygen
-document. This requires a patched hwloc with the following changes:
+document. This requires:
 
-- ``GENERATE_XML`` option in the ``doxygen.cfg`` set to `YES`.
-- The ``__hwloc_restrict=`` in the ``PREDEFINED`` should be set to empty instead of
-  ``restrict``. This is not a keyword in C++.
+- Set the ``HWLOC_DOXYGEN_GENERATE_XML=YES`` environment variable when running doxygen:
 
-In addition, one must run the `configure` script under the project root with the
-``--enable-doxygen`` option. The ``doxygen-config.cfg`` file is generated under the build
-root.
+.. code-block:: sh
+
+  cd hwloc/doc
+  HWLOC_DOXYGEN_GENERATE_XML=YES doxygen ./doxygen.cfg
+
+- One must run the hwloc `configure` script under the project root with the
+  ``--enable-doxygen`` option since the ``doxygen-config.cfg`` file is generated under the
+  build root.
 
 Another issue with doxygen files is how to obtain a clang-assisted doxygen build. The
 build-time dependencies (aside from the standard C++ toolchain) for doxygen on Ubuntu

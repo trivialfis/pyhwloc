@@ -39,7 +39,9 @@ html_static_path = ["_static"]
 
 # Breathe
 breathe_default_project = "pyhwloc"
-DOX_DIR = "/home/jiamingy/ws/pyhwloc_dev/"
+breathe_domain_by_extension = {
+    "h": "c",
+}
 CURR_PATH = os.path.dirname(os.path.abspath(os.path.expanduser(__file__)))  # source
 PROJECT_ROOT = os.path.normpath(os.path.join(CURR_PATH, os.path.pardir, os.path.pardir))
 breathe_projects = {
