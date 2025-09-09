@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 import copy
+import pickle
 
 import pytest
 
@@ -153,3 +154,45 @@ def test_copy_export() -> None:
         topo.destroy()
         cp.destroy()
         dcp.destroy()
+
+
+def run_pickling(original: Topology) -> None:
+    try:
+        # Pickle the topology
+        pickled_data = pickle.dumps(original)
+        restored = pickle.loads(pickled_data)
+        # Verify the restored topology has same properties
+        assert restored.is_loaded
+        assert restored.depth == original.depth
+
+        # Verify topologies have same structure by comparing exports
+        assert restored.export_synthetic(0) == original.export_synthetic(0)
+    finally:
+        restored.destroy()
+
+
+def test_pickle_current_system() -> None:
+    original = Topology()
+    try:
+        run_pickling(original)
+    finally:
+        original.destroy()
+
+
+def test_pickle_foreign() -> None:
+    desc = "node:2 core:2 pu:2"
+    original = Topology.from_synthetic(desc)
+    try:
+        run_pickling(original)
+    finally:
+        original.destroy()
+
+
+def test_pickle_unloaded_topology() -> None:
+    """Test that pickling an unloaded topology raises an error."""
+    topo = Topology()
+    topo.destroy()  # Make it unloaded
+
+    # Should raise RuntimeError when trying to pickle unloaded topology
+    with pytest.raises(RuntimeError, match="Cannot pickle unloaded topology"):
+        pickle.dumps(topo)

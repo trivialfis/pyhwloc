@@ -30,6 +30,21 @@ from .hwloc import lib as _lib
 
 __all__ = ["Topology"]
 
+
+def _from_xml_buffer(xml_buffer: str) -> _core.topology_t:
+    hdl = _core.topology_t(0)
+    try:
+        _core.topology_init(hdl)
+        _core.topology_set_xmlbuffer(hdl, xml_buffer)
+        _core.topology_load(hdl)
+    except (_lib.HwLocError, NotImplementedError) as e:
+        if hdl:
+            _core.topology_destroy(hdl)
+        raise e
+
+    return hdl
+
+
 # fixme:
 # - don't set the handle if the initialization failes
 # - use filter
@@ -193,16 +208,7 @@ class Topology:
         -------
         New Topology instance loaded from XML string.
         """
-        hdl = _core.topology_t(0)
-        try:
-            _core.topology_init(hdl)
-            _core.topology_set_xmlbuffer(hdl, xml_buffer)
-            _core.topology_load(hdl)
-        except (_lib.HwLocError, NotImplementedError) as e:
-            if hdl:
-                _core.topology_destroy(hdl)
-            raise e
-
+        hdl = _from_xml_buffer(xml_buffer)
         return cls.from_native_handle(hdl)
 
     def check(self) -> None:
@@ -295,3 +301,21 @@ class Topology:
 
     def __deepcopy__(self, memo: dict) -> Topology:
         return self.__copy__()
+
+    def __getstate__(self) -> dict:
+        """Serialize topology state for pickling using XML export."""
+        if not self.is_loaded:
+            raise RuntimeError("Cannot pickle unloaded topology")
+
+        # Export topology to XML for serialization
+        xml_buffer = self.export_xml_buffer(0)  # Use default flags
+        return {"xml_buffer": xml_buffer}
+
+    def __setstate__(self, state: dict) -> None:
+        """Restore topology state from pickle using XML import."""
+        xml_buffer = state["xml_buffer"]
+        assert not hasattr(self, "_hdl") and not hasattr(self, "_loaded")
+
+        hdl = _from_xml_buffer(xml_buffer)
+        self._hdl = hdl
+        self._loaded = True
