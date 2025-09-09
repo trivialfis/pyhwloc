@@ -78,10 +78,7 @@ class Topology:
     """
 
     def __init__(self) -> None:
-        """Initialize a new topology for the current system.
-
-
-        """
+        """Initialize a new topology for the current system."""
         hdl = _core.topology_t()
 
         try:
