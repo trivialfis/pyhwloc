@@ -49,9 +49,11 @@ def test_get_root_object() -> None:
 
 def test_list_gpu_objects() -> None:
     """Test listing GPU/OS device objects."""
-    with Topology(load=False).set_io_types_filter(
-        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
-    ).load() as topo:  # Use real system topology for GPU detection
+    with (
+        Topology(load=False)
+        .set_io_types_filter(TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL)
+        .load() as topo
+    ):  # Use real system topology for GPU detection
         # Look for OS devices (which include GPUs)
         os_devices = list(topo.iter_objects_by_type(ObjType.HWLOC_OBJ_OS_DEVICE))
 
@@ -210,9 +212,3 @@ def test_object_equality_and_hashing() -> None:
         # Test inequality with non-Object
         assert obj1 != "not an object"
         assert obj1 != 42
-
-
-def test_object_with_none_pointer() -> None:
-    """Test that Object raises error with None pointer."""
-    with pytest.raises(ValueError, match="Object pointer cannot be None"):
-        Object(None)

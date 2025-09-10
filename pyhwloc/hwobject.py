@@ -35,12 +35,14 @@ ObjType = _core.hwloc_obj_type_t
 
 
 class Object:
-    """High-level interface for the hwloc object.
+    """High-level interface for the hwloc object. Only the topology can return
+    objects. User should not use the constructor.
 
     Parameters
     ----------
-    hdl
+    hdl :
         Raw pointer to hwloc object
+
     """
 
     def __init__(self, hdl: _core.ObjPtr) -> None:
@@ -55,162 +57,173 @@ class Object:
 
     @property
     def type(self) -> ObjType:
-        """Get the object type."""
+        """Type of object."""
         return ObjType(self._hdl.contents.type)
 
     @property
     def subtype(self) -> str | None:
-        """Get the object subtype string."""
+        """Subtype string to better describe the type field."""
         if self._hdl.contents.subtype:
             return self._hdl.contents.subtype.decode("utf-8")
         return None
 
     @property
     def os_index(self) -> int:
-        """Get the OS index of this object."""
+        """OS-provided physical index number."""
         return self._hdl.contents.os_index
 
     @property
     def name(self) -> str | None:
-        """Get the object name."""
+        """Object-specific name if any."""
         if self._hdl.contents.name:
             return self._hdl.contents.name.decode("utf-8")
         return None
 
     @property
     def total_memory(self) -> int:
-        """Get the total memory in bytes for this object."""
+        """Total memory (in bytes) in NUMA nodes below this object."""
         return self._hdl.contents.total_memory
+
+    # union hwloc_obj_attr_u *attr;
 
     @property
     def depth(self) -> int:
-        """Get the depth of this object in the topology tree."""
+        """Vertical index in the hierarchy."""
         return self._hdl.contents.depth
 
     @property
     def logical_index(self) -> int:
-        """Get the logical index of this object."""
+        """Horizontal index in the whole list of similar objects."""
         return self._hdl.contents.logical_index
 
     @property
-    def sibling_rank(self) -> int:
-        """Get the rank of this object among its siblings."""
-        return self._hdl.contents.sibling_rank
-
-    @property
-    def arity(self) -> int:
-        """Get the number of children of this object."""
-        return self._hdl.contents.arity
-
-    @property
-    def memory_arity(self) -> int:
-        """Get the number of memory children of this object."""
-        return self._hdl.contents.memory_arity
-
-    @property
-    def io_arity(self) -> int:
-        """Get the number of I/O children of this object."""
-        return self._hdl.contents.io_arity
-
-    @property
-    def misc_arity(self) -> int:
-        """Get the number of misc children of this object."""
-        return self._hdl.contents.misc_arity
-
-    @property
-    def symmetric_subtree(self) -> bool:
-        """Check if the subtree rooted at this object is symmetric."""
-        return bool(self._hdl.contents.symmetric_subtree)
-
-    @property
-    def cpuset(self) -> bitmap_t | None:
-        """Get the CPU set for this object."""
-        return self._hdl.contents.cpuset
-
-    @property
-    def complete_cpuset(self) -> bitmap_t | None:
-        """Get the complete CPU set for this object."""
-        return self._hdl.contents.complete_cpuset
-
-    @property
-    def nodeset(self) -> bitmap_t | None:
-        """Get the NUMA node set for this object."""
-        return self._hdl.contents.nodeset
-
-    @property
-    def complete_nodeset(self) -> bitmap_t | None:
-        """Get the complete NUMA node set for this object."""
-        return self._hdl.contents.complete_nodeset
-
-    @property
-    def parent(self) -> Object | None:
-        """Get the parent object."""
-        if self._hdl.contents.parent:
-            return Object(self._hdl.contents.parent)
-        return None
-
-    @property
-    def next_sibling(self) -> Object | None:
-        """Get the next sibling object."""
-        if self._hdl.contents.next_sibling:
-            return Object(self._hdl.contents.next_sibling)
-        return None
-
-    @property
-    def prev_sibling(self) -> Object | None:
-        """Get the previous sibling object."""
-        if self._hdl.contents.prev_sibling:
-            return Object(self._hdl.contents.prev_sibling)
-        return None
-
-    @property
     def next_cousin(self) -> Object | None:
-        """Get the next cousin object."""
+        """Next object of same type and depth."""
         if self._hdl.contents.next_cousin:
             return Object(self._hdl.contents.next_cousin)
         return None
 
     @property
     def prev_cousin(self) -> Object | None:
-        """Get the previous cousin object."""
+        """Previous object of same type and depth."""
         if self._hdl.contents.prev_cousin:
             return Object(self._hdl.contents.prev_cousin)
         return None
 
     @property
+    def parent(self) -> Object | None:
+        """Parent object, None if root (Machine object)."""
+        if self._hdl.contents.parent:
+            return Object(self._hdl.contents.parent)
+        return None
+
+    @property
+    def sibling_rank(self) -> int:
+        """Index in parent's children array."""
+        return self._hdl.contents.sibling_rank
+
+    @property
+    def next_sibling(self) -> Object | None:
+        """Next object below the same parent."""
+        if self._hdl.contents.next_sibling:
+            return Object(self._hdl.contents.next_sibling)
+        return None
+
+    @property
+    def prev_sibling(self) -> Object | None:
+        """Previous object below the same parent."""
+        if self._hdl.contents.prev_sibling:
+            return Object(self._hdl.contents.prev_sibling)
+        return None
+
+    @property
+    def arity(self) -> int:
+        """Number of normal children."""
+        return self._hdl.contents.arity
+
+    #   struct hwloc_obj **children;
+
+    @property
     def first_child(self) -> Object | None:
-        """Get the first child object."""
+        """First normal child."""
         if self._hdl.contents.first_child:
             return Object(self._hdl.contents.first_child)
         return None
 
     @property
     def last_child(self) -> Object | None:
-        """Get the last child object."""
+        """Last normal child."""
         if self._hdl.contents.last_child:
             return Object(self._hdl.contents.last_child)
         return None
 
     @property
+    def symmetric_subtree(self) -> bool:
+        """Set if the subtree of normal objects below this object is symmetric."""
+        return bool(self._hdl.contents.symmetric_subtree)
+
+    @property
+    def memory_arity(self) -> int:
+        """Number of Memory children."""
+        return self._hdl.contents.memory_arity
+
+    @property
     def memory_first_child(self) -> Object | None:
-        """Get the first memory child object."""
+        """First Memory child."""
         if self._hdl.contents.memory_first_child:
             return Object(self._hdl.contents.memory_first_child)
         return None
 
     @property
+    def io_arity(self) -> int:
+        """Number of I/O children."""
+        return self._hdl.contents.io_arity
+
+    @property
     def io_first_child(self) -> Object | None:
-        """Get the first I/O child object."""
+        """First I/O child."""
         if self._hdl.contents.io_first_child:
             return Object(self._hdl.contents.io_first_child)
         return None
 
     @property
+    def misc_arity(self) -> int:
+        """Number of Misc children."""
+        return self._hdl.contents.misc_arity
+
+    @property
     def misc_first_child(self) -> Object | None:
-        """Get the first misc child object."""
+        """First Misc child."""
         if self._hdl.contents.misc_first_child:
             return Object(self._hdl.contents.misc_first_child)
         return None
+
+    @property
+    def cpuset(self) -> bitmap_t | None:
+        """CPUs covered by this object."""
+        return self._hdl.contents.cpuset
+
+    @property
+    def complete_cpuset(self) -> bitmap_t | None:
+        """The complete CPU set of processors of this object."""
+        return self._hdl.contents.complete_cpuset
+
+    @property
+    def nodeset(self) -> bitmap_t | None:
+        """NUMA nodes covered by this object or containing this object."""
+        return self._hdl.contents.nodeset
+
+    @property
+    def complete_nodeset(self) -> bitmap_t | None:
+        """The complete NUMA node set of this object."""
+        return self._hdl.contents.complete_nodeset
+
+    # struct hwloc_infos_s infos
+    # void *userdata
+
+    def gp_index(self) -> int:
+        "Global persistent index."
+        return int(self._hdl.contents.gp_index)
 
     def iter_children(self) -> Iterator[Object]:
         """Iterate over all children of this object."""
@@ -243,12 +256,14 @@ class Object:
     def iter_siblings(self) -> Iterator[Object]:
         """Iterate over all siblings of this object (including self)."""
         # Go to first sibling
-        current = self
-        while current.prev_sibling:
+        current: Object | None = self
+        assert current is not None
+
+        while current.prev_sibling is not None:
             current = current.prev_sibling
 
         # Iterate through all siblings
-        while current:
+        while current is not None:
             yield current
             current = current.next_sibling
 
@@ -266,21 +281,8 @@ class Object:
         """
         return _core.obj_get_info_by_name(self._hdl, name)
 
-    def add_info(self, name: str, value: str) -> None:
-        """Add info to this object.
-
-        Parameters
-        ----------
-        name
-            Name of the info
-        value
-            Value of the info
-        """
-        _core.obj_add_info(self._hdl, name, value)
-
     def __str__(self) -> str:
-        """String representation of the object."""
-        type_name = self.type.name.replace("HWLOC_OBJ_", "")
+        type_name = self.type.name
         parts = [f"{type_name}#{self.logical_index}"]
 
         if self.name:
@@ -291,14 +293,19 @@ class Object:
         return " ".join(parts)
 
     def __repr__(self) -> str:
-        """Detailed representation of the object."""
-        return f"Object(type={self.type.name}, logical_index={self.logical_index}, depth={self.depth})"
+        return (
+            f"Object(type={self.type.name}, "
+            f"logical_index={self.logical_index}, "
+            f"depth={self.depth})"
+        )
 
     def __eq__(self, other: object) -> bool:
         """Check equality based on pointer address."""
         if not isinstance(other, Object):
             return False
-        return ctypes.addressof(self._hdl.contents) == ctypes.addressof(other._hdl.contents)
+        return ctypes.addressof(self._hdl.contents) == ctypes.addressof(
+            other._hdl.contents
+        )
 
     def __hash__(self) -> int:
         """Hash based on pointer address."""
