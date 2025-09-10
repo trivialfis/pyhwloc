@@ -179,7 +179,7 @@ class Object:
             case _:
                 return None
 
-    def attr_str(
+    def format_attr(
         self,
         flags: int = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
     ) -> str | None:
