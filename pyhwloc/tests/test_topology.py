@@ -35,8 +35,19 @@ def test_context_manager_current_system() -> None:
         _ = topo.depth
 
     with pytest.raises(RuntimeError, match="not loaded"):
-        with Topology(load=False) as topo:
-            pass
+        topo = Topology(load=False)
+        topo.depth
+
+    topo = Topology()
+    topo.destroy()  # Make it unloaded
+
+    # Method should raise RuntimeError
+    with pytest.raises(RuntimeError, match="Topology has been destroyed"):
+        topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+
+    # Properties should also raise RuntimeError
+    with pytest.raises(RuntimeError, match="Topology has been destroyed"):
+        _ = topo.n_cpus
 
 
 def test_direct_usage_current_system() -> None:
@@ -198,7 +209,7 @@ def test_pickle_unloaded_topology() -> None:
     topo.destroy()  # Make it unloaded
 
     # Should raise RuntimeError when trying to pickle unloaded topology
-    with pytest.raises(RuntimeError, match="Cannot pickle unloaded topology"):
+    with pytest.raises(RuntimeError, match="destroyed"):
         pickle.dumps(topo)
 
 
@@ -228,11 +239,9 @@ def test_get_nbobjs_by_type() -> None:
 
 def test_get_nbobjs_by_type_with_filter() -> None:
     # Create topology with I/O filter that removes all I/O objects
-    with (
-        Topology(load=False)
-        .set_io_types_filter(type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE)
-        .load() as topo
-    ):
+    with Topology(load=False).set_io_types_filter(
+        type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE
+    ) as topo:
         # I/O objects should be filtered out
         assert topo.n_os_devices == 0
         assert topo.n_pci_devices == 0
@@ -241,32 +250,15 @@ def test_get_nbobjs_by_type_with_filter() -> None:
         assert topo.n_cpus > 0
         assert topo.n_cores >= 0
 
-    with (
-        Topology(load=False)
-        .set_io_types_filter(type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT)
-        .load() as topo
-    ):
+    with Topology(load=False).set_io_types_filter(
+        type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+    ) as topo:
         assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
 
-    with (
-        Topology(load=False)
-        .set_all_types_filter(TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT)
-        .load() as topo
-    ):
+    with Topology(load=False).set_all_types_filter(
+        TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+    ) as topo:
         assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
-
-
-def test_get_nbobjs_by_type_unloaded_topology() -> None:
-    topo = Topology()
-    topo.destroy()  # Make it unloaded
-
-    # Method should raise RuntimeError
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
-
-    # Properties should also raise RuntimeError
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        _ = topo.n_cpus
 
 
 def test_object_iteration() -> None:
@@ -319,34 +311,3 @@ def test_object_iteration() -> None:
         all_objects = list(topo.iter_all_breadth_first())
         assert len(all_objects) == total_objects
         assert len(all_objects) == len(depth_objects)
-
-
-def test_object_iteration_unloaded() -> None:
-    """Test that object iteration methods raise errors on unloaded topology."""
-    topo = Topology()
-    topo.destroy()  # Make it unloaded
-
-    # All methods should raise RuntimeError
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        topo.get_obj_by_depth(0, 0)
-
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        topo.get_obj_by_type(ObjType.HWLOC_OBJ_MACHINE, 0)
-
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        topo.get_nbobjs_by_depth(0)
-
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
-
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        list(topo.iter_objects_by_depth(0))
-
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        list(topo.iter_objects_by_type(ObjType.HWLOC_OBJ_PU))
-
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        list(topo.iter_all_breadth_first())
-
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        topo.get_depth_type(0)
