@@ -557,29 +557,6 @@ class Topology:
             yield obj
             prev = ptr
 
-    def iter_objects_by_type_raw(self, obj_type: ObjType) -> Iterator[ObjPtr]:
-        """Iterate over all raw object pointers of specific type.
-
-        Parameters
-        ----------
-        obj_type
-            Type of object to iterate
-
-        Yields
-        ------
-        Raw object pointers of that type
-        """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
-
-        prev = None
-        while True:
-            obj = _core.get_next_obj_by_type(self._hdl, obj_type, prev)
-            if obj is None:
-                break
-            yield obj
-            prev = obj
-
     def iter_all_objects(self) -> Iterator[Object]:
         """Iterate over all objects in the topology.
 
