@@ -65,4 +65,20 @@ Running Tests
 
 .. code-block:: sh
 
-    pytest ./pyhwloc/tests/ --cov=pyhwloc --cov-report=html
+  pytest ./pyhwloc/tests/ --cov=pyhwloc --cov-report=html
+
+
+Create a Binary Wheel
+=====================
+
+First build the c ext via CMake, then run
+
+.. code-block:: sh
+
+  pip wheel . --no-build-isolation
+
+Use editable build:
+
+.. code-block:: sh
+
+  pip install -e . --no-build-isolation

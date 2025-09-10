@@ -32,25 +32,23 @@ _file_path = normpath(__file__)
 if platform.system() == "Linux":
     prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
     _LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
+    _libname = os.path.join("_lib", "libpyhwloc.so")
     _lib_path = normpath(
         os.path.join(
             os.path.dirname(_file_path),
             os.path.pardir,
-            os.path.pardir,
-            "_lib",
-            "libpyhwloc.so",
+            _libname,
         )
     )
 else:
     prefix = os.path.expanduser("C:/Users/jiamingy/ws/pyhwloc_dev/bin/")
     _LIB = ctypes.CDLL(os.path.join(prefix, "hwloc.dll"), use_errno=True)
+    _libname = os.path.join("_lib", "libpyhwloc.so")
     _lib_path = normpath(
         os.path.join(
             os.path.dirname(_file_path),
             os.path.pardir,
-            os.path.pardir,
-            "_lib",
-            "pyhwloc.dll",
+            _libname,
         )
     )
 

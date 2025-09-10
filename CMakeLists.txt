@@ -35,4 +35,4 @@ function(set_output_directory target dir)
     ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir})
 endfunction()
 
-set_output_directory(pyhwloc ${pyhwloc_SOURCE_DIR}/_lib/)
+set_output_directory(pyhwloc ${pyhwloc_SOURCE_DIR}/pyhwloc/_lib/)

@@ -1,4 +1,5 @@
 __pycache__
-_lib
+pyhwloc/_lib
 .gdb_history
 .coverage
+*.whl

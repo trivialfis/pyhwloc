@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools >= 69.0.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.13"]
+build-backend = "hatchling.build"
 
 [project]
 name = "pyhwloc"
@@ -12,12 +12,14 @@ authors = [
 maintainers = [
     { name = "Jiaming Yuan", email = "jm.yuan@outlook.com" }
 ]
+description = "Python interface of the hwloc library."
+license = { text = "Apache-2.0" }
 
-[tool.setuptools.dynamic]
-version = { attr = "pyhwloc.__version__" }
+[tool.hatch.version]
+path = "pyhwloc/hwloc/__init__.py"
 
-[tool.setuptools]
-packages = ["pyhwloc"]
+[tool.hatch.build.targets.wheel.force-include]
+"pyhwloc/_lib" = "pyhwloc/_lib"
 
 [tool.mypy]
 ignore_missing_imports = true
