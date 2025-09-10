@@ -32,7 +32,9 @@ __all__ = ["Object", "ObjType"]
 
 
 ObjType = _core.hwloc_obj_type_t
+ObjOsdevType = _core.hwloc_obj_osdev_type_e
 ObjSnprintfFlag = _core.hwloc_obj_snprintf_flag_e
+GetTypeDepth = _core.hwloc_get_type_depth_e
 
 
 class Object:
@@ -85,6 +87,55 @@ class Object:
         """Total memory (in bytes) in NUMA nodes below this object."""
         return self._hdl.contents.total_memory
 
+    # - Begin accessors for attr
+    @property
+    def is_numa_node(self) -> bool:
+        return self.type == ObjType.HWLOC_OBJ_NUMANODE
+
+    @property
+    def is_cache(self) -> bool:
+        return self.type in (
+            ObjType.HWLOC_OBJ_L1CACHE,
+            ObjType.HWLOC_OBJ_L2CACHE,
+            ObjType.HWLOC_OBJ_L3CACHE,
+            ObjType.HWLOC_OBJ_L4CACHE,
+            ObjType.HWLOC_OBJ_L5CACHE,
+            ObjType.HWLOC_OBJ_L1ICACHE,
+            ObjType.HWLOC_OBJ_L2ICACHE,
+            ObjType.HWLOC_OBJ_L3ICACHE,
+            ObjType.HWLOC_OBJ_MEMCACHE,
+        )
+
+    @property
+    def is_group(self) -> bool:
+        return self.type == ObjType.HWLOC_OBJ_GROUP
+
+    @property
+    def is_pci_device(self) -> bool:
+        return self.type == ObjType.HWLOC_OBJ_PCI_DEVICE
+
+    @property
+    def is_bridge(self) -> bool:
+        return self.type == ObjType.HWLOC_OBJ_BRIDGE
+
+    @property
+    def is_os_device(self) -> bool:
+        return self.type == ObjType.HWLOC_OBJ_OS_DEVICE
+
+    def is_osdev_type(self, typ: int) -> bool:
+        if not self.is_os_device:
+            return False
+
+        attr = self.attr
+        if attr is None:
+            return False
+        osdev_types = attr.types
+        return bool(osdev_types & typ)
+
+    @property
+    def is_osdev_gpu(self) -> bool:
+        return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_GPU)
+
     @property
     def attr(self) -> ctypes.Structure | None:
         typ = self.type
@@ -130,6 +181,7 @@ class Object:
         if not buf.value:
             return None
         return buf.value.decode("utf-8")
+    # - End accessors for attr
 
     @property
     def depth(self) -> int:
@@ -327,7 +379,7 @@ class Object:
         return _core.obj_get_info_by_name(self._hdl, name)
 
     def __str__(self) -> str:
-        type_name = self.type.name
+        type_name = self.type.name.replace("HWLOC_OBJ_", "")
         parts = [f"{type_name}#{self.logical_index}"]
 
         if self.name:
