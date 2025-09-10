@@ -316,7 +316,7 @@ def test_object_iteration() -> None:
         assert len(numa_objects) == topo.n_numa_nodes
 
         # Test iteration of all objects
-        all_objects = list(topo.iter_all_objects())
+        all_objects = list(topo.iter_all_breadth_first())
         assert len(all_objects) == total_objects
         assert len(all_objects) == len(depth_objects)
 
@@ -346,7 +346,7 @@ def test_object_iteration_unloaded() -> None:
         list(topo.iter_objects_by_type(ObjType.HWLOC_OBJ_PU))
 
     with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        list(topo.iter_all_objects())
+        list(topo.iter_all_breadth_first())
 
     with pytest.raises(RuntimeError, match="Topology is not loaded"):
         topo.get_depth_type(0)

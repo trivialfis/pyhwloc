@@ -3496,3 +3496,14 @@ def shmem_topology_adopt(
             topologyp, fd, fileoffset, mmap_address, length, flags
         )
     )
+
+
+###########
+# Utilities
+###########
+
+
+def is_same_obj(a: ObjPtr, b: ObjPtr) -> bool:
+    return (
+        ctypes.cast(a, ctypes.c_void_p).value == ctypes.cast(b, ctypes.c_void_p).value
+    )

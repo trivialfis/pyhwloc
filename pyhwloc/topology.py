@@ -99,14 +99,20 @@ class Topology:
         # and doesn't propagate exceptions raised inside the destroy method.
         topo = Topology()
 
-    To use a filter, users need to call the :meth:`load` explicitly:
+    To use a filter, users need to call the :meth:`load` explicitly when not using the
+    context manager:
 
     .. code-block::
 
         with Topology(load=False).set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
-        ).load() as topo:
+        ) as topo:
+            # auto load when using a context manager
             pass
+
+        topo = Topology(load=False).set_all_types_filter(
+            TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+        ).load() # Load the topology
 
     """
 
@@ -308,8 +314,6 @@ class Topology:
     @property
     def depth(self) -> int:
         """Get the depth of the topology tree."""
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
         return _core.topology_get_depth(self.native_handle)
 
     def destroy(self) -> None:
@@ -321,7 +325,7 @@ class Topology:
 
     def __enter__(self) -> Topology:
         if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
+            self.load()
         return self
 
     def __exit__(
@@ -347,9 +351,6 @@ class Topology:
 
     def __getstate__(self) -> dict:
         """Serialize topology state for pickling using XML export."""
-        if not self.is_loaded:
-            raise RuntimeError("Cannot pickle unloaded topology")
-
         # Export topology to XML for serialization
         xml_buffer = self.export_xml_buffer(0)  # Use default flags
         return {"xml_buffer": xml_buffer}
@@ -367,7 +368,7 @@ class Topology:
         self, fn: Callable, type_filter: TypeFilter
     ) -> "Topology":
         # If we don't raise here, hwloc returns EBUSY: Device or resource busy, which is
-        # not really helpfu.
+        # not really helpful.
         if self.is_loaded:
             raise RuntimeError("Cannot set filter after topology is loaded")
         # Unchecked access to handle as we haven't loaded the topo yet.
@@ -408,8 +409,6 @@ class Topology:
         -------
         Object instance or None if not found
         """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
         ptr = _core.get_obj_by_depth(self.native_handle, depth, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
@@ -427,8 +426,6 @@ class Topology:
         -------
         Object instance or None if not found
         """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
         ptr = _core.get_obj_by_type(self.native_handle, obj_type, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
@@ -444,8 +441,6 @@ class Topology:
         -------
         Number of objects at that depth
         """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
         return _core.get_nbobjs_by_depth(self.native_handle, depth)
 
     def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
@@ -460,8 +455,6 @@ class Topology:
         -------
         Number of objects of that type
         """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
         return _core.get_nbobjs_by_type(self.native_handle, obj_type)
 
     def iter_objects_by_depth(self, depth: int) -> Iterator[Object]:
@@ -477,9 +470,6 @@ class Topology:
         Object instances at that depth
 
         """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
-
         prev = None
         while True:
             ptr = _core.get_next_obj_by_depth(self.native_handle, depth, prev)
@@ -520,19 +510,18 @@ class Topology:
             yield obj
             prev = ptr
 
-    def iter_all_objects(self) -> Iterator[Object]:
+    def iter_all_breadth_first(self) -> Iterator[Object]:
         """Iterate over all objects in the topology.
 
         Yields
         ------
-        All object instances in depth-first order
+        All object instances in breadth first order.
         """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
-
         for depth in range(self.depth):
             for obj in self.iter_objects_by_depth(depth):
                 yield obj
+
+    # We can implement pre/in/post-order traversal if needed.
 
     def get_depth_type(self, depth: int) -> ObjType:
         """Get the object type at specific depth.
@@ -546,8 +535,6 @@ class Topology:
         -------
         Object type at that depth
         """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
         return _core.get_depth_type(self.native_handle, depth)
 
     def iter_cpus(self) -> Iterator[Object]:
