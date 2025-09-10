@@ -23,10 +23,14 @@ Python interface of the hwloc_obj type.
 from __future__ import annotations
 
 import ctypes
-from typing import Iterator
+import weakref
+from typing import TYPE_CHECKING, Iterator
 
 from .hwloc import core as _core
 from .hwloc.bitmap import bitmap_t
+
+if TYPE_CHECKING:
+    from .topology import Topology
 
 __all__ = ["Object", "ObjType"]
 
@@ -48,44 +52,48 @@ class Object:
 
     """
 
-    def __init__(self, hdl: _core.ObjPtr) -> None:
-        if hdl is None:
-            raise ValueError("Object pointer cannot be None")
+    def __init__(
+        self, hdl: _core.ObjPtr, topology: weakref.ReferenceType["Topology"]
+    ) -> None:
+        assert hdl
         self._hdl = hdl
+        self._topo_ref = topology
 
     @property
     def native_handle(self) -> _core.ObjPtr:
         """Get the raw object pointer."""
+        if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
+            raise RuntimeError("Topology is invalid")
         return self._hdl
 
     @property
     def type(self) -> ObjType:
         """Type of object."""
-        return ObjType(self._hdl.contents.type)
+        return ObjType(self.native_handle.contents.type)
 
     @property
     def subtype(self) -> str | None:
         """Subtype string to better describe the type field."""
-        if self._hdl.contents.subtype:
-            return self._hdl.contents.subtype.decode("utf-8")
+        if self.native_handle.contents.subtype:
+            return self.native_handle.contents.subtype.decode("utf-8")
         return None
 
     @property
     def os_index(self) -> int:
         """OS-provided physical index number."""
-        return self._hdl.contents.os_index
+        return self.native_handle.contents.os_index
 
     @property
     def name(self) -> str | None:
         """Object-specific name if any."""
-        if self._hdl.contents.name:
-            return self._hdl.contents.name.decode("utf-8")
+        if self.native_handle.contents.name:
+            return self.native_handle.contents.name.decode("utf-8")
         return None
 
     @property
     def total_memory(self) -> int:
         """Total memory (in bytes) in NUMA nodes below this object."""
-        return self._hdl.contents.total_memory
+        return self.native_handle.contents.total_memory
 
     # - Begin accessors for attr
     @property
@@ -139,7 +147,7 @@ class Object:
     @property
     def attr(self) -> ctypes.Structure | None:
         typ = self.type
-        attr = self._hdl.contents.attr
+        attr = self.native_handle.contents.attr
         if not attr:
             return None
         # FIXME: Am I getting this right? I looked into the `hwloc_obj_attr_snprintf`
@@ -181,146 +189,149 @@ class Object:
         if not buf.value:
             return None
         return buf.value.decode("utf-8")
+
     # - End accessors for attr
 
     @property
     def depth(self) -> int:
         """Vertical index in the hierarchy."""
-        return self._hdl.contents.depth
+        return self.native_handle.contents.depth
 
     @property
     def logical_index(self) -> int:
         """Horizontal index in the whole list of similar objects."""
-        return self._hdl.contents.logical_index
+        return self.native_handle.contents.logical_index
 
     @property
     def next_cousin(self) -> Object | None:
         """Next object of same type and depth."""
-        if self._hdl.contents.next_cousin:
-            return Object(self._hdl.contents.next_cousin)
+        if self.native_handle.contents.next_cousin:
+            return Object(self.native_handle.contents.next_cousin, self._topo_ref)
         return None
 
     @property
     def prev_cousin(self) -> Object | None:
         """Previous object of same type and depth."""
-        if self._hdl.contents.prev_cousin:
-            return Object(self._hdl.contents.prev_cousin)
+        if self.native_handle.contents.prev_cousin:
+            return Object(self.native_handle.contents.prev_cousin, self._topo_ref)
         return None
 
     @property
     def parent(self) -> Object | None:
         """Parent object, None if root (Machine object)."""
-        if self._hdl.contents.parent:
-            return Object(self._hdl.contents.parent)
+        if self.native_handle.contents.parent:
+            return Object(self.native_handle.contents.parent, self._topo_ref)
         return None
 
     @property
     def sibling_rank(self) -> int:
         """Index in parent's children array."""
-        return self._hdl.contents.sibling_rank
+        return self.native_handle.contents.sibling_rank
 
     @property
     def next_sibling(self) -> Object | None:
         """Next object below the same parent."""
-        if self._hdl.contents.next_sibling:
-            return Object(self._hdl.contents.next_sibling)
+        if self.native_handle.contents.next_sibling:
+            return Object(self.native_handle.contents.next_sibling, self._topo_ref)
         return None
 
     @property
     def prev_sibling(self) -> Object | None:
         """Previous object below the same parent."""
-        if self._hdl.contents.prev_sibling:
-            return Object(self._hdl.contents.prev_sibling)
+        if self.native_handle.contents.prev_sibling:
+            return Object(self.native_handle.contents.prev_sibling, self._topo_ref)
         return None
 
     @property
     def arity(self) -> int:
         """Number of normal children."""
-        return self._hdl.contents.arity
+        return self.native_handle.contents.arity
 
     #   struct hwloc_obj **children;
 
     @property
     def first_child(self) -> Object | None:
         """First normal child."""
-        if self._hdl.contents.first_child:
-            return Object(self._hdl.contents.first_child)
+        if self.native_handle.contents.first_child:
+            return Object(self.native_handle.contents.first_child, self._topo_ref)
         return None
 
     @property
     def last_child(self) -> Object | None:
         """Last normal child."""
-        if self._hdl.contents.last_child:
-            return Object(self._hdl.contents.last_child)
+        if self.native_handle.contents.last_child:
+            return Object(self.native_handle.contents.last_child, self._topo_ref)
         return None
 
     @property
     def symmetric_subtree(self) -> bool:
         """Set if the subtree of normal objects below this object is symmetric."""
-        return bool(self._hdl.contents.symmetric_subtree)
+        return bool(self.native_handle.contents.symmetric_subtree)
 
     @property
     def memory_arity(self) -> int:
         """Number of Memory children."""
-        return self._hdl.contents.memory_arity
+        return self.native_handle.contents.memory_arity
 
     @property
     def memory_first_child(self) -> Object | None:
         """First Memory child."""
-        if self._hdl.contents.memory_first_child:
-            return Object(self._hdl.contents.memory_first_child)
+        if self.native_handle.contents.memory_first_child:
+            return Object(
+                self.native_handle.contents.memory_first_child, self._topo_ref
+            )
         return None
 
     @property
     def io_arity(self) -> int:
         """Number of I/O children."""
-        return self._hdl.contents.io_arity
+        return self.native_handle.contents.io_arity
 
     @property
     def io_first_child(self) -> Object | None:
         """First I/O child."""
-        if self._hdl.contents.io_first_child:
-            return Object(self._hdl.contents.io_first_child)
+        if self.native_handle.contents.io_first_child:
+            return Object(self.native_handle.contents.io_first_child, self._topo_ref)
         return None
 
     @property
     def misc_arity(self) -> int:
         """Number of Misc children."""
-        return self._hdl.contents.misc_arity
+        return self.native_handle.contents.misc_arity
 
     @property
     def misc_first_child(self) -> Object | None:
         """First Misc child."""
-        if self._hdl.contents.misc_first_child:
-            return Object(self._hdl.contents.misc_first_child)
+        if self.native_handle.contents.misc_first_child:
+            return Object(self.native_handle.contents.misc_first_child, self._topo_ref)
         return None
 
     @property
     def cpuset(self) -> bitmap_t | None:
         """CPUs covered by this object."""
-        return self._hdl.contents.cpuset
+        return self.native_handle.contents.cpuset
 
     @property
     def complete_cpuset(self) -> bitmap_t | None:
         """The complete CPU set of processors of this object."""
-        return self._hdl.contents.complete_cpuset
+        return self.native_handle.contents.complete_cpuset
 
     @property
     def nodeset(self) -> bitmap_t | None:
         """NUMA nodes covered by this object or containing this object."""
-        return self._hdl.contents.nodeset
+        return self.native_handle.contents.nodeset
 
     @property
     def complete_nodeset(self) -> bitmap_t | None:
         """The complete NUMA node set of this object."""
-        return self._hdl.contents.complete_nodeset
+        return self.native_handle.contents.complete_nodeset
 
     # struct hwloc_infos_s infos
     # void *userdata
 
     def gp_index(self) -> int:
         "Global persistent index."
-        return int(self._hdl.contents.gp_index)
+        return int(self.native_handle.contents.gp_index)
 
     def iter_children(self) -> Iterator[Object]:
         """Iterate over all children of this object."""
@@ -376,7 +387,7 @@ class Object:
         -------
         Info value or None if not found
         """
-        return _core.obj_get_info_by_name(self._hdl, name)
+        return _core.obj_get_info_by_name(self.native_handle, name)
 
     def __str__(self) -> str:
         type_name = self.type.name.replace("HWLOC_OBJ_", "")
@@ -400,10 +411,10 @@ class Object:
         """Check equality based on pointer address."""
         if not isinstance(other, Object):
             return False
-        return ctypes.addressof(self._hdl.contents) == ctypes.addressof(
+        return ctypes.addressof(self.native_handle.contents) == ctypes.addressof(
             other._hdl.contents
         )
 
     def __hash__(self) -> int:
         """Hash based on pointer address."""
-        return hash(ctypes.addressof(self._hdl.contents))
+        return hash(ctypes.addressof(self.native_handle.contents))

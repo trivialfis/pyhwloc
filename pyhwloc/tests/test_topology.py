@@ -276,9 +276,9 @@ def test_object_iteration() -> None:
     with Topology.from_synthetic(desc) as topo:
         # Test basic properties
         assert topo.depth > 0
-        assert topo.num_cpus == 8  # 2 nodes * 2 cores * 2 PUs
-        assert topo.num_cores == 4  # 2 nodes * 2 cores
-        assert topo.num_numa_nodes == 2  # 2 nodes
+        assert topo.n_cpus == 8  # 2 nodes * 2 cores * 2 PUs
+        assert topo.n_cores == 4  # 2 nodes * 2 cores
+        assert topo.n_numa_nodes == 2  # 2 nodes
 
         # Test object counts by depth
         total_objects = 0
@@ -311,9 +311,9 @@ def test_object_iteration() -> None:
         core_objects = list(topo.iter_cores())
         numa_objects = list(topo.iter_numa_nodes())
 
-        assert len(cpu_objects) == topo.num_cpus
-        assert len(core_objects) == topo.num_cores
-        assert len(numa_objects) == topo.num_numa_nodes
+        assert len(cpu_objects) == topo.n_cpus
+        assert len(core_objects) == topo.n_cores
+        assert len(numa_objects) == topo.n_numa_nodes
 
         # Test iteration of all objects
         all_objects = list(topo.iter_all_objects())

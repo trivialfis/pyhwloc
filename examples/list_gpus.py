@@ -9,8 +9,7 @@ from pyhwloc.topology import Topology, TypeFilter
 with (
     Topology(load=False)
     # GPU is categorized as IO device.
-    .set_io_types_filter(TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL)
-    .load() as topo
+    .set_io_types_filter(TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL).load() as topo
 ):
     # Look for OS devices (which include GPUs)
     os_devices = list(topo.iter_objects_by_type(ObjType.HWLOC_OBJ_OS_DEVICE))

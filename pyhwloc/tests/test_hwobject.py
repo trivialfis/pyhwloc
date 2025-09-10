@@ -15,7 +15,7 @@
 
 import pytest
 
-from pyhwloc.hwobject import Object, ObjType, GetTypeDepth
+from pyhwloc.hwobject import GetTypeDepth, Object, ObjType
 from pyhwloc.topology import Topology, TypeFilter
 
 
@@ -24,26 +24,33 @@ def test_get_root_object() -> None:
     with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
         # Get root object (should be at depth 0, index 0)
         root = topo.get_obj_by_depth(0, 0)
-
         # Root object should exist
         assert root is not None
         assert isinstance(root, Object)
-
         # Root should be at depth 0
         assert root.depth == 0
-
         # Root should have logical index 0
         assert root.logical_index == 0
-
         # Root should be a machine type
         assert root.type == ObjType.HWLOC_OBJ_MACHINE
-
-        # Root should have no parent
         assert root.parent is None
-
         # Root should have children (the NUMA nodes)
         assert root.arity > 0
         assert root.first_child is not None
+
+
+def test_invalid_topo() -> None:
+    with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
+        root = topo.get_obj_by_depth(0, 0)
+        assert root is not None
+        assert root.type is not None
+
+    # After context exits, accessing the object should raise an error
+    with pytest.raises(RuntimeError, match="Topology is invalid"):
+        _ = root.native_handle
+
+    with pytest.raises(RuntimeError, match="Topology is invalid"):
+        _ = root.type
 
 
 def test_list_gpu_objects() -> None:

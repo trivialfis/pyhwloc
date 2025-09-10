@@ -22,6 +22,7 @@ from __future__ import annotations
 import ctypes
 import logging
 import os
+import weakref
 from types import TracebackType
 from typing import Callable, Iterator, Type, TypeAlias
 
@@ -403,7 +404,7 @@ class Topology:
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
         ptr = _core.get_obj_by_depth(self._hdl, depth, idx)
-        return Object(ptr) if ptr else None
+        return Object(ptr, weakref.ref(self)) if ptr else None
 
     def get_obj_by_depth_raw(self, depth: int, idx: int) -> ObjPtr | None:
         """Get raw object pointer at specific depth and index.
@@ -440,7 +441,7 @@ class Topology:
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
         ptr = _core.get_obj_by_type(self._hdl, obj_type, idx)
-        return Object(ptr) if ptr else None
+        return Object(ptr, weakref.ref(self)) if ptr else None
 
     def get_nbobjs_by_depth(self, depth: int) -> int:
         """Get number of objects at specific depth.
@@ -495,7 +496,7 @@ class Topology:
             ptr = _core.get_next_obj_by_depth(self._hdl, depth, prev)
             if ptr is None:
                 break
-            obj = Object(ptr)
+            obj = Object(ptr, weakref.ref(self))
             yield obj
             prev = ptr
 
@@ -552,7 +553,7 @@ class Topology:
             ptr = _core.get_next_obj_by_type(self._hdl, obj_type, prev)
             if ptr is None:
                 break
-            obj = Object(ptr)
+            obj = Object(ptr, weakref.ref(self))
             yield obj
             prev = ptr
 
