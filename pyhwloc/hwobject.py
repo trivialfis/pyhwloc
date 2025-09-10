@@ -411,9 +411,7 @@ class Object:
         """Check equality based on pointer address."""
         if not isinstance(other, Object):
             return False
-        return ctypes.addressof(self.native_handle.contents) == ctypes.addressof(
-            other._hdl.contents
-        )
+        return _core.is_same_obj(self.native_handle, other.native_handle)
 
     def __hash__(self) -> int:
         """Hash based on pointer address."""

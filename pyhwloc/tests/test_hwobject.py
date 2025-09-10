@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 
+import pickle
+
 import pytest
 
 from pyhwloc.hwobject import GetTypeDepth, Object, ObjType
@@ -217,3 +219,6 @@ def test_object_equality_and_hashing() -> None:
         # Test inequality with non-Object
         assert obj1 != "not an object"
         assert obj1 != 42
+
+        with pytest.raises(ValueError, match="cannot be pickled"):
+            pickle.dumps(obj1)
