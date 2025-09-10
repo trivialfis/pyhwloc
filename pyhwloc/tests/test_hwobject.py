@@ -26,9 +26,8 @@ def test_get_root_object() -> None:
     with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
         # Get root object (should be at depth 0, index 0)
         root = topo.get_obj_by_depth(0, 0)
-        # Root object should exist
+        assert root == topo.get_root_obj()
         assert root is not None
-        assert isinstance(root, Object)
         # Root should be at depth 0
         assert root.depth == 0
         # Root should have logical index 0

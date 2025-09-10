@@ -412,6 +412,10 @@ class Topology:
         ptr = _core.get_obj_by_depth(self.native_handle, depth, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
+    def get_root_obj(self) -> Object:
+        """Get the root object."""
+        return Object(_core.get_root_obj(self.native_handle), weakref.ref(self))
+
     def get_obj_by_type(self, obj_type: ObjType, idx: int) -> Object | None:
         """Get object by type and index.
 
