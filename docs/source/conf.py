@@ -20,6 +20,7 @@ author = "Jiaming Yuan"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
+    "sphinx_gallery.gen_gallery",
     "breathe",
 ]
 
@@ -52,4 +53,14 @@ breathe_projects = {
 }
 print("beathe projects", breathe_projects)
 
+# -- Build environment
+
 os.environ["PYHWLOC_SPHINX"] = "1"
+
+# -- Gallery
+sphinx_gallery_conf = {
+    # path to your example scripts
+    "examples_dirs": ["../../examples/"],
+    # path to where to save gallery generated output
+    "gallery_dirs": ["examples"],
+}
