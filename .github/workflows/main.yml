@@ -56,14 +56,14 @@ jobs:
     - name: Build doxygen XML
       shell: bash -el {0}
       run: |
-        cd ./doc                # pyhwloc/hwloc/doc
+        echo $(pwd)
+        cd ./hwloc/doc          # pyhwloc/hwloc/doc
         HWLOC_DOXYGEN_GENERATE_XML=YES doxygen ./doxygen.cfg
-        cd ..                   # pyhwloc/hwloc
-        cd ..                   # pyhwloc
 
     - name: Install pyhwloc
       shell: bash -el {0}
       run: |
+        echo $(pwd)
         mkdir build             # pyhwloc/build
         cd build
         cmake ..
@@ -74,5 +74,6 @@ jobs:
     - name: Build document
       shell: bash -el {0}
       run: |
+        echo $(pwd)
         cd docs
         PYHWLOC_XML_PATH=$(pwd)/hwloc/doc/doxygen-doc/xml make html
