@@ -406,24 +406,6 @@ class Topology:
         ptr = _core.get_obj_by_depth(self._hdl, depth, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
-    def get_obj_by_depth_raw(self, depth: int, idx: int) -> ObjPtr | None:
-        """Get raw object pointer at specific depth and index.
-
-        Parameters
-        ----------
-        depth
-            Depth level in topology tree
-        idx
-            Index of object at that depth
-
-        Returns
-        -------
-        Raw object pointer or None if not found
-        """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
-        return _core.get_obj_by_depth(self._hdl, depth, idx)
-
     def get_obj_by_type(self, obj_type: ObjType, idx: int) -> Object | None:
         """Get object by type and index.
 
@@ -510,29 +492,6 @@ class Topology:
         """
         return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE)
 
-    def iter_objects_by_depth_raw(self, depth: int) -> Iterator[ObjPtr]:
-        """Iterate over all raw object pointers at specific depth.
-
-        Parameters
-        ----------
-        depth
-            Depth level in topology tree
-
-        Yields
-        ------
-        Raw object pointers at that depth
-        """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
-
-        prev = None
-        while True:
-            obj = _core.get_next_obj_by_depth(self._hdl, depth, prev)
-            if obj is None:
-                break
-            yield obj
-            prev = obj
-
     def iter_objects_by_type(self, obj_type: ObjType) -> Iterator[Object]:
         """Iterate over all objects of specific type.
 
@@ -569,20 +528,6 @@ class Topology:
 
         for depth in range(self.depth):
             for obj in self.iter_objects_by_depth(depth):
-                yield obj
-
-    def iter_all_objects_raw(self) -> Iterator[ObjPtr]:
-        """Iterate over all raw object pointers in the topology.
-
-        Yields
-        ------
-        All raw object pointers in depth-first order
-        """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
-
-        for depth in range(self.depth):
-            for obj in self.iter_objects_by_depth_raw(depth):
                 yield obj
 
     def get_depth_type(self, depth: int) -> ObjType:
