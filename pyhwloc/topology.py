@@ -260,28 +260,34 @@ class Topology:
         """Get the native hwloc topology handle."""
         if not hasattr(self, "_hdl"):
             raise RuntimeError("Topology has been destroyed")
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
         return self._hdl
 
     def export_xml_buffer(self, flags: ExportXmlFlags | int) -> str:
         "See :py:func:`~pyhwloc.hwloc.core.topology_export_xmlbuffer`."
-        return _core.topology_export_xmlbuffer(self._hdl, flags)
+        return _core.topology_export_xmlbuffer(self.native_handle, flags)
 
     def export_xml_file(
         self, path: os.PathLike | str, flags: ExportXmlFlags | int
     ) -> None:
         "See :py:func:`~pyhwloc.hwloc.core.topology_export_xml`."
         path = os.fspath(os.path.expanduser(path))
-        _core.topology_export_xml(self._hdl, path, flags)
+        _core.topology_export_xml(self.native_handle, path, flags)
 
     def export_synthetic(self, flags: ExportSyntheticFlags | int) -> str:
         "See :py:func:`~pyhwloc.hwloc.core.topology_export_synthetic`."
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
-        n_written = _core.topology_export_synthetic(self._hdl, buf, n_bytes, flags)
+        n_written = _core.topology_export_synthetic(
+            self.native_handle, buf, n_bytes, flags
+        )
         while n_written == n_bytes - 1:
             n_bytes = n_bytes * 2
             buf = ctypes.create_string_buffer(n_bytes)
-            n_written = _core.topology_export_synthetic(self._hdl, buf, n_bytes, flags)
+            n_written = _core.topology_export_synthetic(
+                self.native_handle, buf, n_bytes, flags
+            )
             if n_bytes >= 8192:
                 raise RuntimeError("Failed to export synthetic.")
         assert buf.value is not None
@@ -297,21 +303,21 @@ class Topology:
         """Check if topology represents the current system."""
         if not self.is_loaded:
             return False
-        return _core.topology_is_thissystem(self._hdl)
+        return _core.topology_is_thissystem(self.native_handle)
 
     @property
     def depth(self) -> int:
         """Get the depth of the topology tree."""
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
-        return _core.topology_get_depth(self._hdl)
+        return _core.topology_get_depth(self.native_handle)
 
     def destroy(self) -> None:
         """Explicitly destroy the topology and free resources."""
         if hasattr(self, "_hdl"):
-            _core.topology_destroy(self._hdl)
+            _core.topology_destroy(self.native_handle)
             self._loaded = False
-            del self._hdl
+            del self.native_handle
 
     def __enter__(self) -> Topology:
         if not self.is_loaded:
@@ -333,7 +339,7 @@ class Topology:
             logging.warning(str(e))
 
     def __copy__(self) -> Topology:
-        new = _core.topology_dup(self._hdl)
+        new = _core.topology_dup(self.native_handle)
         return Topology.from_native_handle(new, loaded=True)
 
     def __deepcopy__(self, memo: dict) -> Topology:
@@ -364,7 +370,7 @@ class Topology:
         # not really helpfu.
         if self.is_loaded:
             raise RuntimeError("Cannot set filter after topology is loaded")
-        fn(self._hdl, type_filter)
+        fn(self.native_handle, type_filter)
         return self
 
     def set_io_types_filter(self, type_filter: TypeFilter) -> "Topology":
@@ -403,7 +409,7 @@ class Topology:
         """
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
-        ptr = _core.get_obj_by_depth(self._hdl, depth, idx)
+        ptr = _core.get_obj_by_depth(self.native_handle, depth, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
     def get_obj_by_type(self, obj_type: ObjType, idx: int) -> Object | None:
@@ -422,7 +428,7 @@ class Topology:
         """
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
-        ptr = _core.get_obj_by_type(self._hdl, obj_type, idx)
+        ptr = _core.get_obj_by_type(self.native_handle, obj_type, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
     def get_nbobjs_by_depth(self, depth: int) -> int:
@@ -439,7 +445,7 @@ class Topology:
         """
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
-        return _core.get_nbobjs_by_depth(self._hdl, depth)
+        return _core.get_nbobjs_by_depth(self.native_handle, depth)
 
     def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
         """Get number of objects of specific type.
@@ -455,7 +461,7 @@ class Topology:
         """
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
-        return _core.get_nbobjs_by_type(self._hdl, obj_type)
+        return _core.get_nbobjs_by_type(self.native_handle, obj_type)
 
     def iter_objects_by_depth(self, depth: int) -> Iterator[Object]:
         """Iterate over all objects at specific depth.
@@ -475,7 +481,7 @@ class Topology:
 
         prev = None
         while True:
-            ptr = _core.get_next_obj_by_depth(self._hdl, depth, prev)
+            ptr = _core.get_next_obj_by_depth(self.native_handle, depth, prev)
             if ptr is None:
                 break
             obj = Object(ptr, weakref.ref(self))
@@ -504,12 +510,9 @@ class Topology:
         ------
         Object instances of that type
         """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
-
         prev = None
         while True:
-            ptr = _core.get_next_obj_by_type(self._hdl, obj_type, prev)
+            ptr = _core.get_next_obj_by_type(self.native_handle, obj_type, prev)
             if ptr is None:
                 break
             obj = Object(ptr, weakref.ref(self))
@@ -544,7 +547,7 @@ class Topology:
         """
         if not self.is_loaded:
             raise RuntimeError("Topology is not loaded")
-        return _core.get_depth_type(self._hdl, depth)
+        return _core.get_depth_type(self.native_handle, depth)
 
     def iter_cpus(self) -> Iterator[Object]:
         """Iterate over all processing units (CPUs).
@@ -647,4 +650,6 @@ class Topology:
         True if this object is in the subtree.
         """
 
-        return _core.obj_is_in_subtree(self._hdl, obj.native_handle, subtree_root._hdl)
+        return _core.obj_is_in_subtree(
+            self.native_handle, obj.native_handle, subtree_root._hdl
+        )
