@@ -17,4 +17,4 @@ if __name__ == "__main__":
             # Check if it's a GPU device
             if obj.is_osdev_gpu:
                 assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE
-                print(obj)
+                print(obj, ":", obj.format_attr())
