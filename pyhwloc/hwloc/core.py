@@ -103,20 +103,28 @@ class hwloc_obj_type_t(IntEnum):
 
 
 @_cenumdoc
-class hwloc_obj_cache_type_t(IntEnum):
+class hwloc_obj_cache_type_e(IntEnum):
     HWLOC_OBJ_CACHE_UNIFIED = 0
     HWLOC_OBJ_CACHE_DATA = 1
     HWLOC_OBJ_CACHE_INSTRUCTION = 2
 
 
+# typedef in hwloc.h
+hwloc_obj_cache_type_t = hwloc_obj_cache_type_e
+
+
 @_cenumdoc
-class hwloc_obj_bridge_type_t(IntEnum):
+class hwloc_obj_bridge_type_e(IntEnum):
     HWLOC_OBJ_BRIDGE_HOST = 0
     HWLOC_OBJ_BRIDGE_PCI = 1
 
 
+# typedef in hwloc.h
+hwloc_obj_bridge_type_t = hwloc_obj_bridge_type_e
+
+
 @_cenumdoc
-class hwloc_obj_osdev_type_t(IntEnum):
+class hwloc_obj_osdev_type_e(IntEnum):
     HWLOC_OBJ_OSDEV_STORAGE = 1 << 0
     HWLOC_OBJ_OSDEV_MEMORY = 1 << 1
     HWLOC_OBJ_OSDEV_GPU = 1 << 2
@@ -290,12 +298,16 @@ class hwloc_bridge_attr_s(ctypes.Structure):
     ]
 
 
+# OR'ed set of ::hwloc_obj_osdev_type_e.
+hwloc_obj_osdev_types_t = ctypes.c_ulong
+
+
 @_cstructdoc("hwloc_obj_attr_u")
 class hwloc_osdev_attr_s(ctypes.Structure):
     _fields_ = [
         (
             "types",
-            ctypes.c_int,
+            hwloc_obj_osdev_types_t,
         ),  # hwloc_obj_osdev_types_t - OR'ed set of at least one hwloc_obj_osdev_type_e
     ]
 
