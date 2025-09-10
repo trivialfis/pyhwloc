@@ -19,6 +19,7 @@ dependencies:
 - pytest-cov
 # document
 - doxygen
+- breathe
 - sphinx
 - myst-parser
 - sphinx-gallery
