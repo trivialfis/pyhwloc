@@ -15,9 +15,9 @@
 
 import pytest
 
-from pyhwloc.hwloc.core import hwloc_obj_osdev_type_t
+from pyhwloc.hwloc.core import hwloc_get_type_depth_e, hwloc_obj_osdev_type_e
 from pyhwloc.hwobject import Object, ObjType
-from pyhwloc.topology import Topology
+from pyhwloc.topology import Topology, TypeFilter
 
 
 def test_get_root_object() -> None:
@@ -49,7 +49,9 @@ def test_get_root_object() -> None:
 
 def test_list_gpu_objects() -> None:
     """Test listing GPU/OS device objects."""
-    with Topology() as topo:  # Use real system topology for GPU detection
+    with Topology(load=False).set_io_types_filter(
+        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
+    ).load() as topo:  # Use real system topology for GPU detection
         # Look for OS devices (which include GPUs)
         os_devices = list(topo.iter_objects_by_type(ObjType.HWLOC_OBJ_OS_DEVICE))
 
@@ -59,11 +61,9 @@ def test_list_gpu_objects() -> None:
             # Check if it's a GPU device by examining the attributes
             ptr = obj.native_handle
             if ptr and ptr.contents.attr and ptr.contents.attr.contents.osdev:
-                print("has attr")
                 osdev_types = ptr.contents.attr.contents.osdev.types
                 # Check if this OS device has GPU type flag
-                print(osdev_types)
-                if osdev_types & hwloc_obj_osdev_type_t.HWLOC_OBJ_OSDEV_GPU:
+                if osdev_types & hwloc_obj_osdev_type_e.HWLOC_OBJ_OSDEV_GPU:
                     gpu_objects.append(obj)
             # Also check subtype as a fallback
             elif obj.subtype and "gpu" in obj.subtype.lower():
@@ -80,7 +80,7 @@ def test_list_gpu_objects() -> None:
             assert gpu.parent is not None
 
             # GPU objects should be at a specific depth
-            assert gpu.depth >= 0
+            assert gpu.depth == hwloc_get_type_depth_e.HWLOC_TYPE_DEPTH_OS_DEVICE
 
             # GPU objects should have a valid logical index
             assert gpu.logical_index >= 0
