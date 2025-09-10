@@ -2,8 +2,8 @@
 High-level API Example
 ======================
 
-This example demonstrates the high-level Object interface that provides
-a more Pythonic way to work with hwloc objects compared to raw pointers.
+This example demonstrates the high-level Object interface that provides a more Pythonic
+way to work with hwloc objects compared to the low level one.
 
 """
 
@@ -14,16 +14,15 @@ def main() -> int:
     # Create and load topology using context manager for automatic cleanup
     with pyhwloc.Topology() as topology:
         print(f"Topology depth: {topology.depth}")
-        print(f"Is this system: {topology.is_this_system}")
-        print()
 
         # Print basic system information
-        print("=== System Overview ===")
-        print(f"CPUs: {topology.n_cpus}")
-        print(f"Cores: {topology.n_cores}")
-        print(f"NUMA nodes: {topology.n_numa_nodes}")
-        print(f"Packages: {topology.n_packages}")
-        print()
+        print(f"""
+=== System Overview ===
+CPUs: {topology.n_cpus}
+Cores: {topology.n_cores}
+NUMA nodes: {topology.n_numa_nodes}
+Packages: {topology.n_packages}
+""")
 
         # Iterate through all objects by depth
         print("=== Objects by Depth ===")
@@ -38,7 +37,6 @@ def main() -> int:
         for cpu in topology.iter_cpus():
             print(f"CPU {cpu.logical_index}: {cpu}")
 
-        print()
         print("=== Core Information ===")
         for core in topology.iter_cores():
             print(f"Core {core.logical_index}: {core}")
@@ -47,7 +45,6 @@ def main() -> int:
             for pu in core.iter_children():
                 print(f"    {pu}")
 
-        print()
         print("=== NUMA Node Information ===")
         for node in topology.iter_numa_nodes():
             print(f"NUMA Node {node.logical_index}: {node}")

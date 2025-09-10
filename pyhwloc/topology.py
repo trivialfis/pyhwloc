@@ -317,7 +317,7 @@ class Topology:
         if hasattr(self, "_hdl"):
             _core.topology_destroy(self.native_handle)
             self._loaded = False
-            del self.native_handle
+            del self._hdl
 
     def __enter__(self) -> Topology:
         if not self.is_loaded:
@@ -370,7 +370,8 @@ class Topology:
         # not really helpfu.
         if self.is_loaded:
             raise RuntimeError("Cannot set filter after topology is loaded")
-        fn(self.native_handle, type_filter)
+        # Unchecked access to handle as we haven't loaded the topo yet.
+        fn(self._hdl, type_filter)
         return self
 
     def set_io_types_filter(self, type_filter: TypeFilter) -> "Topology":
@@ -651,5 +652,5 @@ class Topology:
         """
 
         return _core.obj_is_in_subtree(
-            self.native_handle, obj.native_handle, subtree_root._hdl
+            self.native_handle, obj.native_handle, subtree_root.native_handle
         )

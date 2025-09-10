@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from .hwloc import __version__
-from .hwobject import Object, ObjType
 from .topology import Topology
 
-__all__ = ["__version__", "Topology", "Object", "ObjType"]
+__all__ = ["__version__", "Topology"]
