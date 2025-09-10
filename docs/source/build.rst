@@ -2,6 +2,9 @@
 Building from Source
 ####################
 
+Building PyHwloc from source on Windows
+=======================================
+
 Following are some notes about the working-in-progress support for building pyhwloc and
 hwloc from source on Windows using CMake. Firstly, hwloc doesn't support building the
 dynamically linked library with CMake yet. We have to `patch
@@ -24,9 +27,8 @@ The default build includes tests. Afterward, we can build pyhwloc from source:
 
 Most of the tests are failing on Windows at the moment.
 
-#####################
 Building the Document
-#####################
+=====================
 
 We use the ``breathe`` project to generate sphinx doc for low-level API from the C doxygen
 document. This requires:
@@ -50,9 +52,8 @@ build-time dependencies (aside from the standard C++ toolchain) for doxygen on U
 - bison
 - libclang-19-dev
 
-#############
 Running Tests
-#############
+=============
 
 .. code-block:: sh
 

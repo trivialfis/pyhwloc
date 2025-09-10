@@ -1,6 +1,9 @@
-#####
-C API
-#####
+###########
+Hwloc C API
+###########
+
+This page provides the reference of the hwloc C interface. The Python package is built on
+top of this interface.
 
 .. contents::
     :backlinks: none

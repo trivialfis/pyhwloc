@@ -51,3 +51,5 @@ breathe_projects = {
     "pyhwloc": os.path.join(PROJECT_ROOT, os.path.pardir, "hwloc/doc/doxygen-doc/xml")
 }
 print("beathe projects", breathe_projects)
+
+os.environ["PYHWLOC_SPHINX"] = "1"

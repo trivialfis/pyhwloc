@@ -13,7 +13,7 @@ pyhwloc documentation
   :maxdepth: 2
   :titlesonly:
 
-  pyhwloc_api
-  core
-  c
   build
+  pyhwloc_api
+  low_level
+  c

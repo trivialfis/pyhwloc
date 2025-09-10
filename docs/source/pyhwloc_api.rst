@@ -2,6 +2,8 @@
 PyHwloc API
 ###########
 
+This page provides the reference of the high-level interface.
+
 .. contents::
     :backlinks: none
     :local:

@@ -108,6 +108,15 @@ def _cfndoc(fn: Callable[_P, _R]) -> Callable[_P, _R]:
     return fn
 
 
+def _c_prefix_fndoc(prefix: str) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
+    def _decorator(fn: Callable[_P, _R]) -> Callable[_P, _R]:
+        doc = f"See :c:func:`hwloc_{prefix}_{fn.__name__}`"
+        fn.__doc__ = doc
+        return fn
+
+    return _decorator
+
+
 def _cenumdoc(enum: Type) -> Type:
     doc = f"""See :c:enum:`{enum.__name__}`."""
     enum.__doc__ = doc

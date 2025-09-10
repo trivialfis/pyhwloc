@@ -12,11 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Interoperability with the NVIDIA Management Library
+===================================================
+"""
 import ctypes
 
 import pynvml
 
 from .core import ObjPtr, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
+from .lib import _c_prefix_fndoc
 
 #####################################################
 # Interoperability with the NVIDIA Management Library
@@ -34,6 +39,7 @@ _pyhwloc_lib.pyhwloc_nvml_get_device_cpuset.argtypes = [
 _pyhwloc_lib.pyhwloc_nvml_get_device_cpuset.restype = ctypes.c_int
 
 
+@_c_prefix_fndoc("nvml")
 def get_device_cpuset(
     topology: topology_t, device: pynvml.c_nvmlDevice_t, cpuset: hwloc_cpuset_t
 ) -> None:
@@ -47,6 +53,7 @@ _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index.argtypes = [
 _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index.restype = obj_t
 
 
+@_c_prefix_fndoc("nvml")
 def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr | None:
     dev_obj = _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index(topology, idx)
     if not dev_obj:
@@ -61,6 +68,7 @@ _pyhwloc_lib.pyhwloc_nvml_get_device_osdev.argtypes = [
 _pyhwloc_lib.pyhwloc_nvml_get_device_osdev.restype = obj_t
 
 
+@_c_prefix_fndoc("nvml")
 def get_device_osdev(
     topology: topology_t, device: pynvml.c_nvmlDevice_t
 ) -> ObjPtr | None:

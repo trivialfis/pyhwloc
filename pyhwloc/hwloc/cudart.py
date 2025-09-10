@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Interoperability with the CUDA Runtime API
+==========================================
+"""
 import ctypes
 
 import cuda.bindings.runtime as cudart
 
 from .core import ObjPtr, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
-
-############################################
-# Interoperability with the CUDA Runtime API
-############################################
-
+from .lib import _c_prefix_fndoc
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00178.php
 
@@ -44,6 +44,7 @@ _pyhwloc_lib.pyhwloc_cudart_get_device_pci_ids.argtypes = [
 _pyhwloc_lib.pyhwloc_cudart_get_device_pci_ids.restype = ctypes.c_int
 
 
+@_c_prefix_fndoc("cudart")
 def get_device_pci_ids(topology: topology_t, idx: int) -> tuple[int, int, int]:
     domain = ctypes.c_int()
     bus = ctypes.c_int()
@@ -66,6 +67,7 @@ _pyhwloc_lib.pyhwloc_cudart_get_device_cpuset.argtypes = [
 _pyhwloc_lib.pyhwloc_cudart_get_device_cpuset.restype = ctypes.c_int
 
 
+@_c_prefix_fndoc("cudart")
 def get_device_cpuset(topology: topology_t, idx: int, cpuset: hwloc_cpuset_t) -> None:
     _checkc(_pyhwloc_lib.pyhwloc_cudart_get_device_cpuset(topology, idx, cpuset))
 
@@ -77,6 +79,7 @@ _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev.argtypes = [
 _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev.restype = obj_t
 
 
+@_c_prefix_fndoc("cudart")
 def get_device_pcidev(topology: topology_t, idx: int) -> ObjPtr | None:
     dev_obj = _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev(topology, idx)
     if not dev_obj:
@@ -87,6 +90,7 @@ def get_device_pcidev(topology: topology_t, idx: int) -> ObjPtr | None:
 _pyhwloc_lib.pyhwloc_cudart_get_device_osdev_by_index.restype = obj_t
 
 
+@_c_prefix_fndoc("cudart")
 def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr | None:
     dev_obj = _pyhwloc_lib.pyhwloc_cudart_get_device_osdev_by_index(topology, idx)
     if not dev_obj:

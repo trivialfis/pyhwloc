@@ -19,8 +19,8 @@ pytest.importorskip("pyhwloc.windows", exc_type=ImportError)
 from pyhwloc.hwloc.bitmap import bitmap_alloc, bitmap_free
 from pyhwloc.hwloc.sched import cpuset_to_sched_affinity
 from pyhwloc.hwloc.windows import (
-    windows_get_nr_processor_groups,
-    windows_get_processor_group_cpuset,
+    get_nr_processor_groups,
+    get_processor_group_cpuset,
 )
 
 from .test_core import Topology
@@ -28,11 +28,11 @@ from .test_core import Topology
 
 def test_windows_helpers() -> None:
     topo = Topology()
-    nr = windows_get_nr_processor_groups(topo.hdl)
+    nr = get_nr_processor_groups(topo.hdl)
     assert nr >= 1
 
     cpuset = bitmap_alloc()
-    windows_get_processor_group_cpuset(topo.hdl, 0, cpuset)
+    get_processor_group_cpuset(topo.hdl, 0, cpuset)
     aff = cpuset_to_sched_affinity(cpuset)
     assert len(aff) >= 1
     bitmap_free(cpuset)

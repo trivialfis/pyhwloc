@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Linux-specific helpers
+======================
+"""
+
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00171.php
 
 import ctypes
 import platform
@@ -24,16 +30,10 @@ from .core import (
     hwloc_cpuset_t,
     topology_t,
 )
-from .lib import _cfndoc
+from .lib import _c_prefix_fndoc
 
 if platform.system() != "Linux":
     raise ImportError("This module is only defined for Linux.")
-
-########################
-# Linux-specific helpers
-########################
-
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00171.php
 
 _LIB.hwloc_linux_set_tid_cpubind.argtypes = [
     topology_t,
@@ -43,7 +43,7 @@ _LIB.hwloc_linux_set_tid_cpubind.argtypes = [
 _LIB.hwloc_linux_set_tid_cpubind.restype = ctypes.c_int
 
 
-@_cfndoc
+@_c_prefix_fndoc("linux")
 def set_tid_cpubind(
     topology: topology_t, tid: int, cpuset: hwloc_const_cpuset_t
 ) -> None:
@@ -58,7 +58,7 @@ _LIB.hwloc_linux_get_tid_cpubind.argtypes = [
 _LIB.hwloc_linux_get_tid_cpubind.restype = ctypes.c_int
 
 
-@_cfndoc
+@_c_prefix_fndoc("linux")
 def get_tid_cpubind(topology: topology_t, tid: int, cpuset: hwloc_cpuset_t) -> None:
     _checkc(_LIB.hwloc_linux_get_tid_cpubind(topology, tid, cpuset))
 
@@ -71,7 +71,7 @@ _LIB.hwloc_linux_get_tid_last_cpu_location.argtypes = [
 _LIB.hwloc_linux_get_tid_last_cpu_location.restype = ctypes.c_int
 
 
-@_cfndoc
+@_c_prefix_fndoc("linux")
 def get_tid_last_cpu_location(topology: topology_t, tid: int, cpuset: bitmap_t) -> None:
     _checkc(_LIB.hwloc_linux_get_tid_last_cpu_location(topology, tid, cpuset))
 
@@ -83,7 +83,7 @@ _LIB.hwloc_linux_read_path_as_cpumask.argtypes = [
 _LIB.hwloc_linux_read_path_as_cpumask.restype = ctypes.c_int
 
 
-@_cfndoc
+@_c_prefix_fndoc("linux")
 def read_path_as_cpumask(path: str, cpuset: bitmap_t) -> None:
     path_bytes = path.encode("utf-8")
     _checkc(_LIB.hwloc_linux_read_path_as_cpumask(path_bytes, cpuset))

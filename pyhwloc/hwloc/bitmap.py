@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+The bitmap API
+==============
+"""
 from __future__ import annotations
 
 import ctypes
@@ -20,10 +24,6 @@ from typing import Callable
 from .lib import _LIB, HwLocError, _cfndoc, _checkc, _pyhwloc_lib
 from .libc import free as cfree
 from .libc import strerror as cstrerror
-
-################
-# The bitmap API
-################
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00161.php#gae679434c1a5f41d3560a8a7e2c1b0dee
 
