@@ -15,7 +15,11 @@
 
 import pytest
 
-from pyhwloc.hwloc.core import hwloc_get_type_depth_e, hwloc_obj_osdev_type_e
+from pyhwloc.hwloc.core import (
+    hwloc_get_type_depth_e,
+    hwloc_obj_osdev_type_e,
+    obj_attr_snprintf,
+)
 from pyhwloc.hwobject import Object, ObjType
 from pyhwloc.topology import Topology, TypeFilter
 
@@ -61,9 +65,9 @@ def test_list_gpu_objects() -> None:
         gpu_objects = []
         for obj in os_devices:
             # Check if it's a GPU device by examining the attributes
-            ptr = obj.native_handle
-            if ptr and ptr.contents.attr and ptr.contents.attr.contents.osdev:
-                osdev_types = ptr.contents.attr.contents.osdev.types
+            if obj.attr is not None and obj.type == ObjType.HWLOC_OBJ_OS_DEVICE:
+                osdev_types = obj.attr.types
+                print(obj.attr_str())
                 # Check if this OS device has GPU type flag
                 if osdev_types & hwloc_obj_osdev_type_e.HWLOC_OBJ_OSDEV_GPU:
                     gpu_objects.append(obj)

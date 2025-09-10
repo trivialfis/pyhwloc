@@ -32,6 +32,7 @@ __all__ = ["Object", "ObjType"]
 
 
 ObjType = _core.hwloc_obj_type_t
+ObjSnprintfFlag = _core.hwloc_obj_snprintf_flag_e
 
 
 class Object:
@@ -84,7 +85,51 @@ class Object:
         """Total memory (in bytes) in NUMA nodes below this object."""
         return self._hdl.contents.total_memory
 
-    # union hwloc_obj_attr_u *attr;
+    @property
+    def attr(self) -> ctypes.Structure | None:
+        typ = self.type
+        attr = self._hdl.contents.attr
+        if not attr:
+            return None
+        # FIXME: Am I getting this right? I looked into the `hwloc_obj_attr_snprintf`
+        # implementation, but it doesn't use the group. Also, if the bridge upstream is
+        # HWLOC_OBJ_BRIDGE_PCI, this union can be converted to PCIe?
+        match typ:
+            case ObjType.HWLOC_OBJ_NUMANODE:
+                return attr.contents.numanode
+            case (
+                ObjType.HWLOC_OBJ_L1CACHE
+                | ObjType.HWLOC_OBJ_L2CACHE
+                | ObjType.HWLOC_OBJ_L3CACHE
+                | ObjType.HWLOC_OBJ_L4CACHE
+                | ObjType.HWLOC_OBJ_L5CACHE
+                | ObjType.HWLOC_OBJ_L1ICACHE
+                | ObjType.HWLOC_OBJ_L2ICACHE
+                | ObjType.HWLOC_OBJ_L3ICACHE
+                | ObjType.HWLOC_OBJ_MEMCACHE
+            ):
+                return attr.contents.cache
+            case ObjType.HWLOC_OBJ_GROUP:
+                return attr.contents.group
+            case ObjType.HWLOC_OBJ_PCI_DEVICE:
+                return attr.contents.pcidev
+            case ObjType.HWLOC_OBJ_BRIDGE:
+                return attr.contents.bridge
+            case ObjType.HWLOC_OBJ_OS_DEVICE:
+                return attr.contents.osdev
+            case _:
+                return None
+
+    def attr_str(
+        self,
+        flags: int = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
+    ) -> str | None:
+        n_bytes = 1024
+        buf = ctypes.create_string_buffer(n_bytes)
+        _core.obj_attr_snprintf(buf, n_bytes, self.native_handle, b", ", flags)
+        if not buf.value:
+            return None
+        return buf.value.decode("utf-8")
 
     @property
     def depth(self) -> int:
