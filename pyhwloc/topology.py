@@ -23,20 +23,27 @@ import ctypes
 import logging
 import os
 from types import TracebackType
-from typing import Type, TypeAlias
+from typing import Callable, Type, TypeAlias
 
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 
-__all__ = ["Topology", "ExportXmlFlags", "ExportSyntheticFlags"]
+__all__ = [
+    "Topology",
+    "ExportXmlFlags",
+    "ExportSyntheticFlags",
+    "TypeFilter",
+    "ObjType",
+]
 
 
-def _from_xml_buffer(xml_buffer: str) -> _core.topology_t:
+def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
     hdl = _core.topology_t(0)
     try:
         _core.topology_init(hdl)
         _core.topology_set_xmlbuffer(hdl, xml_buffer)
-        _core.topology_load(hdl)
+        if load is True:
+            _core.topology_load(hdl)
     except (_lib.HwLocError, NotImplementedError) as e:
         if hdl:
             _core.topology_destroy(hdl)
@@ -45,11 +52,10 @@ def _from_xml_buffer(xml_buffer: str) -> _core.topology_t:
     return hdl
 
 
-# fixme:
-# - use filter
-
 ExportXmlFlags: TypeAlias = _core.hwloc_topology_export_xml_flags_e
 ExportSyntheticFlags: TypeAlias = _core.hwloc_topology_export_synthetic_flags_e
+TypeFilter: TypeAlias = _core.hwloc_type_filter_e
+ObjType: TypeAlias = _core.hwloc_obj_type_t
 
 
 class Topology:
@@ -58,6 +64,14 @@ class Topology:
     This class provides a context manager interface for working with hardware
     topology information. It automatically handles topology initialization,
     loading, and cleanup.
+
+    The default `Topology` constructor initializes a topology object based on the
+    current system. For alternative topology sources, use the class methods:
+
+    - :meth:`from_pid`
+    - :meth:`from_synthetic`
+    - :meth:`from_xml_file`
+    - :meth:`from_xml_buffer`
 
     .. code-block::
 
@@ -84,49 +98,59 @@ class Topology:
         # and doesn't propagate exceptions raised inside the destroy method.
         topo = Topology()
 
-    The default `Topology` constructor initializes a topology object based on the
-    current system. For alternative topology sources, use the class methods:
+    To use a filter, users need to call the :meth:`load` explicitly:
 
-    - :meth:`from_pid`
-    - :meth:`from_synthetic`
-    - :meth:`from_xml_file`
-    - :meth:`from_xml_buffer`
+    .. code-block::
+
+        with Topology(load=False).set_all_types_filter(
+            TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+        ).load() as topo:
+            pass
 
     """
 
-    def __init__(self) -> None:
-        """Initialize a new topology for the current system."""
+    def __init__(self, *, load: bool = True) -> None:
+        """Initialize a new topology for the current system.
+
+        Parameters
+        ----------
+        load :
+            Whether the object should load the topology from the system. Set to False if
+            you want to apply additional filters.
+        """
         hdl = _core.topology_t()
 
         try:
-            # Initialize and load the current system topology
             _core.topology_init(hdl)
-            _core.topology_load(hdl)
+            if load is True:
+                _core.topology_load(hdl)
         except (_lib.HwLocError, NotImplementedError) as e:
             if hdl:
                 _core.topology_destroy(hdl)
             raise e
 
         self._hdl = hdl
-        self._loaded = True
+        self._loaded = load
 
     @classmethod
-    def from_native_handle(cls, hdl: _core.topology_t) -> Topology:
+    def from_native_handle(cls, hdl: _core.topology_t, loaded: bool) -> Topology:
         topo = cls.__new__(cls)
         topo._hdl = hdl
-        topo._loaded = True
+        topo._loaded = loaded
         topo.check()
         return topo
 
     @classmethod
-    def from_pid(cls, pid: int) -> Topology:
+    def from_pid(cls, pid: int, *, load: bool = True) -> Topology:
         """Create topology from a specific process ID.
 
         Parameters
         ----------
-
-        pid :
+        pid
             Process ID to get topology from
+        load :
+            Whether the object should load the topology from the system. Set to False if
+            you want to apply additional filters.
 
         Returns
         -------
@@ -136,22 +160,22 @@ class Topology:
         try:
             _core.topology_init(hdl)
             _core.topology_set_pid(hdl, pid)
-            _core.topology_load(hdl)
+            if load is True:
+                _core.topology_load(hdl)
         except (_lib.HwLocError, NotImplementedError) as e:
             if hdl:
                 _core.topology_destroy(hdl)
             raise e
 
-        return cls.from_native_handle(hdl)
+        return cls.from_native_handle(hdl, load)
 
     @classmethod
-    def from_synthetic(cls, description: str) -> Topology:
+    def from_synthetic(cls, description: str, *, load: bool = True) -> Topology:
         """Create topology from synthetic description.
 
         Parameters
         ----------
-
-        description :
+        description
             Synthetic topology description (e.g., "node:2 core:2 pu:2")
 
         Returns
@@ -162,23 +186,28 @@ class Topology:
         try:
             _core.topology_init(hdl)
             _core.topology_set_synthetic(hdl, description)
-            _core.topology_load(hdl)
+
+            if load is True:
+                _core.topology_load(hdl)
         except (_lib.HwLocError, NotImplementedError) as e:
             if hdl:
                 _core.topology_destroy(hdl)
             raise e
 
-        return cls.from_native_handle(hdl)
+        return cls.from_native_handle(hdl, load)
 
     @classmethod
-    def from_xml_file(cls, xml_path: os.PathLike | str) -> Topology:
+    def from_xml_file(
+        cls, xml_path: os.PathLike | str, *, load: bool = True
+    ) -> Topology:
         """Create topology from XML file.
 
         Parameters
         ----------
-
-        xml_path :
+        xml_path
             Path to XML file containing topology
+        filters
+            Optional filter for I/O objects
 
         Returns
         -------
@@ -189,33 +218,41 @@ class Topology:
         try:
             _core.topology_init(hdl)
             _core.topology_set_xml(hdl, path)
-            _core.topology_load(hdl)
+
+            if load is True:
+                _core.topology_load(hdl)
         except (_lib.HwLocError, NotImplementedError) as e:
             if hdl:
                 _core.topology_destroy(hdl)
             raise e
 
-        return cls.from_native_handle(hdl)
+        return cls.from_native_handle(hdl, load)
 
     @classmethod
-    def from_xml_buffer(cls, xml_buffer: str) -> Topology:
+    def from_xml_buffer(cls, xml_buffer: str, *, load: bool = True) -> Topology:
         """Create topology from XML string.
 
         Parameters
         ----------
-
-        xml_buffer :
+        xml_buffer
             XML string containing topology
 
         Returns
         -------
         New Topology instance loaded from XML string.
         """
-        hdl = _from_xml_buffer(xml_buffer)
-        return cls.from_native_handle(hdl)
+        hdl = _from_xml_buffer(xml_buffer, load)
+        return cls.from_native_handle(hdl, load)
 
     def check(self) -> None:
         _core.topology_check(self._hdl)
+
+    def load(self) -> "Topology":
+        """Load the topology. No-op if it's already loaded"""
+        if not self.is_loaded:
+            _core.topology_load(self._hdl)
+            self._loaded = True
+        return self
 
     @property
     def native_handle(self) -> _core.topology_t:
@@ -296,7 +333,7 @@ class Topology:
 
     def __copy__(self) -> Topology:
         new = _core.topology_dup(self._hdl)
-        return Topology.from_native_handle(new)
+        return Topology.from_native_handle(new, loaded=True)
 
     def __deepcopy__(self, memo: dict) -> Topology:
         return self.__copy__()
@@ -315,6 +352,122 @@ class Topology:
         xml_buffer = state["xml_buffer"]
         assert not hasattr(self, "_hdl") and not hasattr(self, "_loaded")
 
-        hdl = _from_xml_buffer(xml_buffer)
+        hdl = _from_xml_buffer(xml_buffer, True)
         self._hdl = hdl
         self._loaded = True
+
+    def _checked_apply_filter(
+        self, fn: Callable, type_filter: TypeFilter
+    ) -> "Topology":
+        # If we don't raise here, hwloc returns EBUSY: Device or resource busy, which is
+        # not really helpfu.
+        if self.is_loaded:
+            raise RuntimeError("Cannot set filter after topology is loaded")
+        fn(self._hdl, type_filter)
+        return self
+
+    def set_io_types_filter(self, type_filter: TypeFilter) -> "Topology":
+        return self._checked_apply_filter(
+            _core.topology_set_io_types_filter, type_filter
+        )
+
+    def set_all_types_filter(self, type_filter: TypeFilter) -> "Topology":
+        return self._checked_apply_filter(
+            _core.topology_set_all_types_filter, type_filter
+        )
+
+    def set_cache_types_filter(self, type_filter: TypeFilter) -> "Topology":
+        return self._checked_apply_filter(
+            _core.topology_set_cache_types_filter, type_filter
+        )
+
+    def set_icache_types_filter(self, type_filter: TypeFilter) -> "Topology":
+        return self._checked_apply_filter(
+            _core.topology_set_icache_types_filter, type_filter
+        )
+
+    def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
+        """Get the number of objects of a specific type in the topology.
+
+        Parameters
+        ----------
+        obj_type
+            The object type to count.
+
+        Returns
+        -------
+        Number of objects of the specified type
+
+        Examples
+        --------
+        .. code-block::
+
+            with Topology() as topo:
+                n_cpus = topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+                n_cores = topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE)
+                print(f"CPUs: {n_cpus}, Cores: {n_cores}")
+        """
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        return _core.get_nbobjs_by_type(self._hdl, ObjType(obj_type))
+
+    @property
+    def n_cores(self) -> int:
+        """Get the total number of cores.
+
+        Returns
+        -------
+        Number of core objects in the topology
+        """
+        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE)
+
+    @property
+    def n_cpus(self) -> int:
+        """Get the total number of processing units (CPUs).
+
+        Returns
+        -------
+        Number of PU objects in the topology
+        """
+        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+
+    @property
+    def n_numa_nodes(self) -> int:
+        """Get the total number of NUMA nodes.
+
+        Returns
+        -------
+        Number of NUMA node objects in the topology
+        """
+        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_NUMANODE)
+
+    @property
+    def n_packages(self) -> int:
+        """Get the total number of packages (sockets).
+
+        Returns
+        -------
+        Number of package objects in the topology
+        """
+        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PACKAGE)
+
+    @property
+    def n_pci_devices(self) -> int:
+        """Get the total number of PCI devices.
+
+        Returns
+        -------
+        Number of PCI device objects in the topology
+        """
+        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PCI_DEVICE)
+
+    @property
+    def n_os_devices(self) -> int:
+        """Get the total number of OS devices.
+
+        Returns
+        -------
+        Number of OS device objects in the topology
+        """
+        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE)

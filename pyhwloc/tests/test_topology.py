@@ -18,7 +18,7 @@ import pickle
 import pytest
 
 from pyhwloc.hwloc.lib import HwLocError
-from pyhwloc.topology import ExportXmlFlags, Topology
+from pyhwloc.topology import ExportXmlFlags, ObjType, Topology, TypeFilter
 
 
 def test_context_manager_current_system() -> None:
@@ -33,6 +33,10 @@ def test_context_manager_current_system() -> None:
     assert not topo.is_loaded
     with pytest.raises(RuntimeError):
         _ = topo.depth
+
+    with pytest.raises(RuntimeError, match="not loaded"):
+        with Topology(load=False) as topo:
+            pass
 
 
 def test_direct_usage_current_system() -> None:
@@ -196,3 +200,70 @@ def test_pickle_unloaded_topology() -> None:
     # Should raise RuntimeError when trying to pickle unloaded topology
     with pytest.raises(RuntimeError, match="Cannot pickle unloaded topology"):
         pickle.dumps(topo)
+
+
+def test_get_nbobjs_by_type() -> None:
+    with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
+        # Should have exactly:
+        # - 1 machine
+        # - 2 NUMA nodes
+        # - 4 cores (2 nodes * 2 cores each)
+        # - 8 PUs (2 nodes * 2 cores * 2 PUs each)
+
+        # Test direct method calls
+        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_MACHINE) == 1
+        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_NUMANODE) == 2
+        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE) == 4
+        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU) == 8
+
+        # Test convenience properties
+        assert topo.n_cpus == 8
+        assert topo.n_cores == 4
+        assert topo.n_numa_nodes == 2
+        assert topo.n_packages >= 0
+        # OS devices and PCI devices should be 0 in synthetic topology
+        assert topo.n_os_devices == 0
+        assert topo.n_pci_devices == 0
+
+
+def test_get_nbobjs_by_type_with_filter() -> None:
+    # Create topology with I/O filter that removes all I/O objects
+    with (
+        Topology(load=False)
+        .set_io_types_filter(type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE)
+        .load() as topo
+    ):
+        # I/O objects should be filtered out
+        assert topo.n_os_devices == 0
+        assert topo.n_pci_devices == 0
+
+        # Non-I/O objects should be unaffected
+        assert topo.n_cpus > 0
+        assert topo.n_cores >= 0
+
+    with (
+        Topology(load=False)
+        .set_io_types_filter(type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT)
+        .load() as topo
+    ):
+        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
+
+    with (
+        Topology(load=False)
+        .set_all_types_filter(TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT)
+        .load() as topo
+    ):
+        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
+
+
+def test_get_nbobjs_by_type_unloaded_topology() -> None:
+    topo = Topology()
+    topo.destroy()  # Make it unloaded
+
+    # Method should raise RuntimeError
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+
+    # Properties should also raise RuntimeError
+    with pytest.raises(RuntimeError, match="Topology is not loaded"):
+        _ = topo.n_cpus
