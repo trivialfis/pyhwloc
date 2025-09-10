@@ -41,16 +41,19 @@ html_static_path = ["_static"]
 
 intersphinx_mapping = {"python": ("https://docs.python.org/3.10", None)}
 
-# Breathe
+# -- Breathe
 breathe_default_project = "pyhwloc"
-breathe_domain_by_extension = {
-    "h": "c",
-}
+breathe_domain_by_extension = {"h": "c"}
+
 CURR_PATH = os.path.dirname(os.path.abspath(os.path.expanduser(__file__)))  # source
 PROJECT_ROOT = os.path.normpath(os.path.join(CURR_PATH, os.path.pardir, os.path.pardir))
-breathe_projects = {
-    "pyhwloc": os.path.join(PROJECT_ROOT, os.path.pardir, "hwloc/doc/doxygen-doc/xml")
-}
+
+hwloc_xml_path = os.environ.get("PYHWLOC_XML_PATH", None)
+if hwloc_xml_path is None:
+    hwloc_xml_path = os.path.join(
+        PROJECT_ROOT, os.path.pardir, "hwloc/doc/doxygen-doc/xml"
+    )
+breathe_projects = {"pyhwloc": hwloc_xml_path}
 print("beathe projects", breathe_projects)
 
 # -- Build environment

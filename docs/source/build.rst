@@ -44,6 +44,14 @@ document. This requires:
   ``--enable-doxygen`` option since the ``doxygen-config.cfg`` file is generated under the
   build root.
 
+- You can inform the sphinx build about the XML path via the ``PYHWLOC_XML_PATH``
+  environment variable:
+
+.. code-block:: sh
+
+  cd pyhwloc/docs
+  PYHWLOC_XML_PATH=/path/hwloc/doc/doxygen-doc/xml make html
+
 Another issue with doxygen files is how to obtain a clang-assisted doxygen build. The
 build-time dependencies (aside from the standard C++ toolchain) for doxygen on Ubuntu
 24.04:
