@@ -35,8 +35,19 @@ def test_context_manager_current_system() -> None:
         _ = topo.depth
 
     with pytest.raises(RuntimeError, match="not loaded"):
-        with Topology(load=False) as topo:
-            pass
+        topo = Topology(load=False)
+        topo.depth
+
+    topo = Topology()
+    topo.destroy()  # Make it unloaded
+
+    # Method should raise RuntimeError
+    with pytest.raises(RuntimeError, match="Topology has been destroyed"):
+        topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+
+    # Properties should also raise RuntimeError
+    with pytest.raises(RuntimeError, match="Topology has been destroyed"):
+        _ = topo.n_cpus
 
 
 def test_direct_usage_current_system() -> None:
@@ -193,13 +204,18 @@ def test_pickle_foreign() -> None:
 
 
 def test_pickle_unloaded_topology() -> None:
-    """Test that pickling an unloaded topology raises an error."""
     topo = Topology()
     topo.destroy()  # Make it unloaded
 
     # Should raise RuntimeError when trying to pickle unloaded topology
-    with pytest.raises(RuntimeError, match="Cannot pickle unloaded topology"):
+    with pytest.raises(RuntimeError, match="destroyed"):
         pickle.dumps(topo)
+
+
+def test_get_support() -> None:
+    with Topology() as topo:
+        sup = topo.get_support()
+        sup.membind.bind_membind
 
 
 def test_get_nbobjs_by_type() -> None:
@@ -228,11 +244,9 @@ def test_get_nbobjs_by_type() -> None:
 
 def test_get_nbobjs_by_type_with_filter() -> None:
     # Create topology with I/O filter that removes all I/O objects
-    with (
-        Topology(load=False)
-        .set_io_types_filter(type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE)
-        .load() as topo
-    ):
+    with Topology(load=False).set_io_types_filter(
+        type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE
+    ) as topo:
         # I/O objects should be filtered out
         assert topo.n_os_devices == 0
         assert topo.n_pci_devices == 0
@@ -241,29 +255,63 @@ def test_get_nbobjs_by_type_with_filter() -> None:
         assert topo.n_cpus > 0
         assert topo.n_cores >= 0
 
-    with (
-        Topology(load=False)
-        .set_io_types_filter(type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT)
-        .load() as topo
-    ):
+    with Topology(load=False).set_io_types_filter(
+        type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+    ) as topo:
         assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
 
-    with (
-        Topology(load=False)
-        .set_all_types_filter(TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT)
-        .load() as topo
-    ):
+    with Topology(load=False).set_all_types_filter(
+        TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+    ) as topo:
         assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
 
 
-def test_get_nbobjs_by_type_unloaded_topology() -> None:
-    topo = Topology()
-    topo.destroy()  # Make it unloaded
+def test_object_iteration() -> None:
+    desc = "node:2 core:2 pu:2"
 
-    # Method should raise RuntimeError
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+    with Topology.from_synthetic(desc) as topo:
+        # Test basic properties
+        assert topo.depth > 0
+        assert topo.n_cpus == 8  # 2 nodes * 2 cores * 2 PUs
+        assert topo.n_cores == 4  # 2 nodes * 2 cores
+        assert topo.n_numa_nodes == 2  # 2 nodes
 
-    # Properties should also raise RuntimeError
-    with pytest.raises(RuntimeError, match="Topology is not loaded"):
-        _ = topo.n_cpus
+        # Test object counts by depth
+        total_objects = 0
+        for depth in range(topo.depth):
+            count = topo.get_nbobjs_by_depth(depth)
+            assert count > 0
+            total_objects += count
+
+            # Verify depth type
+            obj_type = topo.get_depth_type(depth)
+            assert isinstance(obj_type, ObjType)
+
+        # Test object access by depth and index
+        root = topo.get_obj_by_depth(0, 0)
+        assert root is not None
+
+        # Test object access by type
+        machine = topo.get_obj_by_type(ObjType.HWLOC_OBJ_MACHINE, 0)
+        assert machine is not None
+
+        # Test iteration by depth
+        depth_objects = []
+        for depth in range(topo.depth):
+            objects = list(topo.iter_objects_by_depth(depth))
+            assert len(objects) == topo.get_nbobjs_by_depth(depth)
+            depth_objects.extend(objects)
+
+        # Test iteration by type
+        cpu_objects = list(topo.iter_cpus())
+        core_objects = list(topo.iter_cores())
+        numa_objects = list(topo.iter_numa_nodes())
+
+        assert len(cpu_objects) == topo.n_cpus
+        assert len(core_objects) == topo.n_cores
+        assert len(numa_objects) == topo.n_numa_nodes
+
+        # Test iteration of all objects
+        all_objects = list(topo.iter_all_breadth_first())
+        assert len(all_objects) == total_objects
+        assert len(all_objects) == len(depth_objects)

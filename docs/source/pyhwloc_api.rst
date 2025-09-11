@@ -24,3 +24,6 @@ This page provides the reference of the high-level interface.
 .. class:: pyhwloc.topology.ExportSyntheticFlags
 .. autoclass:: pyhwloc.topology.ExportSyntheticFlags
   :no-index:
+
+.. automodule:: pyhwloc.hwobject
+  :members:

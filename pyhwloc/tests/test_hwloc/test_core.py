@@ -28,7 +28,6 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_weight,
 )
 from pyhwloc.hwloc.core import (
-    ObjPtr,
     bridge_covers_pcibus,
     compare_types,
     cpukinds_get_by_cpuset,
@@ -65,6 +64,7 @@ from pyhwloc.hwloc.core import (
     hwloc_topology_export_xml_flags_e,
     hwloc_topology_flags_e,
     hwloc_type_filter_e,
+    is_same_obj,
     obj_add_info,
     obj_attr_snprintf,
     obj_get_info_by_name,
@@ -101,12 +101,6 @@ from pyhwloc.hwloc.core import (
     type_sscanf_as_depth,
 )
 from pyhwloc.hwloc.lib import HwLocError
-
-
-def is_same_obj(a: ObjPtr, b: ObjPtr) -> bool:
-    return (
-        ctypes.cast(a, ctypes.c_void_p).value == ctypes.cast(b, ctypes.c_void_p).value
-    )
 
 
 def test_get_api_version() -> None:

@@ -612,7 +612,7 @@ def get_obj_by_depth(topology: topology_t, depth: int, idx: int) -> ObjPtr | Non
 # Converting between Object Types and Attributes, and Strings
 #############################################################
 
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00144.php#ga6a38b931e5d45e8af4323a169482fe39
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00144.php
 
 _LIB.hwloc_obj_type_string.argtypes = [ctypes.c_int]
 _LIB.hwloc_obj_type_string.restype = ctypes.c_char_p
@@ -623,20 +623,30 @@ def hwloc_obj_type_string(obj_type: hwloc_obj_type_t) -> bytes:
     return _LIB.hwloc_obj_type_string(obj_type).value
 
 
+class hwloc_obj_snprintf_flag_e(IntEnum):
+    HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE = 1 << 0
+    HWLOC_OBJ_SNPRINTF_FLAG_LONG_NAMES = 1 << 1
+    HWLOC_OBJ_SNPRINTF_FLAG_SHORT_NAMES = 1 << 2
+    HWLOC_OBJ_SNPRINTF_FLAG_MORE_ATTRS = 1 << 3
+    HWLOC_OBJ_SNPRINTF_FLAG_NO_UNITS = 1 << 4
+    HWLOC_OBJ_SNPRINTF_FLAG_UNITS_1000 = 1 << 5
+
+
 _LIB.hwloc_obj_type_snprintf.argtypes = [
     ctypes.c_char_p,
     ctypes.c_size_t,
     obj_t,
-    ctypes.c_int,
+    ctypes.c_ulong,
 ]
 _LIB.hwloc_obj_type_snprintf.restype = ctypes.c_int
 
 
 @_cfndoc
 def obj_type_snprintf(
-    string: ctypes.c_char_p | ctypes.Array, size: int, obj: ObjPtr, verbose: int
+    string: ctypes.c_char_p | ctypes.Array, size: int, obj: ObjPtr, flags: int
 ) -> int:
-    return _LIB.hwloc_obj_type_snprintf(string, size, obj, verbose)
+    # flags are hwloc_obj_snprintf_flag_e
+    return _LIB.hwloc_obj_type_snprintf(string, size, obj, int(flags))
 
 
 _LIB.hwloc_obj_attr_snprintf.argtypes = [
@@ -644,7 +654,7 @@ _LIB.hwloc_obj_attr_snprintf.argtypes = [
     ctypes.c_size_t,
     obj_t,
     ctypes.c_char_p,
-    ctypes.c_int,
+    ctypes.c_ulong,
 ]
 _LIB.hwloc_obj_attr_snprintf.restype = ctypes.c_int
 
@@ -655,9 +665,10 @@ def obj_attr_snprintf(
     size: int,
     obj: ObjPtr,
     separator: ctypes.c_char_p | bytes,
-    verbose: int,
+    flags: int,
 ) -> int:
-    return _LIB.hwloc_obj_attr_snprintf(string, size, obj, separator, verbose)
+    # flags are hwloc_obj_snprintf_flag_e
+    return _LIB.hwloc_obj_attr_snprintf(string, size, obj, separator, int(flags))
 
 
 _LIB.hwloc_type_sscanf.argtypes = [
@@ -3484,4 +3495,15 @@ def shmem_topology_adopt(
         _LIB.hwloc_shmem_topology_adopt(
             topologyp, fd, fileoffset, mmap_address, length, flags
         )
+    )
+
+
+###########
+# Utilities
+###########
+
+
+def is_same_obj(a: ObjPtr, b: ObjPtr) -> bool:
+    return (
+        ctypes.cast(a, ctypes.c_void_p).value == ctypes.cast(b, ctypes.c_void_p).value
     )

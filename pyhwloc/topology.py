@@ -22,18 +22,20 @@ from __future__ import annotations
 import ctypes
 import logging
 import os
+import weakref
+from collections import namedtuple
 from types import TracebackType
-from typing import Callable, Type, TypeAlias
+from typing import Any, Callable, Iterator, Type, TypeAlias
 
 from .hwloc import core as _core
 from .hwloc import lib as _lib
+from .hwobject import Object, ObjType
 
 __all__ = [
     "Topology",
     "ExportXmlFlags",
     "ExportSyntheticFlags",
     "TypeFilter",
-    "ObjType",
 ]
 
 
@@ -52,10 +54,10 @@ def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
     return hdl
 
 
+ObjPtr = _core.ObjPtr
 ExportXmlFlags: TypeAlias = _core.hwloc_topology_export_xml_flags_e
 ExportSyntheticFlags: TypeAlias = _core.hwloc_topology_export_synthetic_flags_e
 TypeFilter: TypeAlias = _core.hwloc_type_filter_e
-ObjType: TypeAlias = _core.hwloc_obj_type_t
 
 
 class Topology:
@@ -98,14 +100,20 @@ class Topology:
         # and doesn't propagate exceptions raised inside the destroy method.
         topo = Topology()
 
-    To use a filter, users need to call the :meth:`load` explicitly:
+    To use a filter, users need to call the :meth:`load` explicitly when not using the
+    context manager:
 
     .. code-block::
 
         with Topology(load=False).set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
-        ).load() as topo:
+        ) as topo:
+            # auto load when using a context manager
             pass
+
+        topo = Topology(load=False).set_all_types_filter(
+            TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+        ).load() # Load the topology
 
     """
 
@@ -259,28 +267,34 @@ class Topology:
         """Get the native hwloc topology handle."""
         if not hasattr(self, "_hdl"):
             raise RuntimeError("Topology has been destroyed")
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
         return self._hdl
 
     def export_xml_buffer(self, flags: ExportXmlFlags | int) -> str:
         "See :py:func:`~pyhwloc.hwloc.core.topology_export_xmlbuffer`."
-        return _core.topology_export_xmlbuffer(self._hdl, flags)
+        return _core.topology_export_xmlbuffer(self.native_handle, flags)
 
     def export_xml_file(
         self, path: os.PathLike | str, flags: ExportXmlFlags | int
     ) -> None:
         "See :py:func:`~pyhwloc.hwloc.core.topology_export_xml`."
         path = os.fspath(os.path.expanduser(path))
-        _core.topology_export_xml(self._hdl, path, flags)
+        _core.topology_export_xml(self.native_handle, path, flags)
 
     def export_synthetic(self, flags: ExportSyntheticFlags | int) -> str:
         "See :py:func:`~pyhwloc.hwloc.core.topology_export_synthetic`."
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
-        n_written = _core.topology_export_synthetic(self._hdl, buf, n_bytes, flags)
+        n_written = _core.topology_export_synthetic(
+            self.native_handle, buf, n_bytes, flags
+        )
         while n_written == n_bytes - 1:
             n_bytes = n_bytes * 2
             buf = ctypes.create_string_buffer(n_bytes)
-            n_written = _core.topology_export_synthetic(self._hdl, buf, n_bytes, flags)
+            n_written = _core.topology_export_synthetic(
+                self.native_handle, buf, n_bytes, flags
+            )
             if n_bytes >= 8192:
                 raise RuntimeError("Failed to export synthetic.")
         assert buf.value is not None
@@ -296,25 +310,53 @@ class Topology:
         """Check if topology represents the current system."""
         if not self.is_loaded:
             return False
-        return _core.topology_is_thissystem(self._hdl)
+        return _core.topology_is_thissystem(self.native_handle)
+
+    def get_support(self) -> Any:
+        """See :py:func:`pyhwloc.hwloc.core.topology_get_support`.
+
+        Returns
+        -------
+        A namedtuple with the same structure as :c:struct:`hwloc_topology_support`.
+        """
+        support = _core.topology_get_support(self.native_handle).contents
+        result: dict[str, dict[str, bool]] = {}
+        for k, v in support._fields_:  # type: ignore
+            result[k] = {}
+            v0 = getattr(support, k)
+            if v0:
+                for k1, _ in v0.contents._fields_:
+                    v1 = getattr(v0.contents, k1)
+                    assert v1 in (0, 1)
+                    result[k][k1] = bool(v1)
+
+        TS = namedtuple("TopologySupport", list(result.keys()))  # type: ignore
+
+        def create_child(name: str, d: dict) -> Any:
+            Typ = namedtuple(name.capitalize() + "Support", d.keys())  # type: ignore
+            v = Typ(**d)
+            return v
+
+        tran = {k: create_child(k, v) for k, v in result.items()}
+
+        sup = TS(**tran)
+        return sup
 
     @property
     def depth(self) -> int:
         """Get the depth of the topology tree."""
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
-        return _core.topology_get_depth(self._hdl)
+        return _core.topology_get_depth(self.native_handle)
 
     def destroy(self) -> None:
         """Explicitly destroy the topology and free resources."""
         if hasattr(self, "_hdl"):
-            _core.topology_destroy(self._hdl)
+            _core.topology_destroy(self.native_handle)
             self._loaded = False
             del self._hdl
 
     def __enter__(self) -> Topology:
         if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
+            self.load()
         return self
 
     def __exit__(
@@ -332,7 +374,7 @@ class Topology:
             logging.warning(str(e))
 
     def __copy__(self) -> Topology:
-        new = _core.topology_dup(self._hdl)
+        new = _core.topology_dup(self.native_handle)
         return Topology.from_native_handle(new, loaded=True)
 
     def __deepcopy__(self, memo: dict) -> Topology:
@@ -340,9 +382,6 @@ class Topology:
 
     def __getstate__(self) -> dict:
         """Serialize topology state for pickling using XML export."""
-        if not self.is_loaded:
-            raise RuntimeError("Cannot pickle unloaded topology")
-
         # Export topology to XML for serialization
         xml_buffer = self.export_xml_buffer(0)  # Use default flags
         return {"xml_buffer": xml_buffer}
@@ -360,9 +399,10 @@ class Topology:
         self, fn: Callable, type_filter: TypeFilter
     ) -> "Topology":
         # If we don't raise here, hwloc returns EBUSY: Device or resource busy, which is
-        # not really helpfu.
+        # not really helpful.
         if self.is_loaded:
             raise RuntimeError("Cannot set filter after topology is loaded")
+        # Unchecked access to handle as we haven't loaded the topo yet.
         fn(self._hdl, type_filter)
         return self
 
@@ -386,31 +426,93 @@ class Topology:
             _core.topology_set_icache_types_filter, type_filter
         )
 
-    def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
-        """Get the number of objects of a specific type in the topology.
+    def get_obj_by_depth(self, depth: int, idx: int) -> Object | None:
+        """Get object at specific depth and index.
+
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+        idx
+            Index of object at that depth
+
+        Returns
+        -------
+        Object instance or None if not found
+        """
+        ptr = _core.get_obj_by_depth(self.native_handle, depth, idx)
+        return Object(ptr, weakref.ref(self)) if ptr else None
+
+    def get_root_obj(self) -> Object:
+        """Get the root object."""
+        return Object(_core.get_root_obj(self.native_handle), weakref.ref(self))
+
+    def get_obj_by_type(self, obj_type: ObjType, idx: int) -> Object | None:
+        """Get object by type and index.
 
         Parameters
         ----------
         obj_type
-            The object type to count.
+            Type of object to find
+        idx
+            Index of object of that type
 
         Returns
         -------
-        Number of objects of the specified type
-
-        Examples
-        --------
-        .. code-block::
-
-            with Topology() as topo:
-                n_cpus = topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
-                n_cores = topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE)
-                print(f"CPUs: {n_cpus}, Cores: {n_cores}")
+        Object instance or None if not found
         """
-        if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
+        ptr = _core.get_obj_by_type(self.native_handle, obj_type, idx)
+        return Object(ptr, weakref.ref(self)) if ptr else None
 
-        return _core.get_nbobjs_by_type(self._hdl, ObjType(obj_type))
+    def get_nbobjs_by_depth(self, depth: int) -> int:
+        """Get number of objects at specific depth.
+
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+
+        Returns
+        -------
+        Number of objects at that depth
+        """
+        return _core.get_nbobjs_by_depth(self.native_handle, depth)
+
+    def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
+        """Get number of objects of specific type.
+
+        Parameters
+        ----------
+        obj_type
+            Type of object to count
+
+        Returns
+        -------
+        Number of objects of that type
+        """
+        return _core.get_nbobjs_by_type(self.native_handle, obj_type)
+
+    def iter_objects_by_depth(self, depth: int) -> Iterator[Object]:
+        """Iterate over all objects at specific depth.
+
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+
+        Yields
+        ------
+        Object instances at that depth
+
+        """
+        prev = None
+        while True:
+            ptr = _core.get_next_obj_by_depth(self.native_handle, depth, prev)
+            if ptr is None:
+                break
+            obj = Object(ptr, weakref.ref(self))
+            yield obj
+            prev = ptr
 
     @property
     def n_cores(self) -> int:
@@ -421,6 +523,90 @@ class Topology:
         Number of core objects in the topology
         """
         return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE)
+
+    def iter_objects_by_type(self, obj_type: ObjType) -> Iterator[Object]:
+        """Iterate over all objects of specific type.
+
+        Parameters
+        ----------
+        obj_type
+            Type of object to iterate
+
+        Yields
+        ------
+        Object instances of that type
+        """
+        prev = None
+        while True:
+            ptr = _core.get_next_obj_by_type(self.native_handle, obj_type, prev)
+            if ptr is None:
+                break
+            obj = Object(ptr, weakref.ref(self))
+            yield obj
+            prev = ptr
+
+    def iter_all_breadth_first(self) -> Iterator[Object]:
+        """Iterate over all objects in the topology.
+
+        Yields
+        ------
+        All object instances in breadth first order.
+        """
+        for depth in range(self.depth):
+            for obj in self.iter_objects_by_depth(depth):
+                yield obj
+
+    # We can implement pre/in/post-order traversal if needed.
+
+    def get_depth_type(self, depth: int) -> ObjType:
+        """Get the object type at specific depth.
+
+        Parameters
+        ----------
+        depth
+            Depth level in topology tree
+
+        Returns
+        -------
+        Object type at that depth
+        """
+        return _core.get_depth_type(self.native_handle, depth)
+
+    def iter_cpus(self) -> Iterator[Object]:
+        """Iterate over all processing units (CPUs).
+
+        Yields
+        ------
+        All PU (processing unit) object instances
+        """
+        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_PU)
+
+    def iter_cores(self) -> Iterator[Object]:
+        """Iterate over all cores.
+
+        Yields
+        ------
+        All core object instances
+        """
+        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_CORE)
+
+    def iter_numa_nodes(self) -> Iterator[Object]:
+        """Iterate over all NUMA nodes.
+
+        Yields
+        ------
+        All NUMA node object instances
+        """
+        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_NUMANODE)
+
+    def iter_packages(self) -> Iterator[Object]:
+        """Iterate over all packages (sockets).
+
+        Yields
+        ------
+        All package object instances
+        """
+        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_PACKAGE)
 
     @property
     def n_cpus(self) -> int:
@@ -471,3 +657,22 @@ class Topology:
         Number of OS device objects in the topology
         """
         return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE)
+
+    def is_in_subtree(self, obj: Object, subtree_root: Object) -> bool:
+        """Check if this object is in the subtree of another object.
+
+        Parameters
+        ----------
+        obj :
+            The object to check.
+        subtree_root :
+            Root object of the subtree to check
+
+        Returns
+        -------
+        True if this object is in the subtree.
+        """
+
+        return _core.obj_is_in_subtree(
+            self.native_handle, obj.native_handle, subtree_root.native_handle
+        )
