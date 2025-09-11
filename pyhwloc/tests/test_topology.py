@@ -204,7 +204,6 @@ def test_pickle_foreign() -> None:
 
 
 def test_pickle_unloaded_topology() -> None:
-    """Test that pickling an unloaded topology raises an error."""
     topo = Topology()
     topo.destroy()  # Make it unloaded
 
@@ -268,7 +267,6 @@ def test_get_nbobjs_by_type_with_filter() -> None:
 
 
 def test_object_iteration() -> None:
-    """Test topology object iteration methods."""
     desc = "node:2 core:2 pu:2"
 
     with Topology.from_synthetic(desc) as topo:

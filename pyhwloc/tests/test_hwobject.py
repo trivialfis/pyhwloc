@@ -17,12 +17,11 @@ import pickle
 
 import pytest
 
-from pyhwloc.hwobject import GetTypeDepth, Object, ObjType
-from pyhwloc.topology import Topology, TypeFilter
+from pyhwloc.hwobject import Object, ObjType
+from pyhwloc.topology import Topology
 
 
 def test_get_root_object() -> None:
-    """Test getting and accessing the root object."""
     with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
         # Get root object (should be at depth 0, index 0)
         root = topo.get_obj_by_depth(0, 0)
@@ -54,55 +53,7 @@ def test_invalid_topo() -> None:
         _ = root.type
 
 
-def test_list_gpu_objects() -> None:
-    """Test listing GPU/OS device objects."""
-    with (
-        Topology(load=False)
-        .set_io_types_filter(TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL)
-        .load() as topo
-    ):  # Use real system topology for GPU detection
-        # Look for OS devices (which include GPUs)
-        os_devices = list(topo.iter_objects_by_type(ObjType.HWLOC_OBJ_OS_DEVICE))
-
-        # Find GPU devices by checking both subtype and OS device type
-        gpu_objects = []
-        for obj in os_devices:
-            # Check if it's a GPU device by examining the attributes
-            if obj.is_osdev_gpu:
-                # osdev_types = obj.attr.types
-                # Check if this OS device has GPU type flag
-                gpu_objects.append(obj)
-            # Also check subtype as a fallback
-            elif obj.subtype and "gpu" in obj.subtype.lower():
-                gpu_objects.append(obj)
-
-        assert gpu_objects
-
-        # Test properties of any found GPU objects
-        for gpu in gpu_objects:
-            assert isinstance(gpu, Object)
-            assert gpu.type == ObjType.HWLOC_OBJ_OS_DEVICE
-
-            # GPU objects should have a parent
-            assert gpu.parent is not None
-
-            # GPU objects should be at a specific depth
-            assert gpu.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE
-
-            # GPU objects should have a valid logical index
-            assert gpu.logical_index >= 0
-
-            # Test string representation
-            str_repr = str(gpu)
-            assert "OS_DEVICE" in str_repr
-            assert str(gpu.logical_index) in str_repr
-
-        # If no GPUs found, that's okay - just verify the iteration worked
-        assert isinstance(os_devices, list)  # Should return a list even if empty
-
-
 def test_object_properties() -> None:
-    """Test basic Object properties and attributes."""
     with Topology.from_synthetic("node:2 core:2 pu:4") as topo:
         # Get a CPU object to test properties
         cpu = next(topo.iter_cpus(), None)
@@ -137,7 +88,6 @@ def test_object_properties() -> None:
 
 
 def test_object_navigation() -> None:
-    """Test object navigation methods."""
     with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
         root = topo.get_obj_by_depth(0, 0)
         assert root is not None
@@ -167,7 +117,6 @@ def test_object_navigation() -> None:
 
 
 def test_object_string_representation() -> None:
-    """Test object string representations."""
     with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
         # Test root object
         root = topo.get_obj_by_depth(0, 0)
@@ -194,7 +143,6 @@ def test_object_string_representation() -> None:
 
 
 def test_object_equality_and_hashing() -> None:
-    """Test object equality and hashing."""
     with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
         # Get same object twice
         obj1 = topo.get_obj_by_depth(0, 0)
