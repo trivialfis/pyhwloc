@@ -36,6 +36,7 @@ class Bitmap:
 
     def __init__(self) -> None:
         self._hdl = _bitmap.bitmap_alloc()
+        self._own = True
         _bitmap.bitmap_zero(self._hdl)
 
     @property
@@ -44,7 +45,7 @@ class Bitmap:
 
     def __del__(self) -> None:
         """Free the underlying bitmap."""
-        if hasattr(self, "_hdl") and self._hdl:
+        if hasattr(self, "_hdl") and self._hdl and self._own:
             _bitmap.bitmap_free(self._hdl)
 
     @classmethod
@@ -100,10 +101,11 @@ class Bitmap:
         return bitmap
 
     @classmethod
-    def from_native_handle(cls, hdl: _bitmap.bitmap_t) -> Bitmap:
+    def from_native_handle(cls, hdl: _bitmap.bitmap_t, own: bool = True) -> Bitmap:
         bitmap = cls.__new__(cls)
         assert not hasattr(bitmap, "_hdl")
         bitmap._hdl = hdl
+        bitmap._own = own
         return bitmap
 
     def __copy__(self) -> Bitmap:

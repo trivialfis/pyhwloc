@@ -26,8 +26,8 @@ import ctypes
 import weakref
 from typing import TYPE_CHECKING, Iterator
 
+from .bitmap import Bitmap
 from .hwloc import core as _core
-from .hwloc.bitmap import bitmap_t
 
 if TYPE_CHECKING:
     from .topology import Topology
@@ -307,24 +307,36 @@ class Object:
         return None
 
     @property
-    def cpuset(self) -> bitmap_t | None:
+    def cpuset(self) -> Bitmap | None:
         """CPUs covered by this object."""
-        return self.native_handle.contents.cpuset
+        cpuset = self.native_handle.contents.cpuset
+        return Bitmap.from_native_handle(cpuset, own=False) if cpuset else None
 
     @property
-    def complete_cpuset(self) -> bitmap_t | None:
+    def complete_cpuset(self) -> Bitmap | None:
         """The complete CPU set of processors of this object."""
-        return self.native_handle.contents.complete_cpuset
+        complete_cpuset = self.native_handle.contents.complete_cpuset
+        return (
+            Bitmap.from_native_handle(complete_cpuset, own=False)
+            if complete_cpuset
+            else None
+        )
 
     @property
-    def nodeset(self) -> bitmap_t | None:
+    def nodeset(self) -> Bitmap | None:
         """NUMA nodes covered by this object or containing this object."""
-        return self.native_handle.contents.nodeset
+        nodeset = self.native_handle.contents.nodeset
+        return Bitmap.from_native_handle(nodeset, own=False) if nodeset else None
 
     @property
-    def complete_nodeset(self) -> bitmap_t | None:
+    def complete_nodeset(self) -> Bitmap | None:
         """The complete NUMA node set of this object."""
-        return self.native_handle.contents.complete_nodeset
+        complete_nodeset = self.native_handle.contents.complete_nodeset
+        return (
+            Bitmap.from_native_handle(complete_nodeset, own=False)
+            if complete_nodeset
+            else None
+        )
 
     # struct hwloc_infos_s infos
     # void *userdata

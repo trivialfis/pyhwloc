@@ -70,7 +70,6 @@ def test_list_gpu_objects() -> None:
             # Check if it's a GPU device by examining the attributes
             if obj.is_osdev_gpu:
                 # osdev_types = obj.attr.types
-                print(obj.attr_str())
                 # Check if this OS device has GPU type flag
                 gpu_objects.append(obj)
             # Also check subtype as a fallback

@@ -311,6 +311,20 @@ class Topology:
             return False
         return _core.topology_is_thissystem(self.native_handle)
 
+    def get_support(self) -> dict[str, dict[str, bool]]:
+        """See :py:func:`pyhwloc.hwloc.core.topology_get_support`."""
+        support = _core.topology_get_support(self.native_handle).contents
+        result: dict[str, dict[str, bool]] = {}
+        for k, v in support._fields_:  # type: ignore
+            result[k] = {}
+            v0 = getattr(support, k)
+            if v0:
+                for k1, _ in v0.contents._fields_:
+                    v1 = getattr(v0.contents, k1)
+                    assert v1 in (0, 1)
+                    result[k][k1] = bool(v1)
+        return result
+
     @property
     def depth(self) -> int:
         """Get the depth of the topology tree."""

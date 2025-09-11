@@ -213,6 +213,12 @@ def test_pickle_unloaded_topology() -> None:
         pickle.dumps(topo)
 
 
+def test_get_support() -> None:
+    with Topology() as topo:
+        sup = topo.get_support()
+        sup["membind"]["bind_membind"]
+
+
 def test_get_nbobjs_by_type() -> None:
     with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
         # Should have exactly:
