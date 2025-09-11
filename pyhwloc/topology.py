@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 """
 The Topology Interface
 ======================
@@ -25,11 +24,16 @@ import os
 import weakref
 from collections import namedtuple
 from types import TracebackType
-from typing import Any, Callable, Iterator, Type, TypeAlias
+from typing import TYPE_CHECKING, Any, Callable, Iterator, Sequence, Type, TypeAlias
 
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object, ObjType
+
+# Distance-related imports (lazy import to avoid circular dependencies)
+if TYPE_CHECKING:
+    from .distance import Distance
+    from .distance import Kind as DistanceKind
 
 __all__ = [
     "Topology",
@@ -657,3 +661,299 @@ class Topology:
         Number of OS device objects in the topology
         """
         return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE)
+
+    # Distance Methods
+
+    def get_distances(self, kind: DistanceKind | None = None) -> list[Distance]:
+        """Get all distance matrices in the topology.
+
+        Parameters
+        ----------
+        kind : DistanceKind, optional
+            Filter by specific distance kind (latency, bandwidth, etc.)
+            If None, returns all distance matrices
+
+        Returns
+        -------
+        list[Distance]
+            List of distance matrices
+
+        Examples
+        --------
+        >>> with Topology.from_synthetic("node:2 core:2") as topo:
+        ...     distances = topo.get_distances()
+        ...     for matrix in distances:
+        ...         print(f"Distance matrix: {matrix.name}")
+        """
+        from .distance import Distance
+
+        # Get count first
+        nr = ctypes.c_uint(0)
+        distances_ptr = ctypes.POINTER(_core.hwloc_distances_s)()
+
+        # Set kind filter
+        kind_value = int(kind) if kind is not None else 0
+
+        _core.distances_get(
+            self.native_handle,
+            ctypes.byref(nr),
+            ctypes.byref(distances_ptr),
+            kind_value,
+        )
+
+        # Create Distance objects
+        result = []
+        for i in range(nr.value):
+            dist_handle = distances_ptr[i]
+            result.append(Distance(dist_handle, weakref.ref(self)))
+
+        return result
+
+        try:
+            pass
+
+        except Exception:
+            # Clean up on error
+            if distances_ptr and nr.value > 0:
+                for i in range(nr.value):
+                    if distances_ptr[i]:
+                        _core.distances_release(self.native_handle, distances_ptr[i])
+            raise
+
+    def get_distances_by_depth(
+        self, depth: int, kind: DistanceKind | None = None
+    ) -> list[Distance]:
+        """Get distance matrices for objects at specific depth.
+
+        Parameters
+        ----------
+        depth : int
+            Depth level in topology tree
+        kind : DistanceKind, optional
+            Filter by specific distance kind
+
+        Returns
+        -------
+        list[Distance]
+            List of distance matrices for objects at the specified depth
+        """
+        from .distance import Distance
+
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        nr = ctypes.c_uint(0)
+        distances_ptr = ctypes.POINTER(_core.hwloc_distances_s)()
+        kind_value = int(kind) if kind is not None else 0
+
+        try:
+            _core.distances_get_by_depth(
+                self.native_handle,
+                depth,
+                ctypes.byref(nr),
+                ctypes.byref(distances_ptr),
+                kind_value,
+                0,  # flags
+            )
+
+            result = []
+            for i in range(nr.value):
+                dist_handle = distances_ptr[i]
+                result.append(Distance(dist_handle, weakref.ref(self)))
+
+            return result
+
+        except Exception:
+            if distances_ptr and nr.value > 0:
+                for i in range(nr.value):
+                    if distances_ptr[i]:
+                        _core.distances_release(self.native_handle, distances_ptr[i])
+            raise
+
+    def get_distances_by_type(
+        self, obj_type: ObjType, kind: DistanceKind | None = None
+    ) -> list[Distance]:
+        """Get distance matrices for specific object type.
+
+        Parameters
+        ----------
+        obj_type : ObjType
+            Type of objects to get distances for
+        kind : DistanceKind, optional
+            Filter by specific distance kind
+
+        Returns
+        -------
+        list[Distance]
+            List of distance matrices for objects of the specified type
+        """
+        from .distance import Distance
+
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        nr = ctypes.c_uint(0)
+        distances_ptr = ctypes.POINTER(_core.hwloc_distances_s)()
+        kind_value = int(kind) if kind is not None else 0
+
+        try:
+            _core.distances_get_by_type(
+                self.native_handle,
+                obj_type,
+                ctypes.byref(nr),
+                ctypes.byref(distances_ptr),
+                kind_value,
+            )
+
+            result = []
+            for i in range(nr.value):
+                dist_handle = distances_ptr[i]
+                result.append(Distance(dist_handle, weakref.ref(self)))
+
+            return result
+
+        except Exception:
+            if distances_ptr and nr.value > 0:
+                for i in range(nr.value):
+                    if distances_ptr[i]:
+                        _core.distances_release(self.native_handle, distances_ptr[i])
+            raise
+
+    def get_distances_by_name(self, name: str) -> Distance | None:
+        """Get distance matrix by name.
+
+        Parameters
+        ----------
+        name : str
+            Name of the distance matrix to retrieve
+
+        Returns
+        -------
+        Distance | None
+            Distance matrix with the specified name, or None if not found
+        """
+        from .distance import Distance
+
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        nr = ctypes.c_uint(0)
+        distances_ptr = ctypes.POINTER(_core.hwloc_distances_s)()
+
+        try:
+            _core.distances_get_by_name(
+                self.native_handle,
+                name.encode("utf-8"),
+                ctypes.byref(nr),
+                ctypes.byref(distances_ptr),
+                0,  # flags
+            )
+
+            if nr.value > 0:
+                # Return the first match
+                dist_handle = distances_ptr[0]
+                result = Distance(dist_handle, weakref.ref(self))
+
+                # Release any additional matches
+                for i in range(1, nr.value):
+                    if distances_ptr[i]:
+                        _core.distances_release(self.native_handle, distances_ptr[i])
+
+                return result
+
+            return None
+
+        except Exception:
+            if distances_ptr and nr.value > 0:
+                for i in range(nr.value):
+                    if distances_ptr[i]:
+                        _core.distances_release(self.native_handle, distances_ptr[i])
+            raise
+
+    def add_distances(
+        self,
+        objects: Sequence[Object],
+        values: Sequence[float],
+        kind: DistanceKind,
+        name: str = "",
+    ) -> None:
+        """Add custom distance matrix to topology.
+
+        Parameters
+        ----------
+        objects : Sequence[Object]
+            List of objects for the distance matrix
+        values : Sequence[float]
+            Distance values in row-major order (len = nbobjs * nbobjs)
+        kind : DistanceKind
+            Kind of distance (latency, bandwidth, etc.)
+        name : str, optional
+            Name for the distance matrix
+
+        Raises
+        ------
+        ValueError
+            If values length doesn't match objects count squared
+        RuntimeError
+            If topology is not loaded or operation fails
+        """
+        from .distance import AddFlag
+        from .distance import Kind as DistanceKind
+
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+
+        nbobjs = len(objects)
+        expected_values = nbobjs * nbobjs
+        if len(values) != expected_values:
+            raise ValueError(
+                f"Expected {expected_values} values for {nbobjs} objects, got {len(values)}"
+            )
+
+        # Create distance handle
+        handle = _core.distances_add_create(self.native_handle, name, kind)
+        if not handle:
+            raise RuntimeError("Failed to create distance handle")
+
+        try:
+            # Convert objects to object pointers array
+            obj_array = (_core.obj_t * nbobjs)()
+            for i, obj in enumerate(objects):
+                obj_array[i] = obj.native_handle
+
+            # Convert values to uint64 array
+            values_array = (_core.hwloc_uint64_t * expected_values)()
+            for i, val in enumerate(values):
+                values_array[i] = int(val)
+
+            # Add values to the handle
+            _core.distances_add_values(
+                self.native_handle, handle, nbobjs, obj_array, values_array
+            )
+
+            # Commit the distances
+            _core.distances_add_commit(
+                self.native_handle, handle, AddFlag.HWLOC_DISTANCES_ADD_FLAG_GROUP
+            )
+
+        except Exception:
+            # Handle cleanup is automatic on failure
+            raise
+
+    def remove_distances(self) -> None:
+        """Remove all distance matrices from topology."""
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+        _core.distances_remove(self.native_handle)
+
+    def remove_distances_by_depth(self, depth: int) -> None:
+        """Remove distance matrices for objects at specific depth."""
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+        _core.distances_remove_by_depth(self.native_handle, depth)
+
+    def remove_distances_by_type(self, obj_type: ObjType) -> None:
+        """Remove distance matrices for specific object type."""
+        if not self.is_loaded:
+            raise RuntimeError("Topology is not loaded")
+        _core.distances_remove_by_type(self.native_handle, obj_type)

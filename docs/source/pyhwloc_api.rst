@@ -27,3 +27,6 @@ This page provides the reference of the high-level interface.
 
 .. automodule:: pyhwloc.hwobject
   :members:
+
+.. automodule:: pyhwloc.distance
+  :members:
