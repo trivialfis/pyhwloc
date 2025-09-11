@@ -9,7 +9,7 @@ dependencies:
 - cuda-cudart-dev
 - cuda-nvml-dev
 - cuda-nvcc
-- cuda-version=13.0
+- cuda-version=12.8
 - make
 - sysroot_linux-64==2.28
 # python local
