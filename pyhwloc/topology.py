@@ -23,8 +23,9 @@ import ctypes
 import logging
 import os
 import weakref
+from collections import namedtuple
 from types import TracebackType
-from typing import Callable, Iterator, Type, TypeAlias
+from typing import Any, Callable, Iterator, Type, TypeAlias
 
 from .hwloc import core as _core
 from .hwloc import lib as _lib
@@ -311,8 +312,13 @@ class Topology:
             return False
         return _core.topology_is_thissystem(self.native_handle)
 
-    def get_support(self) -> dict[str, dict[str, bool]]:
-        """See :py:func:`pyhwloc.hwloc.core.topology_get_support`."""
+    def get_support(self) -> Any:
+        """See :py:func:`pyhwloc.hwloc.core.topology_get_support`.
+
+        Returns
+        -------
+        A namedtuple with the same structure as :c:struct:`hwloc_topology_support`.
+        """
         support = _core.topology_get_support(self.native_handle).contents
         result: dict[str, dict[str, bool]] = {}
         for k, v in support._fields_:  # type: ignore
@@ -323,7 +329,18 @@ class Topology:
                     v1 = getattr(v0.contents, k1)
                     assert v1 in (0, 1)
                     result[k][k1] = bool(v1)
-        return result
+
+        TS = namedtuple("TopologySupport", list(result.keys()))  # type: ignore
+
+        def create_child(name: str, d: dict) -> Any:
+            Typ = namedtuple(name.capitalize() + "Support", d.keys())  # type: ignore
+            v = Typ(**d)
+            return v
+
+        tran = {k: create_child(k, v) for k, v in result.items()}
+
+        sup = TS(**tran)
+        return sup
 
     @property
     def depth(self) -> int:

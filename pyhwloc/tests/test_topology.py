@@ -216,7 +216,7 @@ def test_pickle_unloaded_topology() -> None:
 def test_get_support() -> None:
     with Topology() as topo:
         sup = topo.get_support()
-        sup["membind"]["bind_membind"]
+        sup.membind.bind_membind
 
 
 def test_get_nbobjs_by_type() -> None:
