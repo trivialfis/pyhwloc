@@ -5,6 +5,7 @@ channels:
 dependencies:
 # hwloc
 - libtool
+- automake
 - autoconf
 # pyhwloc
 - c-compiler
