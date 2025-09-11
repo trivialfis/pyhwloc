@@ -2676,7 +2676,10 @@ _LIB.hwloc_distances_get.restype = ctypes.c_int
 if TYPE_CHECKING:
     DistancesPtr = ctypes._Pointer[hwloc_distances_s]
     DistancesPtrPtr = (
-        ctypes._Pointer[ctypes._Pointer[hwloc_distances_s]] | ctypes._CArgObject
+        ctypes._Pointer[ctypes._Pointer[hwloc_distances_s]]
+        | ctypes._CArgObject
+        | ctypes.Array[ctypes._Pointer[hwloc_distances_s]]
+        | None
     )
     UintPtr = ctypes._Pointer[ctypes.c_uint] | ctypes._CArgObject
 else:

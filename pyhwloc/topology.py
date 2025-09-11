@@ -149,7 +149,6 @@ class Topology:
         topo = cls.__new__(cls)
         topo._hdl = hdl
         topo._loaded = loaded
-        topo.check()
         return topo
 
     @classmethod
@@ -664,7 +663,7 @@ class Topology:
 
     # Distance Methods
 
-    def get_distances(self, kind: DistanceKind | None = None) -> list[Distance]:
+    def get_distances(self, kind: int = 0) -> list[Distance]:
         """Get all distance matrices in the topology.
 
         Parameters
@@ -689,36 +688,31 @@ class Topology:
 
         # Get count first
         nr = ctypes.c_uint(0)
-        distances_ptr = ctypes.POINTER(_core.hwloc_distances_s)()
-
-        # Set kind filter
-        kind_value = int(kind) if kind is not None else 0
+        result: list[Distance] = []
 
         _core.distances_get(
             self.native_handle,
             ctypes.byref(nr),
-            ctypes.byref(distances_ptr),
-            kind_value,
+            None,
+            int(kind),
+        )
+        distances_ptr_ptr = (ctypes.POINTER(_core.hwloc_distances_s) * nr.value)()
+        if nr.value == 0:
+            return result
+
+        _core.distances_get(
+            self.native_handle,
+            ctypes.byref(nr),
+            distances_ptr_ptr,
+            int(kind),
         )
 
         # Create Distance objects
-        result = []
         for i in range(nr.value):
-            dist_handle = distances_ptr[i]
+            dist_handle = distances_ptr_ptr[i]
             result.append(Distance(dist_handle, weakref.ref(self)))
 
         return result
-
-        try:
-            pass
-
-        except Exception:
-            # Clean up on error
-            if distances_ptr and nr.value > 0:
-                for i in range(nr.value):
-                    if distances_ptr[i]:
-                        _core.distances_release(self.native_handle, distances_ptr[i])
-            raise
 
     def get_distances_by_depth(
         self, depth: int, kind: DistanceKind | None = None

@@ -101,6 +101,14 @@ class Distance:
         assert self._hdl
         return self._hdl
 
+    @property
+    def _topo(self) -> "Topology":
+        if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
+            raise RuntimeError("Topology is invalid")
+        v = self._topo_ref()
+        assert v is not None
+        return v
+
     # Core Properties
     @property
     def objects(self) -> list[Object]:
@@ -129,6 +137,8 @@ class Distance:
     @property
     def kind(self) -> Kind:
         """Kind of distance (latency, bandwidth, hops, etc.)."""
+        assert False, "kind is or'd"
+        return self.native_handle.contents.kind
         return Kind(self.native_handle.contents.kind)
 
     @property
@@ -219,37 +229,13 @@ class Distance:
         """Number of objects in the distance matrix."""
         return self.nbobjs
 
-    # Context Manager
-    def __enter__(self) -> Distance:
-        """Enter context manager."""
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: object,
-    ) -> None:
-        """Exit context manager and cleanup resources."""
-        self.release()
-
-    # String Representation
     def __str__(self) -> str:
-        """Human-readable string representation."""
-        try:
-            # Use properties which call native_handle for validation
-            name = self.name or "<unnamed>"
-            return f"Distance matrix '{name}' ({self.nbobjs} objects, kind={self.kind.name})"
-        except RuntimeError:
-            return "Distance matrix <released>"
+        name = self.name or "<unnamed>"
+        return f"Distance matrix '{name}' ({self.nbobjs} objects, kind={self.kind})"
 
     def __repr__(self) -> str:
         """Developer-friendly string representation."""
-        try:
-            # Use properties which call native_handle for validation
-            return f"Distance(nbobjs={self.nbobjs}, kind={self.kind.name}, name={self.name!r})"
-        except RuntimeError:
-            return "Distance(<released>)"
+        return f"Distance(nbobjs={self.nbobjs}, kind={self.kind}, name={self.name!r})"
 
     # Comparison and Equality
     def __eq__(self, other: object) -> bool:
@@ -335,11 +321,16 @@ class Distance:
         nbobjs = self.nbobjs  # This already uses native_handle
         return (nbobjs, nbobjs)
 
-    # Memory Management and Validation
     def release(self) -> None:
-        """Release the distance matrix resources."""
-        if self._hdl:
-            topology = self._topo_ref()
-            if topology is not None:
-                _core.distances_release(topology.native_handle, self._hdl)
-                del self._hdl
+        if hasattr(self, "_hdl"):
+            # fixme: what do we do if the topo is expired?
+            # topo is not used in the release call (used by the release_remove, though).
+            _core.distances_release(None, self._hdl)
+            del self._hdl
+
+    def __copy__(self) -> Distance:
+        # There can be only a single owner for the underlying handle.
+        raise RuntimeError("The Distance class cannot be copied.")
+
+    def __deepcopy__(self, memo: dict) -> Distance:
+        raise RuntimeError("The Distance class cannot be copied.")
