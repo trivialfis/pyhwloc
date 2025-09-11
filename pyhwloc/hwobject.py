@@ -67,6 +67,14 @@ class Object:
         return self._hdl
 
     @property
+    def _topo(self) -> "Topology":
+        if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
+            raise RuntimeError("Topology is invalid")
+        v = self._topo_ref()
+        assert v is not None
+        return v
+
+    @property
     def type(self) -> ObjType:
         """Type of object."""
         return ObjType(self.native_handle.contents.type)
@@ -101,20 +109,6 @@ class Object:
         return self.type == ObjType.HWLOC_OBJ_NUMANODE
 
     @property
-    def is_cache(self) -> bool:
-        return self.type in (
-            ObjType.HWLOC_OBJ_L1CACHE,
-            ObjType.HWLOC_OBJ_L2CACHE,
-            ObjType.HWLOC_OBJ_L3CACHE,
-            ObjType.HWLOC_OBJ_L4CACHE,
-            ObjType.HWLOC_OBJ_L5CACHE,
-            ObjType.HWLOC_OBJ_L1ICACHE,
-            ObjType.HWLOC_OBJ_L2ICACHE,
-            ObjType.HWLOC_OBJ_L3ICACHE,
-            ObjType.HWLOC_OBJ_MEMCACHE,
-        )
-
-    @property
     def is_group(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_GROUP
 
@@ -144,30 +138,53 @@ class Object:
     def is_osdev_gpu(self) -> bool:
         return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_GPU)
 
+    # Kinds of object Type
+    @property
+    def is_normal(self) -> bool:
+        """Check if this object type is normal (not I/O or Memory)."""
+        return _core.obj_type_is_normal(self.type)
+
+    @property
+    def is_io(self) -> bool:
+        """Check if this object type is an I/O object."""
+        return _core.obj_type_is_io(self.type)
+
+    @property
+    def is_memory(self) -> bool:
+        """Check if this object type is a memory object."""
+        return _core.obj_type_is_memory(self.type)
+
+    @property
+    def is_cache(self) -> bool:
+        """Check if this object type is any kind of cache."""
+        return _core.obj_type_is_cache(self.type)
+
+    @property
+    def is_dcache(self) -> bool:
+        """Check if this object type is a data cache."""
+        return _core.obj_type_is_dcache(self.type)
+
+    @property
+    def is_icache(self) -> bool:
+        """Check if this object type is an instruction cache."""
+        return _core.obj_type_is_icache(self.type)
+
     @property
     def attr(self) -> ctypes.Structure | None:
-        typ = self.type
         attr = self.native_handle.contents.attr
         if not attr:
             return None
         # FIXME: Am I getting this right? I looked into the `hwloc_obj_attr_snprintf`
         # implementation, but it doesn't use the group. Also, if the bridge upstream is
         # HWLOC_OBJ_BRIDGE_PCI, this union can be converted to PCIe?
+        if self.is_cache:
+            return attr.contents.cache
+
+        typ = self.type
         match typ:
             case ObjType.HWLOC_OBJ_NUMANODE:
                 return attr.contents.numanode
-            case (
-                ObjType.HWLOC_OBJ_L1CACHE
-                | ObjType.HWLOC_OBJ_L2CACHE
-                | ObjType.HWLOC_OBJ_L3CACHE
-                | ObjType.HWLOC_OBJ_L4CACHE
-                | ObjType.HWLOC_OBJ_L5CACHE
-                | ObjType.HWLOC_OBJ_L1ICACHE
-                | ObjType.HWLOC_OBJ_L2ICACHE
-                | ObjType.HWLOC_OBJ_L3ICACHE
-                | ObjType.HWLOC_OBJ_MEMCACHE
-            ):
-                return attr.contents.cache
+            # cache has been handled
             case ObjType.HWLOC_OBJ_GROUP:
                 return attr.contents.group
             case ObjType.HWLOC_OBJ_PCI_DEVICE:
@@ -350,6 +367,7 @@ class Object:
         child = self.first_child
         while child:
             yield child
+            # fixme: Should we use `get_next_child` instead?
             child = child.next_sibling
 
     def iter_memory_children(self) -> Iterator[Object]:
@@ -400,6 +418,68 @@ class Object:
         Info value or None if not found
         """
         return _core.obj_get_info_by_name(self.native_handle, name)
+
+    # Looking at Ancestor and Child Objects
+
+    def common_ancestor_obj(self, other: Object) -> Object:
+        return Object(
+            _core.get_common_ancestor_obj(
+                self._topo.native_handle, self.native_handle, other.native_handle
+            ),
+            self._topo_ref,
+        )
+
+    def get_ancestor_obj_by_depth(self, depth: int) -> Object | None:
+        obj = _core.get_ancestor_obj_by_depth(
+            self._topo.native_handle, depth, self.native_handle
+        )
+        if obj is None:
+            return None
+        return Object(
+            obj,
+            self._topo_ref,
+        )
+
+    def get_ancestor_obj_by_type(self, obj_type: ObjType) -> Object | None:
+        """Get ancestor object by type.
+
+        Parameters
+        ----------
+        obj_type
+            Object type to search for
+
+        Returns
+        -------
+        Ancestor object of the given type, if any.
+        """
+        obj = _core.get_ancestor_obj_by_type(
+            self._topo.native_handle, obj_type, self.native_handle
+        )
+        if obj is None:
+            return None
+        return Object(
+            obj,
+            self._topo_ref,
+        )
+
+    def is_in_subtree(self, subtree_root: Object) -> bool:
+        """Check if this object is in the subtree of another object.
+
+        Parameters
+        ----------
+        subtree_root :
+            Root object of the subtree to check
+
+        Returns
+        -------
+        True if this object is in the subtree.
+        """
+
+        return _core.obj_is_in_subtree(
+            self._topo.native_handle, self.native_handle, subtree_root.native_handle
+        )
+
+    # End -- Looking at Ancestor and Child Objects
 
     def __str__(self) -> str:
         type_name = self.type.name.replace("HWLOC_OBJ_", "")

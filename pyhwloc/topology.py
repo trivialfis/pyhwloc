@@ -657,22 +657,3 @@ class Topology:
         Number of OS device objects in the topology
         """
         return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE)
-
-    def is_in_subtree(self, obj: Object, subtree_root: Object) -> bool:
-        """Check if this object is in the subtree of another object.
-
-        Parameters
-        ----------
-        obj :
-            The object to check.
-        subtree_root :
-            Root object of the subtree to check
-
-        Returns
-        -------
-        True if this object is in the subtree.
-        """
-
-        return _core.obj_is_in_subtree(
-            self.native_handle, obj.native_handle, subtree_root.native_handle
-        )
