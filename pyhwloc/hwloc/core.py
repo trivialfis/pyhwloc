@@ -2777,6 +2777,7 @@ _LIB.hwloc_distances_get_name.argtypes = [
 _LIB.hwloc_distances_get_name.restype = ctypes.c_char_p
 
 
+@_cfndoc
 def distances_get_name(topology: topology_t, distances: DistancesPtr) -> str | None:
     result = _LIB.hwloc_distances_get_name(topology, distances)
     if result:
@@ -2970,6 +2971,7 @@ _pyhwloc_lib.pyhwloc_distances_remove_by_type.argtypes = [topology_t, ctypes.c_i
 _pyhwloc_lib.pyhwloc_distances_remove_by_type.restype = ctypes.c_int
 
 
+@_cfndoc
 def distances_remove_by_type(topology: topology_t, obj_type: hwloc_obj_type_t) -> None:
     _checkc(_pyhwloc_lib.pyhwloc_distances_remove_by_type(topology, obj_type))
 
@@ -2981,6 +2983,7 @@ _LIB.hwloc_distances_release_remove.argtypes = [
 _LIB.hwloc_distances_release_remove.restype = ctypes.c_int
 
 
+@_cfndoc
 def distances_release_remove(topology: topology_t, distances: DistancesPtr) -> None:
     _checkc(_LIB.hwloc_distances_release_remove(topology, distances))
 
@@ -3070,6 +3073,7 @@ _LIB.hwloc_get_local_numanode_objs.argtypes = [
 _LIB.hwloc_get_local_numanode_objs.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_local_numanode_objs(
     topology: topology_t,
     location: LocationPtr,
@@ -3088,6 +3092,7 @@ _LIB.hwloc_topology_get_default_nodeset.argtypes = [
 _LIB.hwloc_topology_get_default_nodeset.restype = ctypes.c_int
 
 
+@_cfndoc
 def topology_get_default_nodeset(
     topology: topology_t, nodeset: hwloc_nodeset_t, flags: int
 ) -> None:
@@ -3160,6 +3165,7 @@ _LIB.hwloc_memattr_get_best_initiator.argtypes = [
 _LIB.hwloc_memattr_get_best_initiator.restype = ctypes.c_int
 
 
+@_cfndoc
 def memattr_get_best_initiator(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
@@ -3187,6 +3193,7 @@ _LIB.hwloc_memattr_get_targets.argtypes = [
 _LIB.hwloc_memattr_get_targets.restype = ctypes.c_int
 
 
+@_cfndoc
 def memattr_get_targets(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
@@ -3215,6 +3222,7 @@ _LIB.hwloc_memattr_get_initiators.argtypes = [
 _LIB.hwloc_memattr_get_initiators.restype = ctypes.c_int
 
 
+@_cfndoc
 def memattr_get_initiators(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
@@ -3440,6 +3448,7 @@ _LIB.hwloc_shmem_topology_get_length.argtypes = [
 _LIB.hwloc_shmem_topology_get_length.restype = ctypes.c_int
 
 
+@_cfndoc
 def shmem_topology_get_length(
     topology: topology_t,
 ) -> int:
@@ -3460,6 +3469,7 @@ _LIB.hwloc_shmem_topology_write.argtypes = [
 _LIB.hwloc_shmem_topology_write.restype = ctypes.c_int
 
 
+@_cfndoc
 def shmem_topology_write(
     topology: topology_t,
     fd: int,
@@ -3486,6 +3496,7 @@ _LIB.hwloc_shmem_topology_adopt.argtypes = [
 _LIB.hwloc_shmem_topology_adopt.restype = ctypes.c_int
 
 
+@_cfndoc
 def shmem_topology_adopt(
     topologyp: ctypes._Pointer,  # [topology_t]
     fd: int,

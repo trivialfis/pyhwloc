@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .hwloc import core as _core
+from typing import Callable, ParamSpec, TypeVar
+
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
 
 
-def get_api_version() -> tuple[int, int, int]:
-    v = _core.get_api_version()
-    major = v >> 16
-    minor = (v >> 8) & 0xFF
-    rev = v & 0xFF
-    return major, minor, rev
+def _reuse_doc(orig: Callable) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
+    def fn(fobj: Callable[_P, _R]) -> Callable[_P, _R]:
+        fobj.__doc__ = orig.__doc__
+        return fobj
+
+    return fn

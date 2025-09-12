@@ -24,7 +24,7 @@ import os
 import weakref
 from collections import namedtuple
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Sequence, Type, TypeAlias
+from typing import TYPE_CHECKING, Any, Callable, Iterator, Type, TypeAlias
 
 from .hwloc import core as _core
 from .hwloc import lib as _lib
@@ -33,7 +33,6 @@ from .hwobject import Object, ObjType
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
     from .distance import Distance
-    from .distance import Kind as DistanceKind
 
 __all__ = [
     "Topology",
@@ -663,26 +662,19 @@ class Topology:
 
     # Distance Methods
 
-    def get_distances(self, kind: int = 0) -> list[Distance]:
+    def get_distances(self, kind: int = 0) -> list["Distance"]:
         """Get all distance matrices in the topology.
 
         Parameters
         ----------
-        kind : DistanceKind, optional
-            Filter by specific distance kind (latency, bandwidth, etc.)
-            If None, returns all distance matrices
+        kind : DistanceKind
+            Filter by specific distance kind (latency, bandwidth, etc.)  If None,
+            returns all distance matrices
 
         Returns
         -------
-        list[Distance]
-            List of distance matrices
+        List of distance matrices
 
-        Examples
-        --------
-        >>> with Topology.from_synthetic("node:2 core:2") as topo:
-        ...     distances = topo.get_distances()
-        ...     for matrix in distances:
-        ...         print(f"Distance matrix: {matrix.name}")
         """
         from .distance import Distance
 
@@ -713,3 +705,11 @@ class Topology:
             result.append(Distance(dist_handle, weakref.ref(self)))
 
         return result
+
+
+def get_api_version() -> tuple[int, int, int]:
+    v = _core.get_api_version()
+    major = v >> 16
+    minor = (v >> 8) & 0xFF
+    rev = v & 0xFF
+    return major, minor, rev
