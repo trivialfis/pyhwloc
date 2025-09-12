@@ -125,36 +125,15 @@ class Distance:
             return hash(None)
         return hash(ctypes.addressof(self._hdl.contents))
 
+    @_reuse_doc(_core.distances_obj_pair_values)
     def get_distance(self, obj1: Object, obj2: Object) -> tuple[float, float]:
-        """Get bidirectional distance between two objects.
-
-        Parameters
-        ----------
-        obj1, obj2
-            Objects to get distance between
-
-        Returns
-        -------
-        Distance from obj1 to obj2, and obj2 to obj1
-        """
-        # fixme: check invalid object
         value1to2, value2to1 = _core.distances_obj_pair_values(
             self.native_handle, obj1.native_handle, obj2.native_handle
         )
         return float(value1to2), float(value2to1)
 
+    @_reuse_doc(_core.distances_obj_index)
     def find_object_index(self, obj: Object) -> int:
-        """Find index of object in distance matrix.
-
-        Parameters
-        ----------
-        obj
-            Object to find
-
-        Returns
-        -------
-        Index of object, or -1 if not found
-        """
         return _core.distances_obj_index(self.native_handle, obj.native_handle)
 
     @property

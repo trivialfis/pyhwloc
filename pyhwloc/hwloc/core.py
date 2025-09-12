@@ -2837,6 +2837,7 @@ _pyhwloc_lib.pyhwloc_distances_obj_index.restype = ctypes.c_int
 
 @_cfndoc
 def distances_obj_index(distances: DistancesPtr, obj: ObjPtr) -> int:
+    # Returns -1 if not found
     return _pyhwloc_lib.pyhwloc_distances_obj_index(distances, obj)
 
 
@@ -2858,11 +2859,12 @@ def distances_obj_pair_values(
 ) -> tuple[int, int]:
     value1to2 = ctypes.c_uint64(0)
     value2to1 = ctypes.c_uint64(0)
-    _checkc(
-        _pyhwloc_lib.pyhwloc_distances_obj_pair_values(
-            distances, obj1, obj2, ctypes.byref(value1to2), ctypes.byref(value2to1)
-        )
+    rc = _pyhwloc_lib.pyhwloc_distances_obj_pair_values(
+        distances, obj1, obj2, ctypes.byref(value1to2), ctypes.byref(value2to1)
     )
+    if rc == -1:
+        raise ValueError("obj1 or obj2 is not involved in the distances structure.")
+    _checkc(rc)
     return int(value1to2.value), int(value2to1.value)
 
 

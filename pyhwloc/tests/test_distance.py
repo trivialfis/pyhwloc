@@ -41,6 +41,19 @@ def test_distance_numa() -> None:
             assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_NUMANODE
             k += 1
         assert k == 2
+        v = dist.get_distance(dist.objects[0], dist.objects[1])
+        assert v[0] == v[1] == 21
+        v = dist.get_distance(dist.objects[0], dist.objects[0])
+        assert v[0] == v[1] == 10
+
+        idx = dist.find_object_index(dist.objects[1])
+        assert idx == 1
+
+        # Test with invalid objects.
+        root = topo.get_root_obj()
+        assert dist.find_object_index(root) == -1
+        with pytest.raises(ValueError, match="obj1 or obj2"):
+            dist.get_distance(root, root)
 
 
 def test_distance_error_handling() -> None:
