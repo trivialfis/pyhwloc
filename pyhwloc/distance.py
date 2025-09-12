@@ -44,7 +44,7 @@ class Distances:
     def __init__(
         self, hdl: _core.DistancesPtr, topo: weakref.ReferenceType[Topology]
     ) -> None:
-        if hdl is None:
+        if not hdl:
             raise ValueError("Distance handle cannot be None")
 
         self._hdl = hdl
@@ -52,24 +52,22 @@ class Distances:
 
     @property
     def native_handle(self) -> _core.DistancesPtr:
-        if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
-            raise RuntimeError("Topology is invalid")
+        self._topo  # for validation.
         assert self._hdl
         return self._hdl
 
     @property
     def _topo(self) -> "Topology":
-        if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
+        ref = self._topo_ref()
+        if not ref or not ref.is_loaded:
             raise RuntimeError("Topology is invalid")
-        v = self._topo_ref()
-        assert v is not None
-        return v
+        return ref
 
     # Core Properties
     @property
     def objects(self) -> list[Object]:
         """List of objects in this distance matrix."""
-        hdl = self.native_handle  # This performs all validation
+        hdl = self.native_handle
 
         objects = []
         nbobjs = self.nbobjs
