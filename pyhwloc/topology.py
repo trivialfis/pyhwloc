@@ -26,6 +26,7 @@ from collections import namedtuple
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Callable, Iterator, Type, TypeAlias
 
+from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object, ObjType
@@ -35,12 +36,26 @@ from .utils import _reuse_doc
 if TYPE_CHECKING:
     from .distance import Distances
 
+# Memory bind type aliases
+MemoryBindPolicy = _core.hwloc_membind_policy_t
+MemoryBindFlags = _core.hwloc_membind_flags_t
+
 __all__ = [
     "Topology",
     "ExportXmlFlags",
     "ExportSyntheticFlags",
     "TypeFilter",
+    "MemoryBindPolicy",
+    "MemoryBindFlags",
 ]
+
+# membind fixmes:
+# - work out an example for using numpy with memory migration.
+#   ctypes.c_char.from_buffer(array.data)
+# - see if we need a context manager.
+# - we don't need helpers in the object class.
+# - add to_sched_set in bitmap, we will return bitmap by default.
+# - do we really want these from_xxx methods to be classmethod?
 
 
 def _from_impl(fn: Callable[[_core.topology_t], None], load: bool) -> _core.topology_t:
@@ -89,9 +104,6 @@ class Topology:
         with Topology.from_this_system() as topo:  # Current system
             print(f"Topology depth: {topo.depth}")
 
-        with Topology() as topo:  # Current system
-            print(f"Topology depth: {topo.depth}")
-
         # Synthetic topology
         with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
             print(f"Topology depth: {topo.depth}")
@@ -102,7 +114,7 @@ class Topology:
 
         # Direct usage,  cleanup is recommended but not required.
         try:
-            topo = Topology()
+            topo = Topology.from_this_system()
             print(f"Topology depth: {topo.depth}")
         finally:
             topo.destroy()
@@ -677,6 +689,160 @@ class Topology:
         self._cleanup.extend([weakref.ref(dist) for dist in result])
 
         return result
+
+    # Memory Binding Methods
+    def set_memory_bind(
+        self, nodeset: _Bitmap | set[int], policy: MemoryBindPolicy, flags: int = 0
+    ) -> None:
+        """Bind current process memory to specified NUMA nodes.
+
+        Parameters
+        ----------
+        nodeset
+            NUMA nodes to bind memory to
+        policy
+            Memory binding policy to use
+        flags
+            Additional flags for memory binding
+        """
+        if isinstance(nodeset, set):
+            bitmap = _Bitmap.from_sched_set(nodeset)
+        else:
+            bitmap = nodeset
+        _core.set_membind(self.native_handle, bitmap.native_handle, policy, flags)
+
+    def get_memory_bind(self, flags: int = 0) -> tuple[_Bitmap, MemoryBindPolicy]:
+        """Get current process memory binding.
+
+        Parameters
+        ----------
+        flags
+            Flags for getting memory binding
+
+        Returns
+        -------
+        Tuple of (nodeset, policy) for current memory binding
+        """
+        nodeset = _Bitmap()
+        policy = _core.get_membind(self.native_handle, nodeset.native_handle, flags)
+        return nodeset, policy
+
+    def set_process_memory_bind(
+        self, pid: int, nodeset: _Bitmap, policy: MemoryBindPolicy, flags: int = 0
+    ) -> None:
+        """Bind specific process memory to NUMA nodes.
+
+        Parameters
+        ----------
+        pid
+            Process ID to bind
+        nodeset
+            NUMA nodes to bind memory to
+        policy
+            Memory binding policy to use
+        flags
+            Additional flags for memory binding
+        """
+        _core.set_proc_membind(
+            self.native_handle, pid, nodeset.native_handle, policy, flags
+        )
+
+    def get_process_memory_bind(
+        self, pid: int, flags: int = 0
+    ) -> tuple[_Bitmap, MemoryBindPolicy]:
+        """Get process memory binding.
+
+        Parameters
+        ----------
+        pid
+            Process ID to query
+        flags
+            Flags for getting memory binding
+
+        Returns
+        -------
+        Tuple of (nodeset, policy) for process memory binding
+        """
+        nodeset = _Bitmap()
+        policy = _core.get_proc_membind(
+            self.native_handle, pid, nodeset.native_handle, flags
+        )
+        return nodeset, policy
+
+    def set_area_memory_bind(
+        self,
+        addr: ctypes.c_void_p,
+        size: int,
+        nodeset: _Bitmap,
+        policy: MemoryBindPolicy,
+        flags: int = 0,
+    ) -> None:
+        """Bind memory area to NUMA nodes.
+
+        Parameters
+        ----------
+        addr
+            Memory area address
+        size
+            Size of memory area
+        nodeset
+            NUMA nodes to bind memory to
+        policy
+            Memory binding policy to use
+        flags
+            Additional flags for memory binding
+        """
+        _core.set_area_membind(
+            self.native_handle, addr, size, nodeset.native_handle, policy, flags
+        )
+
+    def get_area_memory_bind(
+        self, addr: ctypes.c_void_p, size: int, flags: int = 0
+    ) -> tuple[_Bitmap, MemoryBindPolicy]:
+        """Get memory area binding.
+
+        Parameters
+        ----------
+        addr
+            Memory area address
+        size
+            Size of memory area
+        flags
+            Flags for getting memory binding
+
+        Returns
+        -------
+        Tuple of (nodeset, policy) for memory area binding
+        """
+        nodeset = _Bitmap()
+        policy = _core.get_area_membind(
+            self.native_handle, addr, size, nodeset.native_handle, flags
+        )
+        return nodeset, policy
+
+    def allocate_bound_memory(
+        self, size: int, nodeset: _Bitmap, policy: MemoryBindPolicy, flags: int = 0
+    ) -> ctypes.c_void_p:
+        """Allocate memory bound to specific NUMA nodes.
+
+        Parameters
+        ----------
+        size
+            Size of memory to allocate
+        nodeset
+            NUMA nodes to bind memory to
+        policy
+            Memory binding policy to use
+        flags
+            Additional flags for memory binding
+
+        Returns
+        -------
+        Pointer to allocated bound memory
+        """
+        return _core.alloc_membind(
+            self.native_handle, size, nodeset.native_handle, policy, flags
+        )
 
 
 @_reuse_doc(_core.get_api_version)
