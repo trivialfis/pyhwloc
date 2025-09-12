@@ -97,14 +97,6 @@ class Distance:
         raise RuntimeError("Distance matrices are read-only")
 
     # Iteration Protocols
-    def __iter__(self) -> Iterator[Object]:
-        """Iterate over objects in the distance matrix."""
-        return iter(self.objects)
-
-    def __len__(self) -> int:
-        """Number of objects in the distance matrix."""
-        return self.nbobjs
-
     def __str__(self) -> str:
         name = self.name or "<unnamed>"
         return f"Distance matrix '{name}'"
@@ -114,13 +106,11 @@ class Distance:
 
     # Comparison and Equality
     def __eq__(self, other: object) -> bool:
-        """Check equality based on handle address."""
         if not isinstance(other, Distance):
             return False
         return _core.is_same_obj(self.native_handle, other.native_handle)
 
     def __hash__(self) -> int:
-        """Hash based on handle address."""
         if self._hdl is None:
             return hash(None)
         return hash(ctypes.addressof(self._hdl.contents))
