@@ -662,21 +662,8 @@ class Topology:
         return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE)
 
     # Distance Methods
-
-    def get_distances(self, kind: int = 0) -> list["Distance"]:
-        """Get all distance matrices in the topology.
-
-        Parameters
-        ----------
-        kind : DistanceKind
-            Filter by specific distance kind (latency, bandwidth, etc.)  If None,
-            returns all distance matrices
-
-        Returns
-        -------
-        List of distance matrices
-
-        """
+    @_reuse_doc(_core.distances_get)
+    def get_distances(self, kind: int = 0) -> list["Distances"]:
         from .distance import Distances
 
         # Get count first
