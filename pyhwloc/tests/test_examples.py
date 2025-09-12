@@ -29,7 +29,12 @@ demo_dir = tests_dir.parent.parent / "examples"
 
 @fcache
 def has_gpu() -> bool:
-    out = subprocess.run(["nvidia-smi", "-L"], stdout=subprocess.PIPE)
+    try:
+        out = subprocess.run(["nvidia-smi", "-L"], stdout=subprocess.PIPE)
+        if out.returncode != 0:
+            return False
+    except FileNotFoundError:
+        return False
     gpus = out.stdout.decode("utf-8").strip().splitlines()
     if not gpus:
         return False
