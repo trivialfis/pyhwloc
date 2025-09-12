@@ -2228,6 +2228,7 @@ _pyhwloc_lib.pyhwloc_distrib.argtypes = [
 _pyhwloc_lib.pyhwloc_distrib.restype = ctypes.c_int
 
 
+@_cfndoc
 def distrib(
     topology: topology_t,
     roots: ctypes._Pointer,  # Pointer[obj_t]
