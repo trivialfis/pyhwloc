@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterator, Type, TypeAlias
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object, ObjType
+from .utils import _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
@@ -707,6 +708,7 @@ class Topology:
         return result
 
 
+@_reuse_doc(_core.get_api_version)
 def get_api_version() -> tuple[int, int, int]:
     v = _core.get_api_version()
     major = v >> 16

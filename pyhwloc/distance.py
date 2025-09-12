@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""High-level interface for hwloc hardware distance functionality.
+"""
+High-level Interface for hwloc Hardware Distance
+================================================
 
-This module provides Pythonic wrappers around hwloc distance matrices,
-making it easier to work with hardware topology distance information.
+This module provides wrappers around hwloc distance matrices.
 
 See `Topology Attributes: Distances, Memory Attributes and CPU Kinds
 <https://www.open-mpi.org/projects/hwloc/doc/v2.12.2/topoattrs.html>`__ for an
@@ -29,17 +30,12 @@ from typing import TYPE_CHECKING, Iterator
 
 from .hwloc import core as _core
 from .hwobject import Object
+from .utils import _reuse_doc
 
 if TYPE_CHECKING:
     from .topology import Topology
 
-__all__ = ["Distance", "Kind", "Transform", "AddFlag"]
-
-
-# Type aliases for distance-related enums
-Kind = _core.hwloc_distances_kind_e
-Transform = _core.hwloc_distances_transform_e
-AddFlag = _core.hwloc_distances_add_flag_e
+__all__ = ["Distance"]
 
 
 class Distance:
@@ -73,17 +69,18 @@ class Distance:
     @property
     def objects(self) -> list[Object]:
         """List of objects in this distance matrix."""
-        handle = self.native_handle  # This performs all validation
+        hdl = self.native_handle  # This performs all validation
 
         objects = []
-        nbobjs = handle.contents.nbobjs
+        nbobjs = self.nbobjs
         for i in range(nbobjs):
-            obj_ptr = handle.contents.objs[i]
+            obj_ptr = hdl.contents.objs[i]
             objects.append(Object(obj_ptr, self._topo_ref))
 
         return objects
 
     @property
+    @_reuse_doc(_core.distances_get_name)
     def name(self) -> str | None:
         handle = self.native_handle
         name = _core.distances_get_name(self._topo.native_handle, handle)
@@ -120,12 +117,7 @@ class Distance:
         """Check equality based on handle address."""
         if not isinstance(other, Distance):
             return False
-        return (
-            self._hdl is not None
-            and other._hdl is not None
-            and ctypes.addressof(self._hdl.contents)
-            == ctypes.addressof(other._hdl.contents)
-        )
+        return _core.is_same_obj(self.native_handle, other.native_handle)
 
     def __hash__(self) -> int:
         """Hash based on handle address."""
@@ -149,7 +141,7 @@ class Distance:
         value1to2, value2to1 = _core.distances_obj_pair_values(
             self.native_handle, obj1.native_handle, obj2.native_handle
         )
-        return (float(value1to2), float(value2to1))
+        return float(value1to2), float(value2to1)
 
     def find_object_index(self, obj: Object) -> int:
         """Find index of object in distance matrix.

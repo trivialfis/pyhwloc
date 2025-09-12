@@ -3517,7 +3517,7 @@ def shmem_topology_adopt(
 ###########
 
 
-def is_same_obj(a: ObjPtr, b: ObjPtr) -> bool:
+def is_same_obj(a: ctypes._Pointer, b: ctypes._Pointer) -> bool:
     return (
         ctypes.cast(a, ctypes.c_void_p).value == ctypes.cast(b, ctypes.c_void_p).value
     )
