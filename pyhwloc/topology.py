@@ -33,7 +33,7 @@ from .utils import _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
-    from .distance import Distance
+    from .distance import Distances
 
 __all__ = [
     "Topology",
@@ -677,11 +677,11 @@ class Topology:
         List of distance matrices
 
         """
-        from .distance import Distance
+        from .distance import Distances
 
         # Get count first
         nr = ctypes.c_uint(0)
-        result: list[Distance] = []
+        result: list[Distances] = []
 
         _core.distances_get(
             self.native_handle,
@@ -703,7 +703,7 @@ class Topology:
         # Create Distance objects
         for i in range(nr.value):
             dist_handle = distances_ptr_ptr[i]
-            result.append(Distance(dist_handle, weakref.ref(self)))
+            result.append(Distances(dist_handle, weakref.ref(self)))
 
         return result
 

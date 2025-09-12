@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import ctypes
 import weakref
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING
 
 from .hwloc import core as _core
 from .hwobject import Object
@@ -35,10 +35,10 @@ from .utils import _reuse_doc
 if TYPE_CHECKING:
     from .topology import Topology
 
-__all__ = ["Distance"]
+__all__ = ["Distances"]
 
 
-class Distance:
+class Distances:
     """High-level interface for hwloc distance matrix."""
 
     def __init__(
@@ -106,7 +106,7 @@ class Distance:
 
     # Comparison and Equality
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Distance):
+        if not isinstance(other, Distances):
             return False
         return _core.is_same_obj(self.native_handle, other.native_handle)
 
@@ -144,9 +144,9 @@ class Distance:
     def __del__(self) -> None:
         self.release()
 
-    def __copy__(self) -> Distance:
+    def __copy__(self) -> Distances:
         # There can be only a single owner for the underlying handle.
         raise RuntimeError("The Distance class cannot be copied.")
 
-    def __deepcopy__(self, memo: dict) -> Distance:
+    def __deepcopy__(self, memo: dict) -> Distances:
         raise RuntimeError("The Distance class cannot be copied.")

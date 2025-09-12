@@ -16,7 +16,7 @@ import os
 
 import pytest
 
-from pyhwloc.distance import Distance
+from pyhwloc.distance import Distances
 from pyhwloc.hwloc.lib import normpath
 from pyhwloc.hwobject import GetTypeDepth
 from pyhwloc.topology import Topology
@@ -28,7 +28,7 @@ def test_distance_numa() -> None:
     with Topology.from_xml_file(xml_path=sample_numa_path) as topo:
         distances = topo.get_distances()
         assert len(distances) == 1
-        assert isinstance(distances[0], Distance)
+        assert isinstance(distances[0], Distances)
         dist = distances[0]
         assert dist.name == "NUMALatency"
         assert dist.nbobjs == 2
