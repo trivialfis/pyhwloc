@@ -3,6 +3,11 @@ channels:
 - conda-forge
 - nvidia
 dependencies:
+# hwloc
+- libtool
+- automake
+- autoconf
+# pyhwloc
 - c-compiler
 - cxx-compiler
 - cmake

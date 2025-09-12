@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 """
 The Topology Interface
 ======================
@@ -25,11 +24,16 @@ import os
 import weakref
 from collections import namedtuple
 from types import TracebackType
-from typing import Any, Callable, Iterator, Type, TypeAlias
+from typing import TYPE_CHECKING, Any, Callable, Iterator, Type, TypeAlias
 
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object, ObjType
+from .utils import _reuse_doc
+
+# Distance-related imports (lazy import to avoid circular dependencies)
+if TYPE_CHECKING:
+    from .distance import Distances
 
 __all__ = [
     "Topology",
@@ -139,13 +143,15 @@ class Topology:
 
         self._hdl = hdl
         self._loaded = load
+        # See the distance release method for more info.
+        self._cleanup: list[weakref.ReferenceType["Distances"]] = []
 
     @classmethod
     def from_native_handle(cls, hdl: _core.topology_t, loaded: bool) -> Topology:
         topo = cls.__new__(cls)
         topo._hdl = hdl
         topo._loaded = loaded
-        topo.check()
+        topo._cleanup = []
         return topo
 
     @classmethod
@@ -271,19 +277,19 @@ class Topology:
             raise RuntimeError("Topology is not loaded")
         return self._hdl
 
+    @_reuse_doc(_core.topology_export_xmlbuffer)
     def export_xml_buffer(self, flags: ExportXmlFlags | int) -> str:
-        "See :py:func:`~pyhwloc.hwloc.core.topology_export_xmlbuffer`."
         return _core.topology_export_xmlbuffer(self.native_handle, flags)
 
+    @_reuse_doc(_core.topology_export_xml)
     def export_xml_file(
         self, path: os.PathLike | str, flags: ExportXmlFlags | int
     ) -> None:
-        "See :py:func:`~pyhwloc.hwloc.core.topology_export_xml`."
         path = os.fspath(os.path.expanduser(path))
         _core.topology_export_xml(self.native_handle, path, flags)
 
+    @_reuse_doc(_core.topology_export_synthetic)
     def export_synthetic(self, flags: ExportSyntheticFlags | int) -> str:
-        "See :py:func:`~pyhwloc.hwloc.core.topology_export_synthetic`."
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
         n_written = _core.topology_export_synthetic(
@@ -343,12 +349,18 @@ class Topology:
         return sup
 
     @property
+    @_reuse_doc(_core.topology_get_depth)
     def depth(self) -> int:
-        """Get the depth of the topology tree."""
         return _core.topology_get_depth(self.native_handle)
 
     def destroy(self) -> None:
         """Explicitly destroy the topology and free resources."""
+        while self._cleanup:
+            dist_ref = self._cleanup.pop()
+            dist = dist_ref()
+            if dist:
+                dist.release()
+
         if hasattr(self, "_hdl"):
             _core.topology_destroy(self.native_handle)
             self._loaded = False
@@ -394,6 +406,7 @@ class Topology:
         hdl = _from_xml_buffer(xml_buffer, True)
         self._hdl = hdl
         self._loaded = True
+        self._cleanup = []
 
     def _checked_apply_filter(
         self, fn: Callable, type_filter: TypeFilter
@@ -657,3 +670,54 @@ class Topology:
         Number of OS device objects in the topology
         """
         return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE)
+
+    # Distance Methods
+    @_reuse_doc(_core.distances_get)
+    def get_distances(self, kind: int = 0) -> list["Distances"]:
+        from .distance import Distances
+
+        # Get count first
+        nr = ctypes.c_uint(0)
+        result: list[Distances] = []
+
+        _core.distances_get(
+            self.native_handle,
+            ctypes.byref(nr),
+            None,
+            int(kind),
+        )
+        distances_ptr_ptr = (ctypes.POINTER(_core.hwloc_distances_s) * nr.value)()
+        if nr.value == 0:
+            return result
+
+        _core.distances_get(
+            self.native_handle,
+            ctypes.byref(nr),
+            distances_ptr_ptr,
+            int(kind),
+        )
+
+        # Create Distance objects
+        for i in range(nr.value):
+            dist_handle = distances_ptr_ptr[i]
+            result.append(Distances(dist_handle, weakref.ref(self)))
+
+        # Push into the cleanup queue. We also perform some cleanups here to avoid
+        # having too many references.
+        still_valid = []
+        for ref in self._cleanup:
+            if ref() is not None:
+                still_valid.append(ref)
+        self._cleanup = still_valid
+        self._cleanup.extend([weakref.ref(dist) for dist in result])
+
+        return result
+
+
+@_reuse_doc(_core.get_api_version)
+def get_api_version() -> tuple[int, int, int]:
+    v = _core.get_api_version()
+    major = v >> 16
+    minor = (v >> 8) & 0xFF
+    rev = v & 0xFF
+    return major, minor, rev

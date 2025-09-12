@@ -2228,6 +2228,7 @@ _pyhwloc_lib.pyhwloc_distrib.argtypes = [
 _pyhwloc_lib.pyhwloc_distrib.restype = ctypes.c_int
 
 
+@_cfndoc
 def distrib(
     topology: topology_t,
     roots: ctypes._Pointer,  # Pointer[obj_t]
@@ -2676,7 +2677,10 @@ _LIB.hwloc_distances_get.restype = ctypes.c_int
 if TYPE_CHECKING:
     DistancesPtr = ctypes._Pointer[hwloc_distances_s]
     DistancesPtrPtr = (
-        ctypes._Pointer[ctypes._Pointer[hwloc_distances_s]] | ctypes._CArgObject
+        ctypes._Pointer[ctypes._Pointer[hwloc_distances_s]]
+        | ctypes._CArgObject
+        | ctypes.Array[ctypes._Pointer[hwloc_distances_s]]
+        | None
     )
     UintPtr = ctypes._Pointer[ctypes.c_uint] | ctypes._CArgObject
 else:
@@ -2774,6 +2778,7 @@ _LIB.hwloc_distances_get_name.argtypes = [
 _LIB.hwloc_distances_get_name.restype = ctypes.c_char_p
 
 
+@_cfndoc
 def distances_get_name(topology: topology_t, distances: DistancesPtr) -> str | None:
     result = _LIB.hwloc_distances_get_name(topology, distances)
     if result:
@@ -2833,6 +2838,7 @@ _pyhwloc_lib.pyhwloc_distances_obj_index.restype = ctypes.c_int
 
 @_cfndoc
 def distances_obj_index(distances: DistancesPtr, obj: ObjPtr) -> int:
+    # Returns -1 if not found
     return _pyhwloc_lib.pyhwloc_distances_obj_index(distances, obj)
 
 
@@ -2854,11 +2860,12 @@ def distances_obj_pair_values(
 ) -> tuple[int, int]:
     value1to2 = ctypes.c_uint64(0)
     value2to1 = ctypes.c_uint64(0)
-    _checkc(
-        _pyhwloc_lib.pyhwloc_distances_obj_pair_values(
-            distances, obj1, obj2, ctypes.byref(value1to2), ctypes.byref(value2to1)
-        )
+    rc = _pyhwloc_lib.pyhwloc_distances_obj_pair_values(
+        distances, obj1, obj2, ctypes.byref(value1to2), ctypes.byref(value2to1)
     )
+    if rc == -1:
+        raise ValueError("obj1 or obj2 is not involved in the distances structure.")
+    _checkc(rc)
     return int(value1to2.value), int(value2to1.value)
 
 
@@ -2967,6 +2974,7 @@ _pyhwloc_lib.pyhwloc_distances_remove_by_type.argtypes = [topology_t, ctypes.c_i
 _pyhwloc_lib.pyhwloc_distances_remove_by_type.restype = ctypes.c_int
 
 
+@_cfndoc
 def distances_remove_by_type(topology: topology_t, obj_type: hwloc_obj_type_t) -> None:
     _checkc(_pyhwloc_lib.pyhwloc_distances_remove_by_type(topology, obj_type))
 
@@ -2978,6 +2986,7 @@ _LIB.hwloc_distances_release_remove.argtypes = [
 _LIB.hwloc_distances_release_remove.restype = ctypes.c_int
 
 
+@_cfndoc
 def distances_release_remove(topology: topology_t, distances: DistancesPtr) -> None:
     _checkc(_LIB.hwloc_distances_release_remove(topology, distances))
 
@@ -3067,6 +3076,7 @@ _LIB.hwloc_get_local_numanode_objs.argtypes = [
 _LIB.hwloc_get_local_numanode_objs.restype = ctypes.c_int
 
 
+@_cfndoc
 def get_local_numanode_objs(
     topology: topology_t,
     location: LocationPtr,
@@ -3085,6 +3095,7 @@ _LIB.hwloc_topology_get_default_nodeset.argtypes = [
 _LIB.hwloc_topology_get_default_nodeset.restype = ctypes.c_int
 
 
+@_cfndoc
 def topology_get_default_nodeset(
     topology: topology_t, nodeset: hwloc_nodeset_t, flags: int
 ) -> None:
@@ -3157,6 +3168,7 @@ _LIB.hwloc_memattr_get_best_initiator.argtypes = [
 _LIB.hwloc_memattr_get_best_initiator.restype = ctypes.c_int
 
 
+@_cfndoc
 def memattr_get_best_initiator(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
@@ -3184,6 +3196,7 @@ _LIB.hwloc_memattr_get_targets.argtypes = [
 _LIB.hwloc_memattr_get_targets.restype = ctypes.c_int
 
 
+@_cfndoc
 def memattr_get_targets(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
@@ -3212,6 +3225,7 @@ _LIB.hwloc_memattr_get_initiators.argtypes = [
 _LIB.hwloc_memattr_get_initiators.restype = ctypes.c_int
 
 
+@_cfndoc
 def memattr_get_initiators(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
@@ -3437,6 +3451,7 @@ _LIB.hwloc_shmem_topology_get_length.argtypes = [
 _LIB.hwloc_shmem_topology_get_length.restype = ctypes.c_int
 
 
+@_cfndoc
 def shmem_topology_get_length(
     topology: topology_t,
 ) -> int:
@@ -3457,6 +3472,7 @@ _LIB.hwloc_shmem_topology_write.argtypes = [
 _LIB.hwloc_shmem_topology_write.restype = ctypes.c_int
 
 
+@_cfndoc
 def shmem_topology_write(
     topology: topology_t,
     fd: int,
@@ -3483,6 +3499,7 @@ _LIB.hwloc_shmem_topology_adopt.argtypes = [
 _LIB.hwloc_shmem_topology_adopt.restype = ctypes.c_int
 
 
+@_cfndoc
 def shmem_topology_adopt(
     topologyp: ctypes._Pointer,  # [topology_t]
     fd: int,
@@ -3503,7 +3520,7 @@ def shmem_topology_adopt(
 ###########
 
 
-def is_same_obj(a: ObjPtr, b: ObjPtr) -> bool:
+def is_same_obj(a: ctypes._Pointer, b: ctypes._Pointer) -> bool:
     return (
         ctypes.cast(a, ctypes.c_void_p).value == ctypes.cast(b, ctypes.c_void_p).value
     )
