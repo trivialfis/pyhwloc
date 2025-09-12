@@ -145,16 +145,11 @@ class Distance:
         -------
         Distance from obj1 to obj2, and obj2 to obj1
         """
-        handle = self.native_handle  # This performs all validation
-
-        # Use the core helper function for efficiency
-        try:
-            value1to2, value2to1 = _core.distances_obj_pair_values(
-                handle, obj1.native_handle, obj2.native_handle
-            )
-            return (float(value1to2), float(value2to1))
-        except Exception:
-            raise ValueError("Objects not found in distance matrix or error occurred")
+        # fixme: check invalid object
+        value1to2, value2to1 = _core.distances_obj_pair_values(
+            self.native_handle, obj1.native_handle, obj2.native_handle
+        )
+        return (float(value1to2), float(value2to1))
 
     def find_object_index(self, obj: Object) -> int:
         """Find index of object in distance matrix.
@@ -184,6 +179,9 @@ class Distance:
             # a cleanup function in the topology.
             _core.distances_release(None, self._hdl)  # type: ignore[arg-type]
             del self._hdl
+
+    def __del__(self) -> None:
+        self.release()
 
     def __copy__(self) -> Distance:
         # There can be only a single owner for the underlying handle.
