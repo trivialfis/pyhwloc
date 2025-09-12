@@ -274,19 +274,19 @@ class Topology:
             raise RuntimeError("Topology is not loaded")
         return self._hdl
 
+    @_reuse_doc(_core.topology_export_xmlbuffer)
     def export_xml_buffer(self, flags: ExportXmlFlags | int) -> str:
-        "See :py:func:`~pyhwloc.hwloc.core.topology_export_xmlbuffer`."
         return _core.topology_export_xmlbuffer(self.native_handle, flags)
 
+    @_reuse_doc(_core.topology_export_xml)
     def export_xml_file(
         self, path: os.PathLike | str, flags: ExportXmlFlags | int
     ) -> None:
-        "See :py:func:`~pyhwloc.hwloc.core.topology_export_xml`."
         path = os.fspath(os.path.expanduser(path))
         _core.topology_export_xml(self.native_handle, path, flags)
 
+    @_reuse_doc(_core.topology_export_synthetic)
     def export_synthetic(self, flags: ExportSyntheticFlags | int) -> str:
-        "See :py:func:`~pyhwloc.hwloc.core.topology_export_synthetic`."
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
         n_written = _core.topology_export_synthetic(
