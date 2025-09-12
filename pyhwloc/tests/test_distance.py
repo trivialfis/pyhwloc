@@ -54,8 +54,6 @@ def test_distance_numa() -> None:
 
 
 def test_distance_error_handling() -> None:
-    """Test Distance error handling."""
-    # Test with destroyed topology
     topo = Topology()
 
     distances = topo.get_distances()
