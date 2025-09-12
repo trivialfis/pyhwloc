@@ -143,12 +143,15 @@ class Topology:
 
         self._hdl = hdl
         self._loaded = load
+        # See the distance release method for more info.
+        self._cleanup: list[weakref.ReferenceType["Distances"]] = []
 
     @classmethod
     def from_native_handle(cls, hdl: _core.topology_t, loaded: bool) -> Topology:
         topo = cls.__new__(cls)
         topo._hdl = hdl
         topo._loaded = loaded
+        topo._cleanup = []
         return topo
 
     @classmethod
@@ -346,12 +349,18 @@ class Topology:
         return sup
 
     @property
+    @_reuse_doc(_core.topology_get_depth)
     def depth(self) -> int:
-        """Get the depth of the topology tree."""
         return _core.topology_get_depth(self.native_handle)
 
     def destroy(self) -> None:
         """Explicitly destroy the topology and free resources."""
+        while self._cleanup:
+            dist_ref = self._cleanup.pop()
+            dist = dist_ref()
+            if dist:
+                dist.release()
+
         if hasattr(self, "_hdl"):
             _core.topology_destroy(self.native_handle)
             self._loaded = False
@@ -397,6 +406,7 @@ class Topology:
         hdl = _from_xml_buffer(xml_buffer, True)
         self._hdl = hdl
         self._loaded = True
+        self._cleanup = []
 
     def _checked_apply_filter(
         self, fn: Callable, type_filter: TypeFilter
@@ -691,6 +701,15 @@ class Topology:
         for i in range(nr.value):
             dist_handle = distances_ptr_ptr[i]
             result.append(Distances(dist_handle, weakref.ref(self)))
+
+        # Push into the cleanup queue. We also perform some cleanups here to avoid
+        # having too many references.
+        still_valid = []
+        for ref in self._cleanup:
+            if ref() is not None:
+                still_valid.append(ref)
+        self._cleanup = still_valid
+        self._cleanup.extend([weakref.ref(dist) for dist in result])
 
         return result
 

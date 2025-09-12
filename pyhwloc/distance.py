@@ -53,6 +53,8 @@ class Distances:
     @property
     def native_handle(self) -> _core.DistancesPtr:
         self._topo  # for validation.
+        if not hasattr(self, "_hdl"):
+            raise RuntimeError("This distances object has been released.")
         assert self._hdl
         return self._hdl
 
@@ -80,8 +82,8 @@ class Distances:
     @property
     @_reuse_doc(_core.distances_get_name)
     def name(self) -> str | None:
-        handle = self.native_handle
-        name = _core.distances_get_name(self._topo.native_handle, handle)
+        hdl = self.native_handle
+        name = _core.distances_get_name(self._topo.native_handle, hdl)
         return name if name else None
 
     @property
@@ -131,12 +133,19 @@ class Distances:
         return (nbobjs, nbobjs)
 
     def release(self) -> None:
+        # Q: What do we do if the topo is expired?
+        #
+        # A: The topology class has a cleanup queue for returned distances. It calls
+        # this method during its own destruction to make sure no memory is leaked.
+        #
+        # When the release method is called by this class, the _hdl has already been
+        # deleted.
+        # The `distances_release` doesn't actually use the topology, but the
+        # `distances_release_remove` does. We are doing this workaround just to be safe,
+        # in case of the topology is actually used in the future.
         if hasattr(self, "_hdl"):
-            # fixme: What do we do if the topo is expired?
-            # topo is not used in the release call (used by the release_remove, though).
-            # If one day topology is actually required by this function, we can register
-            # a cleanup function in the topology.
-            _core.distances_release(None, self._hdl)  # type: ignore[arg-type]
+            # If the _hdl is here, then topology must be valid.
+            _core.distances_release(self._topo.native_handle, self._hdl)
             del self._hdl
 
     def __del__(self) -> None:

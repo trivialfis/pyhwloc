@@ -50,7 +50,6 @@ def test_intro() -> None:
 
 @pytest.mark.skipif(condition=not has_gpu(), reason="GPU discovery tests.")
 def test_list_gpus() -> None:
-    has_gpu()
     script = os.path.join(demo_dir, "list_gpus.py")
     results = subprocess.check_call(["python", script], stdout=subprocess.PIPE)
     assert results == 0

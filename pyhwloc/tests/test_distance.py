@@ -57,7 +57,6 @@ def test_distance_error_handling() -> None:
     """Test Distance error handling."""
     # Test with destroyed topology
     topo = Topology()
-    topo.load()
 
     distances = topo.get_distances()
     topo.destroy()
@@ -66,5 +65,27 @@ def test_distance_error_handling() -> None:
         with pytest.raises(RuntimeError, match="Topology"):
             _ = dist.native_handle
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(RuntimeError, match="Topology"):
             _ = dist.nbobjs
+
+    topo = Topology.from_xml_file(xml_path=sample_numa_path).load()
+    distances = topo.get_distances()
+    topo.destroy()  # cleanup all distances
+
+    for dist in distances:
+        with pytest.raises(RuntimeError, match="Topology"):
+            _ = dist.native_handle
+
+        with pytest.raises(RuntimeError, match="Topology"):
+            _ = dist.nbobjs
+
+    topo = Topology.from_xml_file(xml_path=sample_numa_path).load()
+    distances = topo.get_distances()
+    # Internal cleanup couldn't happen as the old `distances` is still valid.
+    distances = topo.get_distances()
+    assert len(topo._cleanup) == 2
+    assert topo._cleanup[0]() is None
+    # Internal cleanup happens, number of values is kept at 2.
+    distances = topo.get_distances()
+    assert len(topo._cleanup) == 2
+    assert topo._cleanup[0]() is None
