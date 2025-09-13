@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from collections import abc
-from typing import Callable, ParamSpec, TypeVar
+from collections.abc import Sequence
+from typing import Callable, ParamSpec, TypeVar, Union
 
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
@@ -27,8 +27,12 @@ def _reuse_doc(orig: Callable) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]
     return fn
 
 
-def _or_flags(flags: int | abc.Sequence[int]) -> int:
-    if isinstance(flags, abc.Sequence):
+_Flag = TypeVar("_Flag")
+_Flags = Union[int, _Flag, Sequence[_Flag]]
+
+
+def _or_flags(flags: _Flags) -> int:
+    if isinstance(flags, Sequence):
         r = flags[0]
         for f in flags:
             r |= f

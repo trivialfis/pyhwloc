@@ -24,13 +24,21 @@ import os
 import weakref
 from collections import namedtuple
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Sequence, Type, TypeAlias
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterator,
+    Sequence,
+    Type,
+    TypeAlias,
+)
 
 from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object, ObjType
-from .utils import _or_flags, _reuse_doc
+from .utils import _or_flags, _reuse_doc, _Flags
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
@@ -699,7 +707,7 @@ class Topology:
         self,
         target: _Bitmap | set[int] | Object,
         policy: MemBindPolicy,
-        flags: MemBindFlags | Sequence[MemBindFlags],
+        flags: _Flags[MemBindFlags],
     ) -> None:
         """Bind the current process memory to specified NUMA nodes. The current process
         is assumed to be single-threaded.
@@ -730,7 +738,7 @@ class Topology:
         )
 
     def get_membind(
-        self, flags: MemBindFlags | Sequence[MemBindFlags] = 0
+        self, flags: _Flags[MemBindFlags] = 0
     ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get current process memory binding.
 
@@ -754,7 +762,7 @@ class Topology:
         pid: int,
         nodeset: _Bitmap,
         policy: MemBindPolicy,
-        flags: MemBindFlags | Sequence[MemBindFlags],
+        flags: _Flags[MemBindFlags],
     ) -> None:
         """Bind specific process memory to NUMA nodes.
 
@@ -774,7 +782,7 @@ class Topology:
         )
 
     def get_proc_membind(
-        self, pid: int, flags: MemBindFlags | Sequence[MemBindFlags] = 0
+        self, pid: int, flags: _Flags[MemBindFlags] = 0
     ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get process memory binding.
 
@@ -801,7 +809,7 @@ class Topology:
         size: int,
         nodeset: _Bitmap,
         policy: MemBindPolicy,
-        flags: MemBindFlags | Sequence[MemBindFlags],
+        flags: _Flags[MemBindFlags],
     ) -> None:
         """Bind memory area to NUMA nodes.
 
@@ -831,7 +839,7 @@ class Topology:
         self,
         addr: ctypes.c_void_p,
         size: int,
-        flags: MemBindFlags | Sequence[MemBindFlags] = 0,
+        flags: _Flags[MemBindFlags] = 0,
     ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get memory area binding.
 
@@ -859,7 +867,7 @@ class Topology:
         size: int,
         nodeset: _Bitmap,
         policy: MemBindPolicy,
-        flags: MemBindFlags | Sequence[MemBindFlags],
+        flags: _Flags[MemBindFlags],
     ) -> ctypes.c_void_p:
         """Allocate memory bound to specific NUMA nodes.
 

@@ -30,7 +30,7 @@ from .bitmap import Bitmap
 from .hwloc import core as _core
 
 if TYPE_CHECKING:
-    from .topology import MemoryBindPolicy, Topology
+    from .topology import Topology
 
 __all__ = ["Object", "ObjType"]
 
@@ -508,32 +508,3 @@ class Object:
     def __hash__(self) -> int:
         """Hash based on pointer address."""
         return hash(ctypes.addressof(self.native_handle.contents))
-
-    def allocate_memory(
-        self, size: int, policy: MemoryBindPolicy | None = None, flags: int = 0
-    ) -> ctypes.c_void_p:
-        """Allocate memory bound to this object's NUMA nodes.
-
-        Parameters
-        ----------
-        size
-            Size of memory to allocate
-        policy
-            Memory binding policy to use (defaults to BIND)
-        flags
-            Additional flags for memory binding
-
-        Returns
-        -------
-        Pointer to allocated bound memory
-        """
-        if policy is None:
-            policy = _core.hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
-
-        # Get this object's nodeset
-        if self.nodeset is None:
-            raise ValueError("Object has no associated NUMA nodes")
-
-        # Use topology to allocate bound memory
-        topo = self._topo
-        return topo.allocate_bound_memory(size, self.nodeset, policy, flags)

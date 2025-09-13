@@ -41,7 +41,9 @@ def reset(orig_cpuset: Bitmap, topo: Topology) -> None:
 def with_tpool(worker: Callable, *args: Any) -> None:
     futures = []
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as execu:
-        for i in range(os.cpu_count()):
+        n_cpus = os.cpu_count()
+        assert n_cpus
+        for i in range(n_cpus):
             fut = execu.submit(worker, MemBindPolicy.HWLOC_MEMBIND_BIND)
 
             futures.append(fut)
@@ -75,7 +77,7 @@ def test_membind() -> None:
         ).name
 
         # Test the child threads correctly inherits the bind policy
-        def worker_0(exp: MemBindFlags) -> bool:
+        def worker_0(exp: MemBindPolicy) -> bool:
             cpuset, policy = topo.get_membind()
             assert cpuset.weight >= 1
             return policy == exp
@@ -90,7 +92,7 @@ def test_membind() -> None:
             res = worker_0(exp)
             fut.set_result(res)
 
-        fut = Future()
+        fut: Future[bool] = Future()
         t = threading.Thread(
             name="worker",
             target=worker_2,
