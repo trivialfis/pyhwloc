@@ -54,6 +54,9 @@ __all__ = [
 #   ctypes.c_char.from_buffer(array.data)
 # - see if we need a context manager.
 # - we don't need helpers in the object class.
+# - Test what the "single-threaded current process" assumption entails.
+#   + How about new thread?
+#   + How to membind with existing threads?
 # - [x] add to_sched_set in bitmap, we will return bitmap by default.
 # - [x] do we really want these from_xxx methods to be classmethod?
 
@@ -693,32 +696,34 @@ class Topology:
     # Memory Binding Methods
     def set_memory_bind(
         self,
-        nodeset: _Bitmap | set[int] | Object,
+        target: _Bitmap | set[int] | Object,
         policy: MemoryBindPolicy,
         flags: MemoryBindFlags,
     ) -> None:
-        """Bind the current process memory to specified NUMA nodes.
+        """Bind the current process memory to specified NUMA nodes. The current process
+        is assumed to be single-threaded.
 
         Parameters
         ----------
-        nodeset
+        target
             NUMA nodes to bind memory to. This can be an :py:class:`Object`, a
             :py:class:`Bitmap`, or a CPU set used by the `os.sched_*` routines
             (`set[int]`).
         policy
             Memory binding policy to use
         flags
-            Additional flags for memory binding
+            Additional flags for memory binding.
+
         """
-        if isinstance(nodeset, set):
-            bitmap = _Bitmap.from_sched_set(nodeset)
-        elif isinstance(nodeset, Object):
-            ns = nodeset.nodeset
+        if isinstance(target, set):
+            bitmap = _Bitmap.from_sched_set(target)
+        elif isinstance(target, Object):
+            ns = target.nodeset
             if ns is None:
                 raise ValueError("Object has no associated NUMA nodes")
             bitmap = ns
         else:
-            bitmap = nodeset
+            bitmap = target
         _core.set_membind(self.native_handle, bitmap.native_handle, policy, int(flags))
 
     def get_memory_bind(self, flags: int = 0) -> tuple[_Bitmap, MemoryBindPolicy]:
