@@ -43,19 +43,22 @@ __all__ = [
 ]
 
 
-def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
+def _from_impl(fn: Callable[[_core.topology_t], None], load: bool) -> _core.topology_t:
     hdl = _core.topology_t(0)
     try:
         _core.topology_init(hdl)
-        _core.topology_set_xmlbuffer(hdl, xml_buffer)
+        fn(hdl)
         if load is True:
             _core.topology_load(hdl)
     except (_lib.HwLocError, NotImplementedError) as e:
         if hdl:
             _core.topology_destroy(hdl)
         raise e
-
     return hdl
+
+
+def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
+    return _from_impl(lambda hdl: _core.topology_set_xmlbuffer(hdl, xml_buffer), load)
 
 
 ObjPtr = _core.ObjPtr
@@ -74,6 +77,7 @@ class Topology:
     The default `Topology` constructor initializes a topology object based on the
     current system. For alternative topology sources, use the class methods:
 
+    - :meth:`from_this_system`
     - :meth:`from_pid`
     - :meth:`from_synthetic`
     - :meth:`from_xml_file`
@@ -82,6 +86,9 @@ class Topology:
     .. code-block::
 
         # Context manager usage (recommended)
+        with Topology.from_this_system() as topo:  # Current system
+            print(f"Topology depth: {topo.depth}")
+
         with Topology() as topo:  # Current system
             print(f"Topology depth: {topo.depth}")
 
@@ -109,40 +116,31 @@ class Topology:
 
     .. code-block::
 
-        with Topology(load=False).set_all_types_filter(
+        with Topology.from_this_system(load=False).set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         ) as topo:
             # auto load when using a context manager
             pass
 
-        topo = Topology(load=False).set_all_types_filter(
+        topo = Topology.from_this_system(load=False).set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         ).load() # Load the topology
 
     """
 
-    def __init__(self, *, load: bool = True) -> None:
-        """Initialize a new topology for the current system.
+    def __init__(self) -> None:
+        """Short hand for the :py:meth:`from_this_system`. Use the from method if you
+        nned to delay the load process.
 
-        Parameters
-        ----------
-        load :
-            Whether the object should load the topology from the system. Set to False if
-            you want to apply additional filters.
         """
-        hdl = _core.topology_t()
 
-        try:
-            _core.topology_init(hdl)
-            if load is True:
-                _core.topology_load(hdl)
-        except (_lib.HwLocError, NotImplementedError) as e:
-            if hdl:
-                _core.topology_destroy(hdl)
-            raise e
+        def _(hdl: _core.topology_t) -> None:
+            pass
+
+        hdl = _from_impl(_, True)
 
         self._hdl = hdl
-        self._loaded = load
+        self._loaded = True
         # See the distance release method for more info.
         self._cleanup: list[weakref.ReferenceType["Distances"]] = []
 
@@ -153,6 +151,27 @@ class Topology:
         topo._loaded = loaded
         topo._cleanup = []
         return topo
+
+    @classmethod
+    def from_this_system(cls, *, load: bool = True) -> Topology:
+        """Create topology from this system.
+
+        Parameters
+        ----------
+        load :
+            Whether the object should load the topology from the system. Set to False if
+            you want to apply additional filters.
+
+        Returns
+        -------
+        New Topology instance for the specified process.
+        """
+
+        def _(hdl: _core.topology_t) -> None:
+            pass
+
+        hdl = _from_impl(_, load)
+        return cls.from_native_handle(hdl, load)
 
     @classmethod
     def from_pid(cls, pid: int, *, load: bool = True) -> Topology:
@@ -170,17 +189,7 @@ class Topology:
         -------
         New Topology instance for the specified process.
         """
-        hdl = _core.topology_t(0)
-        try:
-            _core.topology_init(hdl)
-            _core.topology_set_pid(hdl, pid)
-            if load is True:
-                _core.topology_load(hdl)
-        except (_lib.HwLocError, NotImplementedError) as e:
-            if hdl:
-                _core.topology_destroy(hdl)
-            raise e
-
+        hdl = _from_impl(lambda hdl: _core.topology_set_pid(hdl, pid), load)
         return cls.from_native_handle(hdl, load)
 
     @classmethod
@@ -191,23 +200,17 @@ class Topology:
         ----------
         description
             Synthetic topology description (e.g., "node:2 core:2 pu:2")
+        load :
+            Whether the object should load the topology from the system. Set to False if
+            you want to apply additional filters.
 
         Returns
         -------
         New Topology instance from the synthetic description.
         """
-        hdl = _core.topology_t(0)
-        try:
-            _core.topology_init(hdl)
-            _core.topology_set_synthetic(hdl, description)
-
-            if load is True:
-                _core.topology_load(hdl)
-        except (_lib.HwLocError, NotImplementedError) as e:
-            if hdl:
-                _core.topology_destroy(hdl)
-            raise e
-
+        hdl = _from_impl(
+            lambda hdl: _core.topology_set_synthetic(hdl, description), load
+        )
         return cls.from_native_handle(hdl, load)
 
     @classmethod
@@ -220,26 +223,16 @@ class Topology:
         ----------
         xml_path
             Path to XML file containing topology
-        filters
-            Optional filter for I/O objects
+        load :
+            Whether the object should load the topology from the system. Set to False if
+            you want to apply additional filters.
 
         Returns
         -------
         New Topology instance loaded from XML file.
         """
         path = os.fspath(os.path.expanduser(xml_path))
-        hdl = _core.topology_t(0)
-        try:
-            _core.topology_init(hdl)
-            _core.topology_set_xml(hdl, path)
-
-            if load is True:
-                _core.topology_load(hdl)
-        except (_lib.HwLocError, NotImplementedError) as e:
-            if hdl:
-                _core.topology_destroy(hdl)
-            raise e
-
+        hdl = _from_impl(lambda hdl: _core.topology_set_xml(hdl, path), load)
         return cls.from_native_handle(hdl, load)
 
     @classmethod
@@ -250,6 +243,9 @@ class Topology:
         ----------
         xml_buffer
             XML string containing topology
+        load :
+            Whether the object should load the topology from the system. Set to False if
+            you want to apply additional filters.
 
         Returns
         -------

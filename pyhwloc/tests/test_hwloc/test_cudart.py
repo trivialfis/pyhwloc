@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import cuda.bindings.runtime as cudart
+import pytest
+
+cudart = pytest.importorskip("cuda.bindings.runtime", exc_type=ImportError)
 
 from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
