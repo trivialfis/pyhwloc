@@ -142,3 +142,10 @@ def test_misc_ops() -> None:
     bitmap0 = Bitmap.from_pyseq([1, 2, 3])
     assert bitmap1.is_included(bitmap0) is True
     assert bitmap1.intersects(bitmap0) is True
+
+
+def test_with_sched_set() -> None:
+    cpuset = set([1, 2, 4])
+    bitmap = Bitmap.from_sched_set(cpuset)
+    loaded = bitmap.to_sched_set()
+    assert loaded == cpuset

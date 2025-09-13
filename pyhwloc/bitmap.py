@@ -23,6 +23,8 @@ from collections.abc import Iterable
 from typing import Iterator, Sequence
 
 from .hwloc import bitmap as _bitmap
+from .hwloc import sched as _sched
+from .utils import _reuse_doc
 
 __all__ = ["Bitmap", "compare_first"]
 
@@ -101,12 +103,27 @@ class Bitmap:
         return bitmap
 
     @classmethod
+    def from_sched_set(cls, index: set[int]) -> Bitmap:
+        """From a Python set of index, typically used by the ``os.sched_*`` functions to
+        represent CPU index.
+
+        """
+        return cls.from_native_handle(_sched.cpuset_from_sched_affinity(index), True)
+
+    @classmethod
     def from_native_handle(cls, hdl: _bitmap.bitmap_t, own: bool = True) -> Bitmap:
         bitmap = cls.__new__(cls)
         assert not hasattr(bitmap, "_hdl")
         bitmap._hdl = hdl
         bitmap._own = own
         return bitmap
+
+    def to_sched_set(self) -> set[int]:
+        """Convert to a Python set of index, typically used by the ``os.sched_*``
+        functions to represent CPU index.
+
+        """
+        return _sched.cpuset_to_sched_affinity(self.native_handle)
 
     def __copy__(self) -> Bitmap:
         return Bitmap.from_native_handle(_bitmap.bitmap_dup(self._hdl))
@@ -285,6 +302,6 @@ class Bitmap:
         return f"Bitmap({self.to_list_string()!r})"
 
 
+@_reuse_doc(_bitmap.bitmap_compare_first)
 def compare_first(lhs: Bitmap, rhs: Bitmap) -> int:
-    "See :py:func:`pyhwloc.hwloc.bitmap.bitmap_compare_first`."
     return _bitmap.bitmap_compare_first(lhs.native_handle, rhs.native_handle)
