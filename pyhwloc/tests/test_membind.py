@@ -20,6 +20,8 @@ import threading
 from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Callable
 
+import pytest
+
 from pyhwloc import Topology
 from pyhwloc.bitmap import Bitmap
 from pyhwloc.topology import MemBindFlags, MemBindPolicy
@@ -151,3 +153,31 @@ def test_membind() -> None:
             assert fut.result()
         # -- Reset
         reset(orig_cpuset, topo)
+
+
+def test_area_membind() -> None:
+    kb = 64
+    with Topology.from_this_system() as topo:
+        if not topo.get_support().membind.set_area_membind:
+            pytest.skip("Current system doesn't support set_area_membind")
+        # Test with memoryview
+        data = bytearray(1024 * kb)
+        mv = memoryview(data)
+        bitmap, policy = topo.get_area_membind(mv, len(data))
+        assert bitmap.weight >= 1
+        assert policy in (DFT_POLICY, MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
+
+        target_set = Bitmap()
+        target_set.set(0)
+
+        topo.set_area_membind(
+            mv,
+            len(data),
+            target_set,
+            MemBindPolicy.HWLOC_MEMBIND_BIND,
+            [MemBindFlags.HWLOC_MEMBIND_STRICT],
+        )
+
+        bitmap, policy = topo.get_area_membind(mv, len(data))
+        assert bitmap.weight >= 1
+        assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND

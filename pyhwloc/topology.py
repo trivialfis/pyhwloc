@@ -808,9 +808,9 @@ class Topology:
 
     def set_area_membind(
         self,
-        addr: ctypes.c_void_p,
+        addr: ctypes.c_void_p | int | memoryview | ctypes.Array,
         size: int,
-        nodeset: _Bitmap,
+        target: _Bitmap,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
     ) -> None:
@@ -819,28 +819,32 @@ class Topology:
         Parameters
         ----------
         addr
-            Memory area address
+            Memory area address.
         size
-            Size of memory area
+            Size of memory area in bytes. Ignored if input is a memoryview.
         nodeset
-            NUMA nodes to bind memory to
+            NUMA nodes to bind memory to.
         policy
-            Memory binding policy to use
+            Memory binding policy to use.
         flags
-            Additional flags for memory binding
+            Additional flags for memory binding.
         """
+        if isinstance(addr, memoryview):
+            Buffer = ctypes.c_char * len(addr)
+            addr = Buffer.from_buffer(addr)
+        addr = ctypes.cast(addr, ctypes.c_void_p)
         _core.set_area_membind(
             self.native_handle,
             addr,
             size,
-            nodeset.native_handle,
+            target.native_handle,
             policy,
             _or_flags(flags),
         )
 
     def get_area_membind(
         self,
-        addr: ctypes.c_void_p,
+        addr: ctypes.c_void_p | int | memoryview | ctypes.Array,
         size: int,
         flags: _Flags[MemBindFlags] = 0,
     ) -> tuple[_Bitmap, MemBindPolicy]:
@@ -849,49 +853,29 @@ class Topology:
         Parameters
         ----------
         addr
-            Memory area address
+            Memory area address.
         size
-            Size of memory area
+            Size of memory area in bytes. Ignored if input is a memoryview.
         flags
-            Flags for getting memory binding
+            Flags for getting memory binding.
 
         Returns
         -------
         Tuple of (nodeset, policy) for memory area binding
         """
         nodeset = _Bitmap()
+        if isinstance(addr, memoryview):
+            Buffer = ctypes.c_char * len(addr)
+            addr = Buffer.from_buffer(addr)
+        addr = ctypes.cast(addr, ctypes.c_void_p)
         policy = _core.get_area_membind(
             self.native_handle, addr, size, nodeset.native_handle, _or_flags(flags)
         )
         return nodeset, policy
 
-    def allocate_bound_memory(
-        self,
-        size: int,
-        nodeset: _Bitmap,
-        policy: MemBindPolicy,
-        flags: _Flags[MemBindFlags],
-    ) -> ctypes.c_void_p:
-        """Allocate memory bound to specific NUMA nodes.
-
-        Parameters
-        ----------
-        size
-            Size of memory to allocate
-        nodeset
-            NUMA nodes to bind memory to
-        policy
-            Memory binding policy to use
-        flags
-            Additional flags for memory binding
-
-        Returns
-        -------
-        Pointer to allocated bound memory
-        """
-        return _core.alloc_membind(
-            self.native_handle, size, nodeset.native_handle, policy, _or_flags(flags)
-        )
+    # Allocator interface is not exposed. I checked popular libraries like torch, none
+    # of them supports setting custom allocator in Python. We can come back to this if
+    # someone asks for it.
 
 
 @_reuse_doc(_core.get_api_version)
