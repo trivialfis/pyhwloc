@@ -154,7 +154,7 @@ class Topology:
 
     @classmethod
     def from_this_system(cls, *, load: bool = True) -> Topology:
-        """Create topology from this system.
+        """Create a topology from this system.
 
         Parameters
         ----------
@@ -175,7 +175,7 @@ class Topology:
 
     @classmethod
     def from_pid(cls, pid: int, *, load: bool = True) -> Topology:
-        """Create topology from a specific process ID.
+        """Create a topology from a specific process ID.
 
         Parameters
         ----------
@@ -194,7 +194,7 @@ class Topology:
 
     @classmethod
     def from_synthetic(cls, description: str, *, load: bool = True) -> Topology:
-        """Create topology from synthetic description.
+        """Create a topology from a synthetic description.
 
         Parameters
         ----------
@@ -217,7 +217,7 @@ class Topology:
     def from_xml_file(
         cls, xml_path: os.PathLike | str, *, load: bool = True
     ) -> Topology:
-        """Create topology from XML file.
+        """Create a topology from a XML file.
 
         Parameters
         ----------
@@ -237,7 +237,7 @@ class Topology:
 
     @classmethod
     def from_xml_buffer(cls, xml_buffer: str, *, load: bool = True) -> Topology:
-        """Create topology from XML string.
+        """Create a topology from a XML string.
 
         Parameters
         ----------
@@ -254,6 +254,7 @@ class Topology:
         hdl = _from_xml_buffer(xml_buffer, load)
         return cls.from_native_handle(hdl, load)
 
+    @_reuse_doc(_core.topology_check)
     def check(self) -> None:
         _core.topology_check(self._hdl)
 
@@ -452,53 +453,21 @@ class Topology:
         ptr = _core.get_obj_by_depth(self.native_handle, depth, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
+    @_reuse_doc(_core.get_root_obj)
     def get_root_obj(self) -> Object:
-        """Get the root object."""
         return Object(_core.get_root_obj(self.native_handle), weakref.ref(self))
 
+    @_reuse_doc(_core.get_obj_by_type)
     def get_obj_by_type(self, obj_type: ObjType, idx: int) -> Object | None:
-        """Get object by type and index.
-
-        Parameters
-        ----------
-        obj_type
-            Type of object to find
-        idx
-            Index of object of that type
-
-        Returns
-        -------
-        Object instance or None if not found
-        """
         ptr = _core.get_obj_by_type(self.native_handle, obj_type, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
+    @_reuse_doc(_core.get_nbobjs_by_depth)
     def get_nbobjs_by_depth(self, depth: int) -> int:
-        """Get number of objects at specific depth.
-
-        Parameters
-        ----------
-        depth
-            Depth level in topology tree
-
-        Returns
-        -------
-        Number of objects at that depth
-        """
         return _core.get_nbobjs_by_depth(self.native_handle, depth)
 
+    @_reuse_doc(_core.get_nbobjs_by_type)
     def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
-        """Get number of objects of specific type.
-
-        Parameters
-        ----------
-        obj_type
-            Type of object to count
-
-        Returns
-        -------
-        Number of objects of that type
-        """
         return _core.get_nbobjs_by_type(self.native_handle, obj_type)
 
     def iter_objects_by_depth(self, depth: int) -> Iterator[Object]:
