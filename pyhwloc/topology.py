@@ -54,7 +54,8 @@ __all__ = [
 #   ctypes.c_char.from_buffer(array.data)
 # - see if we need a context manager.
 # - we don't need helpers in the object class.
-# - add to_sched_set in bitmap, we will return bitmap by default.
+# - [x] add to_sched_set in bitmap, we will return bitmap by default.
+# - [x] do we really want these from_xxx methods to be classmethod?
 
 
 def _from_impl(fn: Callable[[_core.topology_t], None], load: bool) -> _core.topology_t:
