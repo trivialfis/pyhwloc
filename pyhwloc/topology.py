@@ -145,10 +145,10 @@ class Topology:
         self._cleanup: list[weakref.ReferenceType["Distances"]] = []
 
     @classmethod
-    def from_native_handle(cls, hdl: _core.topology_t, loaded: bool) -> Topology:
+    def from_native_handle(cls, hdl: _core.topology_t, is_loaded: bool) -> Topology:
         topo = cls.__new__(cls)
         topo._hdl = hdl
-        topo._loaded = loaded
+        topo._loaded = is_loaded
         topo._cleanup = []
         return topo
 
@@ -384,7 +384,7 @@ class Topology:
 
     def __copy__(self) -> Topology:
         new = _core.topology_dup(self.native_handle)
-        return Topology.from_native_handle(new, loaded=True)
+        return Topology.from_native_handle(new, True)
 
     def __deepcopy__(self, memo: dict) -> Topology:
         return self.__copy__()
