@@ -16,7 +16,7 @@
 Interoperability with Python sched affinity
 ===========================================
 """
-from typing import Set
+from __future__ import annotations
 
 from .bitmap import (
     bitmap_alloc,
@@ -40,7 +40,7 @@ from .core import (
 # `os.sched_*` in mind.
 
 
-def cpuset_to_sched_affinity(cpuset: hwloc_const_cpuset_t) -> Set[int]:
+def cpuset_to_sched_affinity(cpuset: hwloc_const_cpuset_t) -> set[int]:
     """Convert the bitmap to the Python sched affinity set."""
     idx = bitmap_first(cpuset)
     affinity = set()
@@ -50,7 +50,7 @@ def cpuset_to_sched_affinity(cpuset: hwloc_const_cpuset_t) -> Set[int]:
     return affinity
 
 
-def cpuset_from_sched_affinity(affinity: Set[int]) -> hwloc_cpuset_t:
+def cpuset_from_sched_affinity(affinity: set[int]) -> hwloc_cpuset_t:
     """Convert the Python sched affinity set to a bitmap. The caller needs to free the
     returned cpuset.
 
