@@ -116,6 +116,9 @@ class Topology:
         with Topology.from_this_system() as topo:  # Current system
             print(f"Topology depth: {topo.depth}")
 
+        with Topology() as topo:  # Current system
+            print(f"Topology depth: {topo.depth}")
+
         # Synthetic topology
         with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
             print(f"Topology depth: {topo.depth}")
@@ -126,7 +129,7 @@ class Topology:
 
         # Direct usage,  cleanup is recommended but not required.
         try:
-            topo = Topology.from_this_system()
+            topo = Topology()
             print(f"Topology depth: {topo.depth}")
         finally:
             topo.destroy()
