@@ -692,14 +692,19 @@ class Topology:
 
     # Memory Binding Methods
     def set_memory_bind(
-        self, nodeset: _Bitmap | set[int], policy: MemoryBindPolicy, flags: int = 0
+        self,
+        nodeset: _Bitmap | set[int] | Object,
+        policy: MemoryBindPolicy,
+        flags: MemoryBindFlags,
     ) -> None:
-        """Bind current process memory to specified NUMA nodes.
+        """Bind the current process memory to specified NUMA nodes.
 
         Parameters
         ----------
         nodeset
-            NUMA nodes to bind memory to
+            NUMA nodes to bind memory to. This can be an :py:class:`Object`, a
+            :py:class:`Bitmap`, or a CPU set used by the `os.sched_*` routines
+            (`set[int]`).
         policy
             Memory binding policy to use
         flags
@@ -707,9 +712,14 @@ class Topology:
         """
         if isinstance(nodeset, set):
             bitmap = _Bitmap.from_sched_set(nodeset)
+        elif isinstance(nodeset, Object):
+            ns = nodeset.nodeset
+            if ns is None:
+                raise ValueError("Object has no associated NUMA nodes")
+            bitmap = ns
         else:
             bitmap = nodeset
-        _core.set_membind(self.native_handle, bitmap.native_handle, policy, flags)
+        _core.set_membind(self.native_handle, bitmap.native_handle, policy, int(flags))
 
     def get_memory_bind(self, flags: int = 0) -> tuple[_Bitmap, MemoryBindPolicy]:
         """Get current process memory binding.

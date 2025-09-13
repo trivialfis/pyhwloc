@@ -509,30 +509,6 @@ class Object:
         """Hash based on pointer address."""
         return hash(ctypes.addressof(self.native_handle.contents))
 
-    # Memory Binding Helper Methods
-    def bind_memory(
-        self, policy: MemoryBindPolicy | None = None, flags: int = 0
-    ) -> None:
-        """Bind memory to this object's NUMA nodes.
-
-        Parameters
-        ----------
-        policy
-            Memory binding policy to use (defaults to BIND)
-        flags
-            Additional flags for memory binding
-        """
-        if policy is None:
-            policy = _core.hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
-
-        # Get this object's nodeset
-        if self.nodeset is None:
-            raise ValueError("Object has no associated NUMA nodes")
-
-        # Use topology to set memory binding
-        topo = self._topo
-        topo.set_memory_bind(self.nodeset, policy, flags)
-
     def allocate_memory(
         self, size: int, policy: MemoryBindPolicy | None = None, flags: int = 0
     ) -> ctypes.c_void_p:
