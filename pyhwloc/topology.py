@@ -776,7 +776,7 @@ class Topology:
         Parameters
         ----------
         pid
-            Process ID to bind
+            Process ID to bind.
         target
             NUMA nodes to bind memory to. This can be an :py:class:`Object`, a
             :py:class:`Bitmap`, or a CPU set used by the `os.sched_*` routines
@@ -787,9 +787,13 @@ class Topology:
             Additional flags for memory binding
         """
         bitmap = _to_bitmap(target)
-        _core.set_proc_membind(
-            self.native_handle, pid, bitmap.native_handle, policy, _or_flags(flags)
-        )
+        try:
+            hdl = _core._open_proc_handle(pid)
+            _core.set_proc_membind(
+                self.native_handle, hdl, bitmap.native_handle, policy, _or_flags(flags)
+            )
+        finally:
+            _core._close_proc_handle(hdl)
 
     def get_proc_membind(
         self, pid: int, flags: _Flags[MemBindFlags] = 0
@@ -799,19 +803,23 @@ class Topology:
         Parameters
         ----------
         pid
-            Process ID to query
+            Process ID to query.
         flags
-            Flags for getting memory binding
+            Flags for getting memory binding.
 
         Returns
         -------
         Tuple of (nodeset, policy) for process memory binding
         """
         nodeset = _Bitmap()
-        policy = _core.get_proc_membind(
-            self.native_handle, pid, nodeset.native_handle, _or_flags(flags)
-        )
-        return nodeset, policy
+        try:
+            hdl = _core._open_proc_handle(pid)
+            policy = _core.get_proc_membind(
+                self.native_handle, pid, nodeset.native_handle, _or_flags(flags)
+            )
+            return nodeset, policy
+        finally:
+            _core._close_proc_handle(hdl)
 
     def set_area_membind(
         self,

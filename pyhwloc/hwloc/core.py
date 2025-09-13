@@ -36,8 +36,6 @@ from .lib import (
 )
 
 hwloc_uint64_t = ctypes.c_uint64
-hwloc_pid_t = ctypes.c_int
-
 HWLOC_UNKNOWN_INDEX = ctypes.c_uint(-1).value
 
 
@@ -793,6 +791,71 @@ class hwloc_cpubind_flags_t(IntEnum):
     HWLOC_CPUBIND_NOMEMBIND = 1 << 3
 
 
+if sys.platform == "win32":
+    hwloc_thread_t = ctypes.c_void_p
+    hwloc_pid_t = ctypes.c_void_p
+
+    ctypes.windll.kernel32.OpenThread.restype = hwloc_thread_t
+    ctypes.windll.kernel32.OpenThread.argtypes = [
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+    ]
+
+    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
+        THREAD_SET_INFORMATION = 0x0020
+        THREAD_QUERY_INFORMATION = 0x0040
+        if read_only:
+            access = THREAD_QUERY_INFORMATION
+        else:
+            access = THREAD_QUERY_INFORMATION | THREAD_SET_INFORMATION
+        hdl = ctypes.windll.kernel32.OpenThread(access, 0, thread_id)
+        if not hdl:
+            raise ctypes.WinError()
+        return hdl
+
+    ctypes.windll.kernel32.CloseHandle.argtypes = [hwloc_thread_t]
+    ctypes.windll.kernel32.CloseHandle.restype = ctypes.c_int
+
+    def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
+        status = ctypes.windll.kernel32.CloseHandle(thread_hdl)
+        if status == 0:
+            raise ctypes.WinError()
+
+    def _open_proc_handle(pid: int, read_only: bool = True) -> hwloc_pid_t:
+        PROCESS_SET_INFORMATION = 0x0200
+        PROCESS_QUERY_INFORMATION = 0x0400
+        if read_only:
+            access = PROCESS_QUERY_INFORMATION
+        else:
+            access = PROCESS_QUERY_INFORMATION | PROCESS_SET_INFORMATION
+        hdl = ctypes.windll.kernel32.OpenThread(access, 0, pid)
+        if not hdl:
+            raise ctypes.WinError()
+        return hdl
+
+    def _close_proc_handle(proc_hdl: hwloc_pid_t) -> None:
+        status = ctypes.windll.kernel32.CloseHandle(proc_hdl)
+        if status == 0:
+            raise ctypes.WinError()
+
+else:
+    hwloc_thread_t = ctypes.c_ulong
+    hwloc_pid_t = ctypes.c_int
+
+    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
+        return hwloc_thread_t(thread_id)
+
+    def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
+        pass
+
+    def _open_proc_handle(pid: int, read_only: bool = True) -> hwloc_pid_t:
+        return hwloc_pid_t(pid)
+
+    def _close_proc_handle(thread_hdl: hwloc_pid_t) -> None:
+        pass
+
+
 _LIB.hwloc_set_cpubind.argtypes = [topology_t, hwloc_const_cpuset_t, ctypes.c_int]
 _LIB.hwloc_set_cpubind.restype = ctypes.c_int
 
@@ -841,46 +904,6 @@ def get_proc_cpubind(
     topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
 ) -> None:
     _checkc(_LIB.hwloc_get_proc_cpubind(topology, pid, cpuset, flags))
-
-
-if sys.platform == "win32":
-    hwloc_thread_t = ctypes.c_void_p
-
-    ctypes.windll.kernel32.OpenThread.restype = hwloc_thread_t
-    ctypes.windll.kernel32.OpenThread.argtypes = [
-        ctypes.c_int,
-        ctypes.c_int,
-        ctypes.c_int,
-    ]
-
-    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
-        THREAD_SET_INFORMATION = 0x0020
-        THREAD_QUERY_INFORMATION = 0x0040
-        if read_only:
-            access = THREAD_QUERY_INFORMATION
-        else:
-            access = THREAD_QUERY_INFORMATION | THREAD_SET_INFORMATION
-        hdl = ctypes.windll.kernel32.OpenThread(access, 0, thread_id)
-        if not hdl:
-            raise ctypes.WinError()
-        return hdl
-
-    ctypes.windll.kernel32.CloseHandle.argtypes = [hwloc_thread_t]
-    ctypes.windll.kernel32.CloseHandle.restype = ctypes.c_int
-
-    def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
-        status = ctypes.windll.kernel32.CloseHandle(thread_hdl)
-        if status == 0:
-            raise ctypes.WinError()
-
-else:
-    hwloc_thread_t = ctypes.c_ulong
-
-    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
-        return hwloc_thread_t(thread_id)
-
-    def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
-        pass
 
 
 _LIB.hwloc_set_thread_cpubind.argtypes = [
