@@ -83,13 +83,12 @@ def test_membind() -> None:
         reset(orig_cpuset, topo)
 
         # Test launching thread before setting membind
-        fut = Future()
-
-        def worker_2() -> None:
+        def worker_2(fut: Future) -> None:
             res = worker_0(MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
             fut.set_result(res)
 
-        t = threading.Thread(name="worker", target=worker_2)
+        fut = Future()
+        t = threading.Thread(name="worker", target=worker_2, args=(fut, ))
         topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
         t.start()
         t.join()
@@ -100,7 +99,8 @@ def test_membind() -> None:
         # Test launching thread before setting membind with process
         if topo.get_support().membind.set_proc_membind:
             # Linux doesn't support process-based membind
-            t = threading.Thread(name="worker", target=worker_2)
+            fut = Future()
+            t = threading.Thread(name="worker", target=worker_2, args=(fut, ))
             topo.set_membind(
                 target_set,
                 MemBindPolicy.HWLOC_MEMBIND_BIND,
