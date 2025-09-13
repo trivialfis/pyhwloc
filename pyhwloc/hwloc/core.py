@@ -1045,6 +1045,7 @@ _LIB.hwloc_get_proc_membind.restype = ctypes.c_int
 def get_proc_membind(
     topology: topology_t, pid: int, set: bitmap_t, flags: int
 ) -> hwloc_membind_policy_t:
+    # Note that it does not make sense to pass ::HWLOC_MEMBIND_THREAD to this function.
     policy = ctypes.c_int()
     _checkc(
         _LIB.hwloc_get_proc_membind(

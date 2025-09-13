@@ -37,16 +37,16 @@ if TYPE_CHECKING:
     from .distance import Distances
 
 # Memory bind type aliases
-MemoryBindPolicy = _core.hwloc_membind_policy_t
-MemoryBindFlags = _core.hwloc_membind_flags_t
+MemBindPolicy = _core.hwloc_membind_policy_t
+MemBindFlags = _core.hwloc_membind_flags_t
 
 __all__ = [
     "Topology",
     "ExportXmlFlags",
     "ExportSyntheticFlags",
     "TypeFilter",
-    "MemoryBindPolicy",
-    "MemoryBindFlags",
+    "MemBindPolicy",
+    "MemBindFlags",
 ]
 
 # membind fixmes:
@@ -57,6 +57,7 @@ __all__ = [
 # - Test what the "single-threaded current process" assumption entails.
 #   + How about new thread?
 #   + How to membind with existing threads?
+# - Do we need individual methods for various membind flags?
 # - [x] add to_sched_set in bitmap, we will return bitmap by default.
 # - [x] do we really want these from_xxx methods to be classmethod?
 
@@ -697,8 +698,8 @@ class Topology:
     def set_memory_bind(
         self,
         target: _Bitmap | set[int] | Object,
-        policy: MemoryBindPolicy,
-        flags: MemoryBindFlags,
+        policy: MemBindPolicy,
+        flags: MemBindFlags,
     ) -> None:
         """Bind the current process memory to specified NUMA nodes. The current process
         is assumed to be single-threaded.
@@ -726,7 +727,7 @@ class Topology:
             bitmap = target
         _core.set_membind(self.native_handle, bitmap.native_handle, policy, int(flags))
 
-    def get_memory_bind(self, flags: int = 0) -> tuple[_Bitmap, MemoryBindPolicy]:
+    def get_memory_bind(self, flags: int = 0) -> tuple[_Bitmap, MemBindPolicy]:
         """Get current process memory binding.
 
         Parameters
@@ -736,14 +737,14 @@ class Topology:
 
         Returns
         -------
-        Tuple of (nodeset, policy) for current memory binding
+        Tuple of (bitmap, policy) for current memory binding
         """
-        nodeset = _Bitmap()
-        policy = _core.get_membind(self.native_handle, nodeset.native_handle, flags)
-        return nodeset, policy
+        bitmap = _Bitmap()
+        policy = _core.get_membind(self.native_handle, bitmap.native_handle, flags)
+        return bitmap, policy
 
     def set_process_memory_bind(
-        self, pid: int, nodeset: _Bitmap, policy: MemoryBindPolicy, flags: int = 0
+        self, pid: int, nodeset: _Bitmap, policy: MemBindPolicy, flags: int = 0
     ) -> None:
         """Bind specific process memory to NUMA nodes.
 
@@ -764,7 +765,7 @@ class Topology:
 
     def get_process_memory_bind(
         self, pid: int, flags: int = 0
-    ) -> tuple[_Bitmap, MemoryBindPolicy]:
+    ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get process memory binding.
 
         Parameters
@@ -789,7 +790,7 @@ class Topology:
         addr: ctypes.c_void_p,
         size: int,
         nodeset: _Bitmap,
-        policy: MemoryBindPolicy,
+        policy: MemBindPolicy,
         flags: int = 0,
     ) -> None:
         """Bind memory area to NUMA nodes.
@@ -813,7 +814,7 @@ class Topology:
 
     def get_area_memory_bind(
         self, addr: ctypes.c_void_p, size: int, flags: int = 0
-    ) -> tuple[_Bitmap, MemoryBindPolicy]:
+    ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get memory area binding.
 
         Parameters
@@ -836,7 +837,7 @@ class Topology:
         return nodeset, policy
 
     def allocate_bound_memory(
-        self, size: int, nodeset: _Bitmap, policy: MemoryBindPolicy, flags: int = 0
+        self, size: int, nodeset: _Bitmap, policy: MemBindPolicy, flags: int = 0
     ) -> ctypes.c_void_p:
         """Allocate memory bound to specific NUMA nodes.
 
