@@ -695,7 +695,7 @@ class Topology:
         return result
 
     # Memory Binding Methods
-    def set_memory_bind(
+    def set_membind(
         self,
         target: _Bitmap | set[int] | Object,
         policy: MemBindPolicy,
@@ -727,7 +727,7 @@ class Topology:
             bitmap = target
         _core.set_membind(self.native_handle, bitmap.native_handle, policy, int(flags))
 
-    def get_memory_bind(self, flags: int = 0) -> tuple[_Bitmap, MemBindPolicy]:
+    def get_membind(self, flags: int = 0) -> tuple[_Bitmap, MemBindPolicy]:
         """Get current process memory binding.
 
         Parameters
@@ -743,7 +743,7 @@ class Topology:
         policy = _core.get_membind(self.native_handle, bitmap.native_handle, flags)
         return bitmap, policy
 
-    def set_process_memory_bind(
+    def set_proc_membind(
         self, pid: int, nodeset: _Bitmap, policy: MemBindPolicy, flags: int = 0
     ) -> None:
         """Bind specific process memory to NUMA nodes.
@@ -763,7 +763,7 @@ class Topology:
             self.native_handle, pid, nodeset.native_handle, policy, flags
         )
 
-    def get_process_memory_bind(
+    def get_proc_membind(
         self, pid: int, flags: int = 0
     ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get process memory binding.
@@ -785,7 +785,7 @@ class Topology:
         )
         return nodeset, policy
 
-    def set_area_memory_bind(
+    def set_area_membind(
         self,
         addr: ctypes.c_void_p,
         size: int,
@@ -812,7 +812,7 @@ class Topology:
             self.native_handle, addr, size, nodeset.native_handle, policy, flags
         )
 
-    def get_area_memory_bind(
+    def get_area_membind(
         self, addr: ctypes.c_void_p, size: int, flags: int = 0
     ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get memory area binding.

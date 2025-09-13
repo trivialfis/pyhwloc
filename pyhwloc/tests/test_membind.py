@@ -25,8 +25,8 @@ from pyhwloc.topology import MemBindFlags, MemBindPolicy
 
 
 def reset(orig_cpuset: Bitmap, topo: Topology) -> None:
-    topo.set_memory_bind(orig_cpuset, MemBindPolicy.HWLOC_MEMBIND_DEFAULT, 0)
-    orig_cpuset, policy = topo.get_memory_bind()
+    topo.set_membind(orig_cpuset, MemBindPolicy.HWLOC_MEMBIND_DEFAULT, 0)
+    orig_cpuset, policy = topo.get_membind()
     assert policy in (
         MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH,
         MemBindPolicy.HWLOC_MEMBIND_DEFAULT,
@@ -46,7 +46,7 @@ def with_tpool(worker: Callable, *args: Any) -> None:
 
 def test_membind() -> None:
     with Topology.from_this_system() as topo:
-        orig_cpuset, policy = topo.get_memory_bind()
+        orig_cpuset, policy = topo.get_membind()
         assert policy in (
             MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH,
             MemBindPolicy.HWLOC_MEMBIND_DEFAULT,
@@ -57,9 +57,9 @@ def test_membind() -> None:
         target_set.set(0)
         # neither HWLOC_MEMBIND_PROCESS or HWLOC_MEMBIND_THREAD is used, the current
         # process is assumed to be single-threaded
-        topo.set_memory_bind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
+        topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
 
-        cpuset_1, policy_1 = topo.get_memory_bind()
+        cpuset_1, policy_1 = topo.get_membind()
         assert cpuset_1.weight >= 1  # All CPUs in a socket.
         assert policy_1 == MemBindPolicy.HWLOC_MEMBIND_BIND, MemBindPolicy(
             policy_1
@@ -67,13 +67,13 @@ def test_membind() -> None:
 
         # Test the child threads correctly inherits the bind policy
         def worker_0(exp: MemBindFlags) -> bool:
-            cpuset, policy = topo.get_memory_bind()
+            cpuset, policy = topo.get_membind()
             assert cpuset.weight >= 1
             return policy == exp
 
         def worker_1(exp: MemBindFlags) -> bool:
             with Topology.from_this_system() as topo:
-                cpuset, policy = topo.get_memory_bind()
+                cpuset, policy = topo.get_membind()
                 assert cpuset.weight >= 1
                 return policy == exp
 
@@ -90,7 +90,7 @@ def test_membind() -> None:
             fut.set_result(res)
 
         t = threading.Thread(name="worker", target=worker_2)
-        topo.set_memory_bind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
+        topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
         t.start()
         t.join()
         assert not fut.result()
@@ -101,7 +101,7 @@ def test_membind() -> None:
         if topo.get_support().membind.set_proc_membind:
             # Linux doesn't support process-based membind
             t = threading.Thread(name="worker", target=worker_2)
-            topo.set_memory_bind(
+            topo.set_membind(
                 target_set,
                 MemBindPolicy.HWLOC_MEMBIND_BIND,
                 MemBindFlags.HWLOC_MEMBIND_PROCESS,
