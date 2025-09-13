@@ -29,7 +29,6 @@ from typing import (
     Any,
     Callable,
     Iterator,
-    Sequence,
     Type,
     TypeAlias,
 )
@@ -86,6 +85,19 @@ def _from_impl(fn: Callable[[_core.topology_t], None], load: bool) -> _core.topo
 
 def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
     return _from_impl(lambda hdl: _core.topology_set_xmlbuffer(hdl, xml_buffer), load)
+
+
+def _to_bitmap(target: _Bitmap | set[int] | Object) -> _Bitmap:
+    if isinstance(target, set):
+        bitmap = _Bitmap.from_sched_set(target)
+    elif isinstance(target, Object):
+        ns = target.nodeset
+        if ns is None:
+            raise ValueError("Object has no associated NUMA nodes")
+        bitmap = ns
+    else:
+        bitmap = target
+    return bitmap
 
 
 ObjPtr = _core.ObjPtr
@@ -727,15 +739,7 @@ class Topology:
             Additional flags for memory binding.
 
         """
-        if isinstance(target, set):
-            bitmap = _Bitmap.from_sched_set(target)
-        elif isinstance(target, Object):
-            ns = target.nodeset
-            if ns is None:
-                raise ValueError("Object has no associated NUMA nodes")
-            bitmap = ns
-        else:
-            bitmap = target
+        bitmap = _to_bitmap(target)
         _core.set_membind(
             self.native_handle, bitmap.native_handle, policy, _or_flags(flags)
         )
@@ -763,7 +767,7 @@ class Topology:
     def set_proc_membind(
         self,
         pid: int,
-        nodeset: _Bitmap,
+        target: _Bitmap | set[int] | Object,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
     ) -> None:
@@ -773,15 +777,18 @@ class Topology:
         ----------
         pid
             Process ID to bind
-        nodeset
-            NUMA nodes to bind memory to
+        target
+            NUMA nodes to bind memory to. This can be an :py:class:`Object`, a
+            :py:class:`Bitmap`, or a CPU set used by the `os.sched_*` routines
+            (`set[int]`).
         policy
             Memory binding policy to use
         flags
             Additional flags for memory binding
         """
+        bitmap = _to_bitmap(target)
         _core.set_proc_membind(
-            self.native_handle, pid, nodeset.native_handle, policy, _or_flags(flags)
+            self.native_handle, pid, bitmap.native_handle, policy, _or_flags(flags)
         )
 
     def get_proc_membind(
@@ -810,7 +817,7 @@ class Topology:
         self,
         addr: ctypes.c_void_p | int | memoryview | ctypes.Array,
         size: int,
-        target: _Bitmap,
+        target: _Bitmap | set[int] | Object,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
     ) -> None:
@@ -822,8 +829,10 @@ class Topology:
             Memory area address.
         size
             Size of memory area in bytes. Ignored if input is a memoryview.
-        nodeset
-            NUMA nodes to bind memory to.
+        target
+            NUMA nodes to bind memory to. This can be an :py:class:`Object`, a
+            :py:class:`Bitmap`, or a CPU set used by the `os.sched_*` routines
+            (`set[int]`).
         policy
             Memory binding policy to use.
         flags
@@ -833,11 +842,12 @@ class Topology:
             Buffer = ctypes.c_char * len(addr)
             addr = Buffer.from_buffer(addr)
         addr = ctypes.cast(addr, ctypes.c_void_p)
+        bitmap = _to_bitmap(target)
         _core.set_area_membind(
             self.native_handle,
             addr,
             size,
-            target.native_handle,
+            bitmap.native_handle,
             policy,
             _or_flags(flags),
         )
