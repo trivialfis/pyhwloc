@@ -43,19 +43,22 @@ __all__ = [
 ]
 
 
-def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
+def _from_impl(fn: Callable[[_core.topology_t], None], load: bool) -> _core.topology_t:
     hdl = _core.topology_t(0)
     try:
         _core.topology_init(hdl)
-        _core.topology_set_xmlbuffer(hdl, xml_buffer)
+        fn(hdl)
         if load is True:
             _core.topology_load(hdl)
     except (_lib.HwLocError, NotImplementedError) as e:
         if hdl:
             _core.topology_destroy(hdl)
         raise e
-
     return hdl
+
+
+def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
+    return _from_impl(lambda hdl: _core.topology_set_xmlbuffer(hdl, xml_buffer), load)
 
 
 ObjPtr = _core.ObjPtr
@@ -74,6 +77,7 @@ class Topology:
     The default `Topology` constructor initializes a topology object based on the
     current system. For alternative topology sources, use the class methods:
 
+    - :meth:`from_this_system`
     - :meth:`from_pid`
     - :meth:`from_synthetic`
     - :meth:`from_xml_file`
@@ -82,6 +86,9 @@ class Topology:
     .. code-block::
 
         # Context manager usage (recommended)
+        with Topology.from_this_system() as topo:  # Current system
+            print(f"Topology depth: {topo.depth}")
+
         with Topology() as topo:  # Current system
             print(f"Topology depth: {topo.depth}")
 
@@ -109,54 +116,66 @@ class Topology:
 
     .. code-block::
 
-        with Topology(load=False).set_all_types_filter(
+        with Topology.from_this_system(load=False).set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         ) as topo:
             # auto load when using a context manager
             pass
 
-        topo = Topology(load=False).set_all_types_filter(
+        topo = Topology.from_this_system(load=False).set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         ).load() # Load the topology
 
     """
 
-    def __init__(self, *, load: bool = True) -> None:
-        """Initialize a new topology for the current system.
+    def __init__(self) -> None:
+        """Short hand for the :py:meth:`from_this_system`. Use the class method if you
+        need to delay the load process for customization.
+
+        """
+
+        def _(hdl: _core.topology_t) -> None:
+            pass
+
+        hdl = _from_impl(_, True)
+
+        self._hdl = hdl
+        self._loaded = True
+        # See the distance release method for more info.
+        self._cleanup: list[weakref.ReferenceType["Distances"]] = []
+
+    @classmethod
+    def from_native_handle(cls, hdl: _core.topology_t, is_loaded: bool) -> Topology:
+        topo = cls.__new__(cls)
+        topo._hdl = hdl
+        topo._loaded = is_loaded
+        topo._cleanup = []
+        return topo
+
+    @classmethod
+    def from_this_system(cls, *, load: bool = True) -> Topology:
+        """Create a topology from this system.
 
         Parameters
         ----------
         load :
             Whether the object should load the topology from the system. Set to False if
             you want to apply additional filters.
+
+        Returns
+        -------
+        New Topology instance for the specified process.
         """
-        hdl = _core.topology_t()
 
-        try:
-            _core.topology_init(hdl)
-            if load is True:
-                _core.topology_load(hdl)
-        except (_lib.HwLocError, NotImplementedError) as e:
-            if hdl:
-                _core.topology_destroy(hdl)
-            raise e
+        def _(hdl: _core.topology_t) -> None:
+            pass
 
-        self._hdl = hdl
-        self._loaded = load
-        # See the distance release method for more info.
-        self._cleanup: list[weakref.ReferenceType["Distances"]] = []
-
-    @classmethod
-    def from_native_handle(cls, hdl: _core.topology_t, loaded: bool) -> Topology:
-        topo = cls.__new__(cls)
-        topo._hdl = hdl
-        topo._loaded = loaded
-        topo._cleanup = []
-        return topo
+        hdl = _from_impl(_, load)
+        return cls.from_native_handle(hdl, load)
 
     @classmethod
     def from_pid(cls, pid: int, *, load: bool = True) -> Topology:
-        """Create topology from a specific process ID.
+        """Create a topology from a specific process ID.
 
         Parameters
         ----------
@@ -170,86 +189,63 @@ class Topology:
         -------
         New Topology instance for the specified process.
         """
-        hdl = _core.topology_t(0)
-        try:
-            _core.topology_init(hdl)
-            _core.topology_set_pid(hdl, pid)
-            if load is True:
-                _core.topology_load(hdl)
-        except (_lib.HwLocError, NotImplementedError) as e:
-            if hdl:
-                _core.topology_destroy(hdl)
-            raise e
-
+        hdl = _from_impl(lambda hdl: _core.topology_set_pid(hdl, pid), load)
         return cls.from_native_handle(hdl, load)
 
     @classmethod
     def from_synthetic(cls, description: str, *, load: bool = True) -> Topology:
-        """Create topology from synthetic description.
+        """Create a topology from a synthetic description.
 
         Parameters
         ----------
         description
             Synthetic topology description (e.g., "node:2 core:2 pu:2")
+        load :
+            Whether the object should load the topology from the system. Set to False if
+            you want to apply additional filters.
 
         Returns
         -------
         New Topology instance from the synthetic description.
         """
-        hdl = _core.topology_t(0)
-        try:
-            _core.topology_init(hdl)
-            _core.topology_set_synthetic(hdl, description)
-
-            if load is True:
-                _core.topology_load(hdl)
-        except (_lib.HwLocError, NotImplementedError) as e:
-            if hdl:
-                _core.topology_destroy(hdl)
-            raise e
-
+        hdl = _from_impl(
+            lambda hdl: _core.topology_set_synthetic(hdl, description), load
+        )
         return cls.from_native_handle(hdl, load)
 
     @classmethod
     def from_xml_file(
         cls, xml_path: os.PathLike | str, *, load: bool = True
     ) -> Topology:
-        """Create topology from XML file.
+        """Create a topology from a XML file.
 
         Parameters
         ----------
         xml_path
             Path to XML file containing topology
-        filters
-            Optional filter for I/O objects
+        load :
+            Whether the object should load the topology from the system. Set to False if
+            you want to apply additional filters.
 
         Returns
         -------
         New Topology instance loaded from XML file.
         """
         path = os.fspath(os.path.expanduser(xml_path))
-        hdl = _core.topology_t(0)
-        try:
-            _core.topology_init(hdl)
-            _core.topology_set_xml(hdl, path)
-
-            if load is True:
-                _core.topology_load(hdl)
-        except (_lib.HwLocError, NotImplementedError) as e:
-            if hdl:
-                _core.topology_destroy(hdl)
-            raise e
-
+        hdl = _from_impl(lambda hdl: _core.topology_set_xml(hdl, path), load)
         return cls.from_native_handle(hdl, load)
 
     @classmethod
     def from_xml_buffer(cls, xml_buffer: str, *, load: bool = True) -> Topology:
-        """Create topology from XML string.
+        """Create a topology from a XML string.
 
         Parameters
         ----------
         xml_buffer
             XML string containing topology
+        load :
+            Whether the object should load the topology from the system. Set to False if
+            you want to apply additional filters.
 
         Returns
         -------
@@ -258,6 +254,7 @@ class Topology:
         hdl = _from_xml_buffer(xml_buffer, load)
         return cls.from_native_handle(hdl, load)
 
+    @_reuse_doc(_core.topology_check)
     def check(self) -> None:
         _core.topology_check(self._hdl)
 
@@ -387,7 +384,7 @@ class Topology:
 
     def __copy__(self) -> Topology:
         new = _core.topology_dup(self.native_handle)
-        return Topology.from_native_handle(new, loaded=True)
+        return Topology.from_native_handle(new, True)
 
     def __deepcopy__(self, memo: dict) -> Topology:
         return self.__copy__()
@@ -456,53 +453,21 @@ class Topology:
         ptr = _core.get_obj_by_depth(self.native_handle, depth, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
+    @_reuse_doc(_core.get_root_obj)
     def get_root_obj(self) -> Object:
-        """Get the root object."""
         return Object(_core.get_root_obj(self.native_handle), weakref.ref(self))
 
+    @_reuse_doc(_core.get_obj_by_type)
     def get_obj_by_type(self, obj_type: ObjType, idx: int) -> Object | None:
-        """Get object by type and index.
-
-        Parameters
-        ----------
-        obj_type
-            Type of object to find
-        idx
-            Index of object of that type
-
-        Returns
-        -------
-        Object instance or None if not found
-        """
         ptr = _core.get_obj_by_type(self.native_handle, obj_type, idx)
         return Object(ptr, weakref.ref(self)) if ptr else None
 
+    @_reuse_doc(_core.get_nbobjs_by_depth)
     def get_nbobjs_by_depth(self, depth: int) -> int:
-        """Get number of objects at specific depth.
-
-        Parameters
-        ----------
-        depth
-            Depth level in topology tree
-
-        Returns
-        -------
-        Number of objects at that depth
-        """
         return _core.get_nbobjs_by_depth(self.native_handle, depth)
 
+    @_reuse_doc(_core.get_nbobjs_by_type)
     def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
-        """Get number of objects of specific type.
-
-        Parameters
-        ----------
-        obj_type
-            Type of object to count
-
-        Returns
-        -------
-        Number of objects of that type
-        """
         return _core.get_nbobjs_by_type(self.native_handle, obj_type)
 
     def iter_objects_by_depth(self, depth: int) -> Iterator[Object]:

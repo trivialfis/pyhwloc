@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import cuda.bindings.driver as cuda
+import pytest
+
+cuda = pytest.importorskip("cuda.bindings.driver", exc_type=ImportError)
 
 from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,

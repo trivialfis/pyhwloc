@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import pynvml as nm
+import pytest
+
+nm = pytest.importorskip("pynvml", exc_type=ImportError)
 
 from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
