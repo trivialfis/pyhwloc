@@ -129,8 +129,8 @@ class Topology:
     """
 
     def __init__(self) -> None:
-        """Short hand for the :py:meth:`from_this_system`. Use that method if you need
-        to delay the load process.
+        """Short hand for the :py:meth:`from_this_system`. Use the class method if you
+        need to delay the load process for customization.
 
         """
 
