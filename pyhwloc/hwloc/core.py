@@ -949,7 +949,7 @@ def get_proc_last_cpu_location(
 # Memory binding
 ################
 
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00147.php#gadf87089ef533db40460ccc24b5bc0d65
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00147.php
 
 
 @_cenumdoc
@@ -968,6 +968,7 @@ class hwloc_membind_flags_t(IntEnum):
     HWLOC_MEMBIND_PROCESS = 1 << 0
     HWLOC_MEMBIND_THREAD = 1 << 1
     HWLOC_MEMBIND_STRICT = 1 << 2
+    # Only used by Linux `set_area_membind` and `set_thisthread_membind`.
     HWLOC_MEMBIND_MIGRATE = 1 << 3
     HWLOC_MEMBIND_NOCPUBIND = 1 << 4
     HWLOC_MEMBIND_BYNODESET = 1 << 5

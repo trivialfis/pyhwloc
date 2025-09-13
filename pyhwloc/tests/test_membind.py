@@ -26,7 +26,7 @@ from pyhwloc.topology import MemBindFlags, MemBindPolicy
 
 DFT_POLICY = (
     MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH
-    if platform == "Linux"
+    if platform.system() == "Linux"
     # AIX, HP-UX, OSF, Solaris, Windows
     else MemBindPolicy.HWLOC_MEMBIND_BIND
 )
@@ -47,6 +47,13 @@ def with_tpool(worker: Callable, *args: Any) -> None:
             futures.append(fut)
 
     assert all(fut.result() for fut in futures)
+
+
+def worker_1(exp: MemBindFlags) -> bool:
+    with Topology.from_this_system() as topo:
+        cpuset, policy = topo.get_membind()
+        assert cpuset.weight >= 1
+        return policy == exp
 
 
 def test_membind() -> None:
@@ -73,24 +80,22 @@ def test_membind() -> None:
             assert cpuset.weight >= 1
             return policy == exp
 
-        def worker_1(exp: MemBindFlags) -> bool:
-            with Topology.from_this_system() as topo:
-                cpuset, policy = topo.get_membind()
-                assert cpuset.weight >= 1
-                return policy == exp
-
         with_tpool(worker_0, MemBindPolicy.HWLOC_MEMBIND_BIND)
         with_tpool(worker_1, MemBindPolicy.HWLOC_MEMBIND_BIND)
         # -- Reset
         reset(orig_cpuset, topo)
 
         # Test launching thread before setting membind
-        def worker_2(fut: Future) -> None:
-            res = worker_0(MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
+        def worker_2(fut: Future, exp: MemBindPolicy) -> None:
+            res = worker_0(exp)
             fut.set_result(res)
 
         fut = Future()
-        t = threading.Thread(name="worker", target=worker_2, args=(fut,))
+        t = threading.Thread(
+            name="worker",
+            target=worker_2,
+            args=(fut, MemBindPolicy.HWLOC_MEMBIND_DEFAULT),
+        )
         topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
         t.start()
         t.join()
@@ -104,7 +109,11 @@ def test_membind() -> None:
             # anything since Windows doesn't support any types of membind policy other
             # than bind.
             fut = Future()
-            t = threading.Thread(name="worker", target=worker_2, args=(fut,))
+            t = threading.Thread(
+                name="worker",
+                target=worker_2,
+                args=(fut, MemBindPolicy.HWLOC_MEMBIND_DEFAULT),
+            )
             topo.set_membind(
                 target_set,
                 MemBindPolicy.HWLOC_MEMBIND_BIND,
@@ -116,7 +125,23 @@ def test_membind() -> None:
         # -- Reset
         reset(orig_cpuset, topo)
 
-        # Test migrate with pre-launched threads
-        fut = Future()
-        t = threading.Thread(name="worker", target=worker_2, args=(fut,))
-        topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, MemBindFlags.HWLOC_MEMBIND_MIGRATE)
+        # Test migrate
+        if topo.get_support().membind.migrate_membind:
+            fut = Future()
+            t = threading.Thread(
+                name="worker",
+                target=worker_2,
+                args=(fut, MemBindPolicy.HWLOC_MEMBIND_BIND),
+            )
+            topo.set_membind(
+                target_set,
+                MemBindPolicy.HWLOC_MEMBIND_BIND,
+                [MemBindFlags.HWLOC_MEMBIND_STRICT, MemBindFlags.HWLOC_MEMBIND_MIGRATE],
+            )
+            _, policy = topo.get_membind()
+            assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
+            t.start()
+            t.join()
+            assert fut.result()
+        # -- Reset
+        reset(orig_cpuset, topo)

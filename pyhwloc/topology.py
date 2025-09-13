@@ -24,13 +24,13 @@ import os
 import weakref
 from collections import namedtuple
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Type, TypeAlias
+from typing import TYPE_CHECKING, Any, Callable, Iterator, Sequence, Type, TypeAlias
 
 from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object, ObjType
-from .utils import _reuse_doc
+from .utils import _or_flags, _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
@@ -699,7 +699,7 @@ class Topology:
         self,
         target: _Bitmap | set[int] | Object,
         policy: MemBindPolicy,
-        flags: MemBindFlags,
+        flags: MemBindFlags | Sequence[MemBindFlags],
     ) -> None:
         """Bind the current process memory to specified NUMA nodes. The current process
         is assumed to be single-threaded.
@@ -725,9 +725,13 @@ class Topology:
             bitmap = ns
         else:
             bitmap = target
-        _core.set_membind(self.native_handle, bitmap.native_handle, policy, int(flags))
+        _core.set_membind(
+            self.native_handle, bitmap.native_handle, policy, _or_flags(flags)
+        )
 
-    def get_membind(self, flags: int = 0) -> tuple[_Bitmap, MemBindPolicy]:
+    def get_membind(
+        self, flags: MemBindFlags | Sequence[MemBindFlags] = 0
+    ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get current process memory binding.
 
         Parameters
@@ -740,11 +744,17 @@ class Topology:
         Tuple of (bitmap, policy) for current memory binding
         """
         bitmap = _Bitmap()
-        policy = _core.get_membind(self.native_handle, bitmap.native_handle, flags)
+        policy = _core.get_membind(
+            self.native_handle, bitmap.native_handle, _or_flags(flags)
+        )
         return bitmap, policy
 
     def set_proc_membind(
-        self, pid: int, nodeset: _Bitmap, policy: MemBindPolicy, flags: int = 0
+        self,
+        pid: int,
+        nodeset: _Bitmap,
+        policy: MemBindPolicy,
+        flags: MemBindFlags | Sequence[MemBindFlags],
     ) -> None:
         """Bind specific process memory to NUMA nodes.
 
@@ -760,11 +770,11 @@ class Topology:
             Additional flags for memory binding
         """
         _core.set_proc_membind(
-            self.native_handle, pid, nodeset.native_handle, policy, flags
+            self.native_handle, pid, nodeset.native_handle, policy, _or_flags(flags)
         )
 
     def get_proc_membind(
-        self, pid: int, flags: int = 0
+        self, pid: int, flags: MemBindFlags | Sequence[MemBindFlags] = 0
     ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get process memory binding.
 
@@ -781,7 +791,7 @@ class Topology:
         """
         nodeset = _Bitmap()
         policy = _core.get_proc_membind(
-            self.native_handle, pid, nodeset.native_handle, flags
+            self.native_handle, pid, nodeset.native_handle, _or_flags(flags)
         )
         return nodeset, policy
 
@@ -791,7 +801,7 @@ class Topology:
         size: int,
         nodeset: _Bitmap,
         policy: MemBindPolicy,
-        flags: int = 0,
+        flags: MemBindFlags | Sequence[MemBindFlags],
     ) -> None:
         """Bind memory area to NUMA nodes.
 
@@ -809,11 +819,19 @@ class Topology:
             Additional flags for memory binding
         """
         _core.set_area_membind(
-            self.native_handle, addr, size, nodeset.native_handle, policy, flags
+            self.native_handle,
+            addr,
+            size,
+            nodeset.native_handle,
+            policy,
+            _or_flags(flags),
         )
 
     def get_area_membind(
-        self, addr: ctypes.c_void_p, size: int, flags: int = 0
+        self,
+        addr: ctypes.c_void_p,
+        size: int,
+        flags: MemBindFlags | Sequence[MemBindFlags] = 0,
     ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get memory area binding.
 
@@ -832,12 +850,16 @@ class Topology:
         """
         nodeset = _Bitmap()
         policy = _core.get_area_membind(
-            self.native_handle, addr, size, nodeset.native_handle, flags
+            self.native_handle, addr, size, nodeset.native_handle, _or_flags(flags)
         )
         return nodeset, policy
 
     def allocate_bound_memory(
-        self, size: int, nodeset: _Bitmap, policy: MemBindPolicy, flags: int = 0
+        self,
+        size: int,
+        nodeset: _Bitmap,
+        policy: MemBindPolicy,
+        flags: MemBindFlags | Sequence[MemBindFlags],
     ) -> ctypes.c_void_p:
         """Allocate memory bound to specific NUMA nodes.
 
@@ -857,7 +879,7 @@ class Topology:
         Pointer to allocated bound memory
         """
         return _core.alloc_membind(
-            self.native_handle, size, nodeset.native_handle, policy, flags
+            self.native_handle, size, nodeset.native_handle, policy, _or_flags(flags)
         )
 
 
