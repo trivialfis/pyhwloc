@@ -96,7 +96,11 @@ def test_membind() -> None:
             target=worker_2,
             args=(fut, MemBindPolicy.HWLOC_MEMBIND_DEFAULT),
         )
-        topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
+        topo.set_membind(
+            target_set,
+            MemBindPolicy.HWLOC_MEMBIND_BIND,
+            [MemBindFlags.HWLOC_MEMBIND_STRICT, MemBindFlags.HWLOC_MEMBIND_THREAD],
+        )
         t.start()
         t.join()
         assert not fut.result()
