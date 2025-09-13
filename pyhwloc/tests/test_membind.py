@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import os
+import platform
 import threading
 from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Callable
@@ -23,14 +24,18 @@ from pyhwloc import Topology
 from pyhwloc.bitmap import Bitmap
 from pyhwloc.topology import MemBindFlags, MemBindPolicy
 
+DFT_POLICY = (
+    MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH
+    if platform == "Linux"
+    # AIX, HP-UX, OSF, Solaris, Windows
+    else MemBindPolicy.HWLOC_MEMBIND_BIND
+)
+
 
 def reset(orig_cpuset: Bitmap, topo: Topology) -> None:
     topo.set_membind(orig_cpuset, MemBindPolicy.HWLOC_MEMBIND_DEFAULT, 0)
     orig_cpuset, policy = topo.get_membind()
-    assert policy in (
-        MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH,
-        MemBindPolicy.HWLOC_MEMBIND_DEFAULT,
-    )
+    assert policy in (DFT_POLICY, MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
 
 
 def with_tpool(worker: Callable, *args: Any) -> None:
@@ -47,10 +52,7 @@ def with_tpool(worker: Callable, *args: Any) -> None:
 def test_membind() -> None:
     with Topology.from_this_system() as topo:
         orig_cpuset, policy = topo.get_membind()
-        assert policy in (
-            MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH,
-            MemBindPolicy.HWLOC_MEMBIND_DEFAULT,
-        )
+        assert policy in (DFT_POLICY, MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
         assert orig_cpuset.weight == os.cpu_count()
 
         target_set = Bitmap()
@@ -88,7 +90,7 @@ def test_membind() -> None:
             fut.set_result(res)
 
         fut = Future()
-        t = threading.Thread(name="worker", target=worker_2, args=(fut, ))
+        t = threading.Thread(name="worker", target=worker_2, args=(fut,))
         topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
         t.start()
         t.join()
@@ -98,9 +100,11 @@ def test_membind() -> None:
 
         # Test launching thread before setting membind with process
         if topo.get_support().membind.set_proc_membind:
-            # Linux doesn't support process-based membind
+            # Linux doesn't support process-based membind, this is not really testing
+            # anything since Windows doesn't support any types of membind policy other
+            # than bind.
             fut = Future()
-            t = threading.Thread(name="worker", target=worker_2, args=(fut, ))
+            t = threading.Thread(name="worker", target=worker_2, args=(fut,))
             topo.set_membind(
                 target_set,
                 MemBindPolicy.HWLOC_MEMBIND_BIND,
@@ -111,3 +115,8 @@ def test_membind() -> None:
             assert not fut.result()
         # -- Reset
         reset(orig_cpuset, topo)
+
+        # Test migrate with pre-launched threads
+        fut = Future()
+        t = threading.Thread(name="worker", target=worker_2, args=(fut,))
+        topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, MemBindFlags.HWLOC_MEMBIND_MIGRATE)
