@@ -21,6 +21,7 @@ import ctypes
 from functools import partial
 
 from pyhwloc.hwloc.core import (
+    ObjType,
     distances_add_commit,
     distances_add_create,
     distances_add_values,
@@ -34,7 +35,6 @@ from pyhwloc.hwloc.core import (
     hwloc_distances_kind_e,
     hwloc_distances_s,
     hwloc_obj,
-    ObjType,
     hwloc_uint64_t,
     topology_destroy,
     topology_get_depth,

@@ -23,8 +23,8 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_weight,
 )
 from pyhwloc.hwloc.core import (
-    TypeFilter,
     ObjType,
+    TypeFilter,
 )
 from pyhwloc.hwloc.cudadr import (
     _check_cu,

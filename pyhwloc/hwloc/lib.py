@@ -143,7 +143,6 @@ def _cenumdoc(name: str) -> Callable[[Type], Type]:
 
 
 def _cstructdoc(parent: str | None = None) -> Callable[[Type], Type]:
-
     def _decorator(struct: Type) -> Type:
         assert issubclass(struct, ctypes.Structure), struct
         if parent is not None:
@@ -157,7 +156,6 @@ def _cstructdoc(parent: str | None = None) -> Callable[[Type], Type]:
 
 
 def _cuniondoc(parent: str | None = None) -> Callable[[Type], Type]:
-
     def _decorator(union: Type) -> Type:
         assert issubclass(union, ctypes.Union)
         if parent is not None:

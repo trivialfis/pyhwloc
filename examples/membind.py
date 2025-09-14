@@ -16,6 +16,7 @@
 Example of using membind
 ========================
 """
+
 from pyhwloc import Topology
 from pyhwloc.topology import MemBindFlags, MemBindPolicy
 

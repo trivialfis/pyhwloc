@@ -28,6 +28,9 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_weight,
 )
 from pyhwloc.hwloc.core import (
+    ExportSyntheticFlags,
+    ExportXmlFlags,
+    ObjType,
     TypeFilter,
     bridge_covers_pcibus,
     compare_types,
@@ -59,10 +62,7 @@ from pyhwloc.hwloc.core import (
     hwloc_infos_s,
     hwloc_obj_attr_u,
     hwloc_obj_cache_type_t,
-    ObjType,
     hwloc_topology_components_flag_e,
-    ExportSyntheticFlags,
-    ExportXmlFlags,
     hwloc_topology_flags_e,
     is_same_obj,
     obj_add_info,
@@ -121,13 +121,9 @@ def test_compare_types() -> None:
     r = compare_types(ObjType.HWLOC_OBJ_PU, ObjType.HWLOC_OBJ_PU)
     assert r == 0
 
-    r = compare_types(
-        ObjType.HWLOC_OBJ_MACHINE, ObjType.HWLOC_OBJ_CORE
-    )
+    r = compare_types(ObjType.HWLOC_OBJ_MACHINE, ObjType.HWLOC_OBJ_CORE)
     assert r != 0
-    r = compare_types(
-        ObjType.HWLOC_OBJ_CORE, ObjType.HWLOC_OBJ_MACHINE
-    )
+    r = compare_types(ObjType.HWLOC_OBJ_CORE, ObjType.HWLOC_OBJ_MACHINE)
     assert r != 0
 
 
@@ -275,9 +271,7 @@ def test_get_type_or_below_depth() -> None:
     topo = Topology()
 
     # Test with machine type - should find machine or something below it
-    machine_depth = get_type_or_below_depth(
-        topo.hdl, ObjType.HWLOC_OBJ_MACHINE
-    )
+    machine_depth = get_type_or_below_depth(topo.hdl, ObjType.HWLOC_OBJ_MACHINE)
     assert machine_depth >= 0  # Should always find something
 
     # Test with core type

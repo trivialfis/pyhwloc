@@ -37,9 +37,11 @@ from pyhwloc.hwloc.bitmap import (
 )
 from pyhwloc.hwloc.core import (
     HWLOC_UNKNOWN_INDEX,
+    GetTypeDepth,
     MemBindFlags,
     MemBindPolicy,
     ObjPtr,
+    ObjType,
     alloc_membind,
     free,
     get_nbobjs_by_depth,
@@ -49,8 +51,6 @@ from pyhwloc.hwloc.core import (
     get_root_obj,
     get_type_depth,
     get_type_or_below_depth,
-    GetTypeDepth,
-    ObjType,
     obj_attr_snprintf,
     obj_type_is_cache,
     obj_type_snprintf,

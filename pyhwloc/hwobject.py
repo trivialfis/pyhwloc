@@ -20,6 +20,7 @@ The Object Interface
 Python interface of the hwloc_obj type.
 
 """
+
 from __future__ import annotations
 
 import ctypes

@@ -16,6 +16,7 @@
 The Topology Interface
 ======================
 """
+
 from __future__ import annotations
 
 import ctypes

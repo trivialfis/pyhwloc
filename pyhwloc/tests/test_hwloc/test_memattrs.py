@@ -17,6 +17,7 @@ from __future__ import annotations
 import ctypes
 
 from pyhwloc.hwloc.core import (
+    ObjType,
     get_obj_by_type,
     hwloc_location,
     hwloc_location_type_e,
@@ -24,7 +25,6 @@ from pyhwloc.hwloc.core import (
     hwloc_memattr_flag_e,
     hwloc_memattr_id_e,
     hwloc_memattr_id_t,
-    ObjType,
     memattr_get_flags,
     memattr_get_name,
     memattr_get_value,

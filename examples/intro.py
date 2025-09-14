@@ -65,7 +65,7 @@ Packages: {topology.n_packages}
         for node in topology.iter_numa_nodes():
             print(f"NUMA Node {node.logical_index}: {node}")
             if node.total_memory > 0:
-                print(f"  Memory: {node.total_memory // (1024*1024)} MB")
+                print(f"  Memory: {node.total_memory // (1024 * 1024)} MB")
 
         # Demonstrate object navigation
         print()

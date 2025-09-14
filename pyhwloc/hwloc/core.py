@@ -16,6 +16,7 @@
 Core API
 ========
 """
+
 from __future__ import annotations
 
 import ctypes
@@ -544,9 +545,7 @@ _pyhwloc_lib.pyhwloc_get_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
 
 
 @_cfndoc
-def get_obj_by_type(
-    topology: topology_t, obj_type: ObjType, idx: int
-) -> ObjPtr | None:
+def get_obj_by_type(topology: topology_t, obj_type: ObjType, idx: int) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_obj_by_type(topology, obj_type, idx)
     if not obj:
         return None
@@ -704,9 +703,7 @@ _LIB.hwloc_type_sscanf_as_depth.restype = ctypes.c_int
 
 
 @_cfndoc
-def type_sscanf_as_depth(
-    string: str, topology: topology_t
-) -> tuple[ObjType, int]:
+def type_sscanf_as_depth(string: str, topology: topology_t) -> tuple[ObjType, int]:
     string_bytes = string.encode("utf-8")
     typep = ctypes.c_int()
     depthp = ctypes.c_int()
@@ -1447,9 +1444,7 @@ _LIB.hwloc_topology_get_type_filter.restype = ctypes.c_int
 
 
 @_cfndoc
-def topology_get_type_filter(
-    topology: topology_t, obj_type: ObjType
-) -> TypeFilter:
+def topology_get_type_filter(topology: topology_t, obj_type: ObjType) -> TypeFilter:
     f = ctypes.c_int()
     _checkc(_LIB.hwloc_topology_get_type_filter(topology, obj_type, ctypes.byref(f)))
     return TypeFilter(f.value)
