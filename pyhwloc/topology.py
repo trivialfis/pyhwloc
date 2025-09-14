@@ -35,8 +35,8 @@ from typing import (
 
 from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
-from .hwloc import lib as _lib
-from .hwobject import Object, ObjType
+from .hwobject import Object as _Object
+from .hwobject import ObjType as _ObjType
 from .utils import _Flags, _or_flags, _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
@@ -72,10 +72,10 @@ def _from_impl(fn: Callable[[_core.topology_t], None], load: bool) -> _core.topo
         fn(hdl)
         if load is True:
             _core.topology_load(hdl)
-    except (_lib.HwLocError, NotImplementedError, OSError) as e:
+    except Exception:
         if hdl:
             _core.topology_destroy(hdl)
-        raise e
+        raise
     return hdl
 
 
@@ -83,10 +83,10 @@ def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
     return _from_impl(lambda hdl: _core.topology_set_xmlbuffer(hdl, xml_buffer), load)
 
 
-def _to_bitmap(target: _Bitmap | set[int] | Object) -> _Bitmap:
+def _to_bitmap(target: _Bitmap | set[int] | _Object) -> _Bitmap:
     if isinstance(target, set):
         bitmap = _Bitmap.from_sched_set(target)
-    elif isinstance(target, Object):
+    elif isinstance(target, _Object):
         ns = target.nodeset
         if ns is None:
             raise ValueError("Object has no associated NUMA nodes")
@@ -474,7 +474,7 @@ class Topology:
             _core.topology_set_icache_types_filter, type_filter
         )
 
-    def get_obj_by_depth(self, depth: int, idx: int) -> Object | None:
+    def get_obj_by_depth(self, depth: int, idx: int) -> _Object | None:
         """Get object at specific depth and index.
 
         Parameters
@@ -489,26 +489,26 @@ class Topology:
         Object instance or None if not found
         """
         ptr = _core.get_obj_by_depth(self.native_handle, depth, idx)
-        return Object(ptr, weakref.ref(self)) if ptr else None
+        return _Object(ptr, weakref.ref(self)) if ptr else None
 
     @_reuse_doc(_core.get_root_obj)
-    def get_root_obj(self) -> Object:
-        return Object(_core.get_root_obj(self.native_handle), weakref.ref(self))
+    def get_root_obj(self) -> _Object:
+        return _Object(_core.get_root_obj(self.native_handle), weakref.ref(self))
 
     @_reuse_doc(_core.get_obj_by_type)
-    def get_obj_by_type(self, obj_type: ObjType, idx: int) -> Object | None:
+    def get_obj_by_type(self, obj_type: _ObjType, idx: int) -> _Object | None:
         ptr = _core.get_obj_by_type(self.native_handle, obj_type, idx)
-        return Object(ptr, weakref.ref(self)) if ptr else None
+        return _Object(ptr, weakref.ref(self)) if ptr else None
 
     @_reuse_doc(_core.get_nbobjs_by_depth)
     def get_nbobjs_by_depth(self, depth: int) -> int:
         return _core.get_nbobjs_by_depth(self.native_handle, depth)
 
     @_reuse_doc(_core.get_nbobjs_by_type)
-    def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
+    def get_nbobjs_by_type(self, obj_type: _ObjType) -> int:
         return _core.get_nbobjs_by_type(self.native_handle, obj_type)
 
-    def iter_objects_by_depth(self, depth: int) -> Iterator[Object]:
+    def iter_objects_by_depth(self, depth: int) -> Iterator[_Object]:
         """Iterate over all objects at specific depth.
 
         Parameters
@@ -526,7 +526,7 @@ class Topology:
             ptr = _core.get_next_obj_by_depth(self.native_handle, depth, prev)
             if ptr is None:
                 break
-            obj = Object(ptr, weakref.ref(self))
+            obj = _Object(ptr, weakref.ref(self))
             yield obj
             prev = ptr
 
@@ -538,9 +538,9 @@ class Topology:
         -------
         Number of core objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_CORE)
 
-    def iter_objects_by_type(self, obj_type: ObjType) -> Iterator[Object]:
+    def iter_objects_by_type(self, obj_type: _ObjType) -> Iterator[_Object]:
         """Iterate over all objects of specific type.
 
         Parameters
@@ -557,11 +557,11 @@ class Topology:
             ptr = _core.get_next_obj_by_type(self.native_handle, obj_type, prev)
             if ptr is None:
                 break
-            obj = Object(ptr, weakref.ref(self))
+            obj = _Object(ptr, weakref.ref(self))
             yield obj
             prev = ptr
 
-    def iter_all_breadth_first(self) -> Iterator[Object]:
+    def iter_all_breadth_first(self) -> Iterator[_Object]:
         """Iterate over all objects in the topology.
 
         Yields
@@ -574,7 +574,7 @@ class Topology:
 
     # We can implement pre/in/post-order traversal if needed.
 
-    def get_depth_type(self, depth: int) -> ObjType:
+    def get_depth_type(self, depth: int) -> _ObjType:
         """Get the object type at specific depth.
 
         Parameters
@@ -588,41 +588,41 @@ class Topology:
         """
         return _core.get_depth_type(self.native_handle, depth)
 
-    def iter_cpus(self) -> Iterator[Object]:
+    def iter_cpus(self) -> Iterator[_Object]:
         """Iterate over all processing units (CPUs).
 
         Yields
         ------
         All PU (processing unit) object instances
         """
-        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_PU)
+        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_PU)
 
-    def iter_cores(self) -> Iterator[Object]:
+    def iter_cores(self) -> Iterator[_Object]:
         """Iterate over all cores.
 
         Yields
         ------
         All core object instances
         """
-        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_CORE)
+        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_CORE)
 
-    def iter_numa_nodes(self) -> Iterator[Object]:
+    def iter_numa_nodes(self) -> Iterator[_Object]:
         """Iterate over all NUMA nodes.
 
         Yields
         ------
         All NUMA node object instances
         """
-        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_NUMANODE)
+        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_NUMANODE)
 
-    def iter_packages(self) -> Iterator[Object]:
+    def iter_packages(self) -> Iterator[_Object]:
         """Iterate over all packages (sockets).
 
         Yields
         ------
         All package object instances
         """
-        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_PACKAGE)
+        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
 
     @property
     def n_cpus(self) -> int:
@@ -632,7 +632,7 @@ class Topology:
         -------
         Number of PU objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PU)
 
     @property
     def n_numa_nodes(self) -> int:
@@ -642,7 +642,7 @@ class Topology:
         -------
         Number of NUMA node objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_NUMANODE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_NUMANODE)
 
     @property
     def n_packages(self) -> int:
@@ -652,7 +652,7 @@ class Topology:
         -------
         Number of package objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PACKAGE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
 
     @property
     def n_pci_devices(self) -> int:
@@ -662,7 +662,7 @@ class Topology:
         -------
         Number of PCI device objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PCI_DEVICE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PCI_DEVICE)
 
     @property
     def n_os_devices(self) -> int:
@@ -672,7 +672,7 @@ class Topology:
         -------
         Number of OS device objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_OS_DEVICE)
 
     # Distance Methods
     @_reuse_doc(_core.distances_get)
@@ -719,7 +719,7 @@ class Topology:
     # Memory Binding Methods
     def set_membind(
         self,
-        target: _Bitmap | set[int] | Object,
+        target: _Bitmap | set[int] | _Object,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
     ) -> None:
@@ -766,7 +766,7 @@ class Topology:
     def set_proc_membind(
         self,
         pid: int,
-        target: _Bitmap | set[int] | Object,
+        target: _Bitmap | set[int] | _Object,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
     ) -> None:
@@ -828,7 +828,7 @@ class Topology:
         self,
         addr: ctypes.c_void_p | int | memoryview | ctypes.Array,
         size: int,
-        target: _Bitmap | set[int] | Object,
+        target: _Bitmap | set[int] | _Object,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
     ) -> None:

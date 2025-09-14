@@ -17,7 +17,7 @@ from __future__ import annotations
 import ctypes
 import errno
 import os
-import platform
+import sys
 from typing import Callable, ParamSpec, Type, TypeVar
 
 from .libc import strerror as cstrerror
@@ -29,7 +29,7 @@ def normpath(path: str) -> str:
 
 _file_path = normpath(__file__)
 
-_IS_WINDOWS = platform.system() == "Windows"
+_IS_WINDOWS = sys.platform == "win32"
 
 if not _IS_WINDOWS:
     prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
@@ -63,6 +63,8 @@ _pyhwloc_lib = ctypes.cdll.LoadLibrary(_lib_path)
 
 
 class HwLocError(RuntimeError):
+    """Generic catch-all runtime error reported by pyhwloc."""
+
     def __init__(self, status: int, err: int, msg: bytes | str | None) -> None:
         self.status = status
         self.errno = err
@@ -85,10 +87,14 @@ def _checkc(status: int) -> None:
     msg = cstrerror(err)
     if err == errno.ENOSYS:
         raise NotImplementedError(msg)
+    elif err == errno.EINVAL:
+        raise ValueError(msg)
+    elif err == errno.ENOMEM:
+        raise MemoryError(msg)
     if err == 0 and _IS_WINDOWS:
-        werr = ctypes.get_last_error()
+        werr = ctypes.get_last_error()  # type: ignore[attr-defined]
         if werr != 0:
-            raise ctypes.WinError(werr)
+            raise ctypes.WinError(werr)  # type: ignore[attr-defined]
     raise HwLocError(status, err, msg)
 
 
