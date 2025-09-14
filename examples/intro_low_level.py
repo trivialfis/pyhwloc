@@ -48,8 +48,8 @@ from pyhwloc.hwloc.core import (
     get_type_depth,
     get_type_or_below_depth,
     hwloc_get_type_depth_e,
-    hwloc_membind_flags_t,
-    hwloc_membind_policy_t,
+    MemBindFlags,
+    MemBindPolicy,
     hwloc_obj_type_t,
     obj_attr_snprintf,
     obj_type_is_cache,
@@ -205,8 +205,8 @@ def main() -> int:
         topology,
         size,
         obj.contents.nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_BYNODESET,
+        MemBindPolicy.HWLOC_MEMBIND_BIND,
+        MemBindFlags.HWLOC_MEMBIND_BYNODESET,
     )
     free(topology, m, size)
 
@@ -218,8 +218,8 @@ def main() -> int:
             m,
             size,
             obj.contents.nodeset,
-            hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
-            hwloc_membind_flags_t.HWLOC_MEMBIND_BYNODESET,
+            MemBindPolicy.HWLOC_MEMBIND_BIND,
+            MemBindFlags.HWLOC_MEMBIND_BYNODESET,
         )
 
     # Destroy topology object.

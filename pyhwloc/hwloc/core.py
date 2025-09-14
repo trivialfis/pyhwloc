@@ -985,7 +985,7 @@ def get_proc_last_cpu_location(
 
 
 @_cenumdoc
-class hwloc_membind_policy_t(IntEnum):
+class MemBindPolicy(IntEnum):
     HWLOC_MEMBIND_DEFAULT = 0
     HWLOC_MEMBIND_FIRSTTOUCH = 1
     HWLOC_MEMBIND_BIND = 2
@@ -996,7 +996,7 @@ class hwloc_membind_policy_t(IntEnum):
 
 
 @_cenumdoc
-class hwloc_membind_flags_t(IntEnum):
+class MemBindFlags(IntEnum):
     HWLOC_MEMBIND_PROCESS = 1 << 0
     HWLOC_MEMBIND_THREAD = 1 << 1
     HWLOC_MEMBIND_STRICT = 1 << 2
@@ -1019,7 +1019,7 @@ _LIB.hwloc_set_membind.restype = ctypes.c_int
 def set_membind(
     topology: topology_t,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> None:
     _checkc(_LIB.hwloc_set_membind(topology, set, policy, flags))
@@ -1037,10 +1037,10 @@ _LIB.hwloc_get_membind.restype = ctypes.c_int
 @_cfndoc
 def get_membind(
     topology: topology_t, set: bitmap_t, flags: int
-) -> hwloc_membind_policy_t:
+) -> MemBindPolicy:
     policy = ctypes.c_int()
     _checkc(_LIB.hwloc_get_membind(topology, set, ctypes.byref(policy), flags))
-    return hwloc_membind_policy_t(policy.value)
+    return MemBindPolicy(policy.value)
 
 
 _LIB.hwloc_set_proc_membind.argtypes = [
@@ -1058,7 +1058,7 @@ def set_proc_membind(
     topology: topology_t,
     pid: hwloc_pid_t,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> None:
     _checkc(_LIB.hwloc_set_proc_membind(topology, pid, set, policy, flags))
@@ -1077,13 +1077,13 @@ _LIB.hwloc_get_proc_membind.restype = ctypes.c_int
 @_cfndoc
 def get_proc_membind(
     topology: topology_t, pid: hwloc_pid_t, set: bitmap_t, flags: int
-) -> hwloc_membind_policy_t:
+) -> MemBindPolicy:
     # Note that it does not make sense to pass ::HWLOC_MEMBIND_THREAD to this function.
     policy = ctypes.c_int()
     _checkc(
         _LIB.hwloc_get_proc_membind(topology, pid, set, ctypes.byref(policy), flags)
     )
-    return hwloc_membind_policy_t(policy.value)
+    return MemBindPolicy(policy.value)
 
 
 _LIB.hwloc_set_area_membind.argtypes = [
@@ -1103,7 +1103,7 @@ def set_area_membind(
     addr: ctypes.c_void_p,
     length: int,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> None:
     _checkc(_LIB.hwloc_set_area_membind(topology, addr, length, set, policy, flags))
@@ -1123,14 +1123,14 @@ _LIB.hwloc_get_area_membind.restype = ctypes.c_int
 @_cfndoc
 def get_area_membind(
     topology: topology_t, addr: ctypes.c_void_p, length: int, set: bitmap_t, flags: int
-) -> hwloc_membind_policy_t:
+) -> MemBindPolicy:
     policy = ctypes.c_int()
     _checkc(
         _LIB.hwloc_get_area_membind(
             topology, addr, length, set, ctypes.byref(policy), flags
         )
     )
-    return hwloc_membind_policy_t(policy.value)
+    return MemBindPolicy(policy.value)
 
 
 _LIB.hwloc_get_area_memlocation.argtypes = [
@@ -1177,7 +1177,7 @@ def alloc_membind(
     topology: topology_t,
     length: int,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> ctypes.c_void_p:
     result = _LIB.hwloc_alloc_membind(topology, length, set, policy, flags)
@@ -1201,7 +1201,7 @@ def alloc_membind_policy(
     topology: topology_t,
     length: int,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> ctypes.c_void_p:
     result = _pyhwloc_lib.pyhwloc_alloc_membind_policy(

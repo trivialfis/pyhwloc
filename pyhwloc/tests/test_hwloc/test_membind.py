@@ -28,8 +28,8 @@ from pyhwloc.hwloc.core import (
     get_area_membind,
     get_membind,
     get_proc_membind,
-    hwloc_membind_flags_t,
-    hwloc_membind_policy_t,
+    MemBindFlags,
+    MemBindPolicy,
     set_area_membind,
     set_membind,
     set_proc_membind,
@@ -40,10 +40,10 @@ from pyhwloc.hwloc.libc import malloc as cmalloc
 from .test_core import Topology
 
 DFT_POLICY = (
-    hwloc_membind_policy_t.HWLOC_MEMBIND_FIRSTTOUCH
+    MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH
     if platform.system() == "Linux"
     # AIX, HP-UX, OSF, Solaris, Windows
-    else hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
+    else MemBindPolicy.HWLOC_MEMBIND_BIND
 )
 
 
@@ -56,29 +56,29 @@ def test_membind() -> None:
     bitmap_only(nodeset, 0)
 
     # Test basic set_membind with DEFAULT policy
-    set_membind(topo.hdl, nodeset, hwloc_membind_policy_t.HWLOC_MEMBIND_DEFAULT, 0)
+    set_membind(topo.hdl, nodeset, MemBindPolicy.HWLOC_MEMBIND_DEFAULT, 0)
     policy = get_membind(topo.hdl, nodeset, 0)
     assert policy == DFT_POLICY
 
     # Test with BIND policy
-    set_membind(topo.hdl, nodeset, hwloc_membind_policy_t.HWLOC_MEMBIND_BIND, 0)
+    set_membind(topo.hdl, nodeset, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
     policy = get_membind(topo.hdl, nodeset, 0)
-    assert policy == hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
+    assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
 
     # Test with strict,
     set_membind(
         topo.hdl,
         nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_STRICT,
+        MemBindPolicy.HWLOC_MEMBIND_BIND,
+        MemBindFlags.HWLOC_MEMBIND_STRICT,
     )
     policy = get_membind(topo.hdl, nodeset, 0)
-    assert policy == hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
+    assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
 
     set_membind(
         topo.hdl,
         nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_DEFAULT,
+        MemBindPolicy.HWLOC_MEMBIND_DEFAULT,
         0,
     )
 
@@ -105,17 +105,17 @@ def test_proc_membind() -> None:
         topo.hdl,
         phdl,
         nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_STRICT
-        | hwloc_membind_flags_t.HWLOC_MEMBIND_BYNODESET,
+        MemBindPolicy.HWLOC_MEMBIND_BIND,
+        MemBindFlags.HWLOC_MEMBIND_STRICT
+        | MemBindFlags.HWLOC_MEMBIND_BYNODESET,
     )
     policy = get_proc_membind(topo.hdl, phdl, nodeset, 0)
-    assert policy == hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
+    assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
     set_proc_membind(
         topo.hdl,
         phdl,
         nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_DEFAULT,
+        MemBindPolicy.HWLOC_MEMBIND_DEFAULT,
         0,
     )
 
@@ -148,17 +148,17 @@ def test_area_membind() -> None:
         addr,
         size,
         nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_DEFAULT,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_PROCESS,
+        MemBindPolicy.HWLOC_MEMBIND_DEFAULT,
+        MemBindFlags.HWLOC_MEMBIND_PROCESS,
     )
     policy = get_area_membind(
         topo.hdl,
         addr,
         size,
         result_nodeset,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_PROCESS,
+        MemBindFlags.HWLOC_MEMBIND_PROCESS,
     )
-    assert policy == hwloc_membind_policy_t.HWLOC_MEMBIND_FIRSTTOUCH
+    assert policy == MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH
 
     # Test with BIND policy
     set_area_membind(
@@ -166,17 +166,17 @@ def test_area_membind() -> None:
         addr,
         size,
         nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_PROCESS,
+        MemBindPolicy.HWLOC_MEMBIND_BIND,
+        MemBindFlags.HWLOC_MEMBIND_PROCESS,
     )
     policy = get_area_membind(
         topo.hdl,
         addr,
         size,
         result_nodeset,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_PROCESS,
+        MemBindFlags.HWLOC_MEMBIND_PROCESS,
     )
-    assert policy == hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
+    assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
 
     # Test with strict flag
     set_area_membind(
@@ -184,13 +184,13 @@ def test_area_membind() -> None:
         addr,
         size,
         nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_STRICT,
+        MemBindPolicy.HWLOC_MEMBIND_BIND,
+        MemBindFlags.HWLOC_MEMBIND_STRICT,
     )
     policy = get_area_membind(
-        topo.hdl, addr, size, result_nodeset, hwloc_membind_flags_t.HWLOC_MEMBIND_STRICT
+        topo.hdl, addr, size, result_nodeset, MemBindFlags.HWLOC_MEMBIND_STRICT
     )
-    assert policy == hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
+    assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
 
     # Test INTERLEAVE policy
     set_area_membind(
@@ -198,7 +198,7 @@ def test_area_membind() -> None:
         addr,
         size,
         nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_INTERLEAVE,
+        MemBindPolicy.HWLOC_MEMBIND_INTERLEAVE,
         0,
     )
     policy = get_area_membind(
@@ -206,9 +206,9 @@ def test_area_membind() -> None:
         addr,
         size,
         result_nodeset,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_PROCESS,
+        MemBindFlags.HWLOC_MEMBIND_PROCESS,
     )
-    assert policy == hwloc_membind_policy_t.HWLOC_MEMBIND_INTERLEAVE
+    assert policy == MemBindPolicy.HWLOC_MEMBIND_INTERLEAVE
 
     # Clean up
     bitmap_free(nodeset)

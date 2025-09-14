@@ -89,8 +89,8 @@ ExportXmlFlags: TypeAlias = _core.hwloc_topology_export_xml_flags_e
 ExportSyntheticFlags: TypeAlias = _core.hwloc_topology_export_synthetic_flags_e
 TypeFilter: TypeAlias = _core.hwloc_type_filter_e
 # Memory bind type aliases
-MemBindPolicy: TypeAlias = _core.hwloc_membind_policy_t
-MemBindFlags: TypeAlias = _core.hwloc_membind_flags_t
+MemBindPolicy: TypeAlias = _core.MemBindPolicy
+MemBindFlags: TypeAlias = _core.MemBindFlags
 
 
 class Topology:
