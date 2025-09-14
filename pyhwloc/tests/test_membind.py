@@ -175,7 +175,7 @@ def test_area_membind() -> None:
         assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
 
         with pytest.raises(ValueError):
-            topo.get_area_membind(mv, len(data))
+            topo.get_area_membind(mv, 123456)
 
 
 def test_proc_membind() -> None:
