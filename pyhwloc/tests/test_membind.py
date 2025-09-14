@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import os
-import platform
 import threading
 from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Callable
