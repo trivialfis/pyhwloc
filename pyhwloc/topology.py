@@ -52,18 +52,6 @@ __all__ = [
     "MemBindFlags",
 ]
 
-# membind fixmes:
-# - work out an example for using numpy with memory migration.
-#   ctypes.c_char.from_buffer(array.data)
-# - [x] see if we need a context manager.
-# - [x] we don't need helpers in the object class.
-# - [x] Test what the "single-threaded current process" assumption entails.
-#   + How about new thread?
-#   + How to membind with existing threads?
-# - [x] Do we need individual methods for various membind flags?
-# - [x] add to_sched_set in bitmap, we will return bitmap by default.
-# - [x] do we really want these from_xxx methods to be classmethod?
-
 
 def _from_impl(fn: Callable[[_core.topology_t], None], load: bool) -> _core.topology_t:
     hdl = _core.topology_t(0)

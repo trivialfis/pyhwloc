@@ -14,8 +14,8 @@ pyhwloc documentation
   :titlesonly:
 
   intro
+  examples/index
   pyhwloc_api
   low_level
   c
-  examples/index
   build
