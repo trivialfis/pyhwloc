@@ -203,9 +203,7 @@ class Object:
     ) -> str | None:
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
-        _core.obj_attr_snprintf(
-            buf, n_bytes, self.native_handle, sep.encode("utf-8"), flags
-        )
+        _core.obj_attr_snprintf(buf, n_bytes, self.native_handle, sep, flags)
         if not buf.value:
             return None
         return buf.value.decode("utf-8")

@@ -662,11 +662,13 @@ def obj_attr_snprintf(
     string: ctypes.c_char_p | ctypes.Array,
     size: int,
     obj: ObjPtr,
-    separator: ctypes.c_char_p | bytes,
+    separator: str,
     flags: int,
 ) -> int:
     # flags are hwloc_obj_snprintf_flag_e
-    return _LIB.hwloc_obj_attr_snprintf(string, size, obj, separator, int(flags))
+    return _LIB.hwloc_obj_attr_snprintf(
+        string, size, obj, separator.encode("utf-8"), int(flags)
+    )
 
 
 _LIB.hwloc_type_sscanf.argtypes = [

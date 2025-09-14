@@ -329,7 +329,7 @@ def test_get_root_obj() -> None:
     buf = ctypes.create_string_buffer(1024)
     length = obj_type_snprintf(buf, 256, root_obj, 1)
     assert buf.value.decode("utf-8") == "Machine" and len("Machine") == length
-    obj_attr_snprintf(buf, 1024, root_obj, b"\n", 1)
+    obj_attr_snprintf(buf, 1024, root_obj, "\n", 1)
     assert buf.value is not None and len(buf.value.decode("utf-8")) > 2
 
     # Root object should have no parent

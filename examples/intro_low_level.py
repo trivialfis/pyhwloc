@@ -60,7 +60,7 @@ def print_children(topology: topology_t, obj: ObjPtr, depth: int) -> None:
     if obj.contents.os_index != HWLOC_UNKNOWN_INDEX:
         print(f"#{obj.contents.os_index}", end="")
 
-    obj_attr_snprintf(cast(ctypes.c_char_p, attr_buf), 1024, obj, b" ", 0)
+    obj_attr_snprintf(attr_buf, 1024, obj, " ", 0)
     if attr_buf.value:
         print(f"({attr_buf.value.decode()})", end="")
 
