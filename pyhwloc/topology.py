@@ -86,7 +86,7 @@ def _to_bitmap(target: _Bitmap | set[int] | _Object) -> _Bitmap:
 
 ObjPtr = _core.ObjPtr
 ExportXmlFlags: TypeAlias = _core.ExportXmlFlags
-ExportSyntheticFlags: TypeAlias = _core.hwloc_topology_export_synthetic_flags_e
+ExportSyntheticFlags: TypeAlias = _core.ExportSyntheticFlags
 TypeFilter: TypeAlias = _core.TypeFilter
 # Memory bind type aliases
 MemBindPolicy: TypeAlias = _core.MemBindPolicy

@@ -61,7 +61,7 @@ from pyhwloc.hwloc.core import (
     hwloc_obj_cache_type_t,
     hwloc_obj_type_t,
     hwloc_topology_components_flag_e,
-    hwloc_topology_export_synthetic_flags_e,
+    ExportSyntheticFlags,
     ExportXmlFlags,
     hwloc_topology_flags_e,
     is_same_obj,
@@ -520,7 +520,7 @@ def test_topology_export_synthetic() -> None:
     buf = bytearray(1024)
     c_buf = (ctypes.c_char * len(buf)).from_buffer(buf)
 
-    ExFlags = hwloc_topology_export_synthetic_flags_e
+    ExFlags = ExportSyntheticFlags
     flags = ExFlags.HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES
     topology_export_synthetic(topo.hdl, c_buf, len(buf), flags)
     result = buf.decode("utf-8")

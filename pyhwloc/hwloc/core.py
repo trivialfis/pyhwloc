@@ -2624,7 +2624,7 @@ def topology_set_userdata_import_callback(
 
 
 @_cenumdoc("hwloc_topology_export_synthetic_flags_e")
-class hwloc_topology_export_synthetic_flags_e(IntEnum):
+class ExportSyntheticFlags(IntEnum):
     HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES = 1 << 0
     HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_ATTRS = 1 << 1
     HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_V1 = 1 << 2
