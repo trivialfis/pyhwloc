@@ -188,15 +188,16 @@ def test_proc_membind() -> None:
         if not topo.get_support().membind.set_thisproc_membind:
             pytest.skip("Current system doesn't support set_thisproc_membind")
 
-        orig_cpuset, policy = topo.get_membind()
-
         pid = os.getpid()
+        orig_cpuset, policy = topo.get_proc_membind(pid)
+
         target_set = Bitmap()
         target_set.set(0)
+        target_set.to_string()
         topo.set_proc_membind(pid, target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
 
         bitmap, policy = topo.get_proc_membind(pid, 0)
         assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
         assert bitmap.weight > 1
 
-        reset(orig_cpuset, policy)
+        reset(orig_cpuset, topo)

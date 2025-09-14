@@ -787,13 +787,15 @@ class Topology:
             Additional flags for memory binding
         """
         bitmap = _to_bitmap(target)
+        hdl = None
         try:
-            hdl = _core._open_proc_handle(pid)
+            hdl = _core._open_proc_handle(pid, False)
             _core.set_proc_membind(
                 self.native_handle, hdl, bitmap.native_handle, policy, _or_flags(flags)
             )
         finally:
-            _core._close_proc_handle(hdl)
+            if hdl:
+                _core._close_proc_handle(hdl)
 
     def get_proc_membind(
         self, pid: int, flags: _Flags[MemBindFlags] = 0
@@ -812,14 +814,16 @@ class Topology:
         Tuple of (nodeset, policy) for process memory binding
         """
         nodeset = _Bitmap()
+        hdl = None
         try:
             hdl = _core._open_proc_handle(pid)
             policy = _core.get_proc_membind(
-                self.native_handle, pid, nodeset.native_handle, _or_flags(flags)
+                self.native_handle, hdl, nodeset.native_handle, _or_flags(flags)
             )
             return nodeset, policy
         finally:
-            _core._close_proc_handle(hdl)
+            if hdl:
+                _core._close_proc_handle(hdl)
 
     def set_area_membind(
         self,

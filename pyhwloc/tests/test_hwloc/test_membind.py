@@ -23,8 +23,11 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_only,
 )
 from pyhwloc.hwloc.core import (
+    _close_proc_handle,
+    _open_proc_handle,
     get_area_membind,
     get_membind,
+    get_proc_membind,
     hwloc_membind_flags_t,
     hwloc_membind_policy_t,
     set_area_membind,
@@ -88,18 +91,28 @@ def test_proc_membind() -> None:
     nodeset = bitmap_alloc()
     bitmap_only(nodeset, 0)
     pid = os.getpid()
+    phdl = _open_proc_handle(pid, False)
 
     # Set proc membind first
     set_proc_membind(
         topo.hdl,
-        pid,
+        phdl,
         nodeset,
         hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
         hwloc_membind_flags_t.HWLOC_MEMBIND_STRICT
         | hwloc_membind_flags_t.HWLOC_MEMBIND_BYNODESET,
     )
+    policy = get_proc_membind(topo.hdl, phdl, nodeset, 0)
+    set_proc_membind(
+        topo.hdl,
+        phdl,
+        nodeset,
+        hwloc_membind_policy_t.HWLOC_MEMBIND_DEFAULT,
+        0,
+    )
 
     bitmap_free(nodeset)
+    _close_proc_handle(phdl)
 
 
 def test_area_membind() -> None:

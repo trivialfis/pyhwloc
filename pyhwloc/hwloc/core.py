@@ -805,16 +805,17 @@ if sys.platform == "win32":
     def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
         THREAD_SET_INFORMATION = 0x0020
         THREAD_QUERY_INFORMATION = 0x0040
-        if read_only:
-            access = THREAD_QUERY_INFORMATION
-        else:
-            access = THREAD_QUERY_INFORMATION | THREAD_SET_INFORMATION
+
+        access = THREAD_QUERY_INFORMATION
+
+        if not read_only:
+            access |= PROCESS_SET_INFORMATION
         hdl = ctypes.windll.kernel32.OpenThread(access, 0, thread_id)
         if not hdl:
             raise ctypes.WinError()
-        return hdl
+        return ctypes.cast(hdl, hwloc_thread_t)
 
-    ctypes.windll.kernel32.CloseHandle.argtypes = [hwloc_thread_t]
+    ctypes.windll.kernel32.CloseHandle.argtypes = [ctypes.c_void_p]
     ctypes.windll.kernel32.CloseHandle.restype = ctypes.c_int
 
     def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
@@ -822,17 +823,24 @@ if sys.platform == "win32":
         if status == 0:
             raise ctypes.WinError()
 
+    ctypes.windll.kernel32.OpenProcess.restype = hwloc_pid_t
+    ctypes.windll.kernel32.OpenProcess.argtypes = [
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+    ]
+
     def _open_proc_handle(pid: int, read_only: bool = True) -> hwloc_pid_t:
         PROCESS_SET_INFORMATION = 0x0200
         PROCESS_QUERY_INFORMATION = 0x0400
-        if read_only:
-            access = PROCESS_QUERY_INFORMATION
-        else:
-            access = PROCESS_QUERY_INFORMATION | PROCESS_SET_INFORMATION
-        hdl = ctypes.windll.kernel32.OpenThread(access, 0, pid)
+
+        access = PROCESS_QUERY_INFORMATION
+        if not read_only:
+            access |= PROCESS_SET_INFORMATION
+        hdl = ctypes.windll.kernel32.OpenProcess(access, 0, pid)
         if not hdl:
             raise ctypes.WinError()
-        return hdl
+        return ctypes.cast(hdl, hwloc_pid_t)
 
     def _close_proc_handle(proc_hdl: hwloc_pid_t) -> None:
         status = ctypes.windll.kernel32.CloseHandle(proc_hdl)
@@ -1047,12 +1055,12 @@ _LIB.hwloc_set_proc_membind.restype = ctypes.c_int
 @_cfndoc
 def set_proc_membind(
     topology: topology_t,
-    pid: int,
+    pid: hwloc_pid_t,
     set: const_bitmap_t,
     policy: hwloc_membind_policy_t,
     flags: int,
 ) -> None:
-    _checkc(_LIB.hwloc_set_proc_membind(topology, hwloc_pid_t(pid), set, policy, flags))
+    _checkc(_LIB.hwloc_set_proc_membind(topology, pid, set, policy, flags))
 
 
 _LIB.hwloc_get_proc_membind.argtypes = [
@@ -1067,14 +1075,12 @@ _LIB.hwloc_get_proc_membind.restype = ctypes.c_int
 
 @_cfndoc
 def get_proc_membind(
-    topology: topology_t, pid: int, set: bitmap_t, flags: int
+    topology: topology_t, pid: hwloc_pid_t, set: bitmap_t, flags: int
 ) -> hwloc_membind_policy_t:
     # Note that it does not make sense to pass ::HWLOC_MEMBIND_THREAD to this function.
     policy = ctypes.c_int()
     _checkc(
-        _LIB.hwloc_get_proc_membind(
-            topology, hwloc_pid_t(pid), set, ctypes.byref(policy), flags
-        )
+        _LIB.hwloc_get_proc_membind(topology, pid, set, ctypes.byref(policy), flags)
     )
     return hwloc_membind_policy_t(policy.value)
 

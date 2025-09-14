@@ -41,7 +41,9 @@ if platform.system() != "Windows":
         )
     )
 else:
-    prefix = os.path.expanduser("C:/Users/jiamingy/ws/pyhwloc_dev/bin/")
+    prefix = os.path.expanduser(
+        "C:/Users/jiamingy/ws/pyhwloc_dev/hwloc/contrib/windows-cmake/build/"
+    )
     _LIB = ctypes.CDLL(os.path.join(prefix, "hwloc.dll"), use_errno=True)
     _libname = os.path.join("_lib", "pyhwloc.dll")
     _lib_path = normpath(
