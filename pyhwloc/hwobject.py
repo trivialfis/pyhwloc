@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import ctypes
 import weakref
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Iterator, TypeAlias
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
@@ -36,10 +36,10 @@ if TYPE_CHECKING:
 __all__ = ["Object", "ObjType", "ObjOsdevType", "ObjSnprintfFlag", "GetTypeDepth"]
 
 
-ObjType = _core.ObjType
-ObjOsdevType = _core.ObjOsdevType
-ObjSnprintfFlag = _core.ObjSnprintfFlag
-GetTypeDepth = _core.GetTypeDepth
+ObjType: TypeAlias = _core.ObjType
+ObjOsdevType: TypeAlias = _core.ObjOsdevType
+ObjSnprintfFlag: TypeAlias = _core.ObjSnprintfFlag
+GetTypeDepth: TypeAlias = _core.GetTypeDepth
 
 
 class Object:
