@@ -372,6 +372,7 @@ class Object:
     # struct hwloc_infos_s infos
     # void *userdata
 
+    @property
     def gp_index(self) -> int:
         "Global persistent index."
         return int(self.native_handle.contents.gp_index)

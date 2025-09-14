@@ -51,6 +51,7 @@ __all__ = [
     "TypeFilter",
     "MemBindPolicy",
     "MemBindFlags",
+    "CpuBindFlags",
 ]
 
 
@@ -92,6 +93,7 @@ TypeFilter: TypeAlias = _core.TypeFilter
 # Memory bind type aliases
 MemBindPolicy: TypeAlias = _core.MemBindPolicy
 MemBindFlags: TypeAlias = _core.MemBindFlags
+CpuBindFlags: TypeAlias = _core.CpuBindFlags
 
 
 class Topology:
@@ -878,6 +880,195 @@ class Topology:
     # Allocator interface is not exposed. I checked popular libraries like torch, none
     # of them supports setting custom allocator in Python. We can come back to this if
     # someone asks for it.
+
+    # CPU Binding Methods
+    def set_cpu_bind(self, cpuset: _Bitmap, flags: _Flags[CpuBindFlags] = 0) -> None:
+        """Bind current process to specified CPUs.
+
+        Parameters
+        ----------
+        cpuset
+            CPUs to bind current process to
+        flags
+            Additional flags for CPU binding
+        """
+        _core.set_cpubind(self.native_handle, cpuset.native_handle, _or_flags(flags))
+
+    def get_cpu_bind(self, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
+        """Get current process CPU binding.
+
+        Parameters
+        ----------
+        flags
+            Flags for getting CPU binding
+
+        Returns
+        -------
+        Bitmap representing current CPU binding
+        """
+        cpuset = _Bitmap()
+        _core.get_cpubind(self.native_handle, cpuset.native_handle, _or_flags(flags))
+        return cpuset
+
+    def set_proc_cpu_bind(
+        self, pid: int, cpuset: _Bitmap, flags: _Flags[CpuBindFlags] = 0
+    ) -> None:
+        """Bind specific process to CPUs.
+
+        Parameters
+        ----------
+        pid
+            Process ID to bind
+        cpuset
+            CPUs to bind process to
+        flags
+            Additional flags for CPU binding
+        """
+        hdl = None
+        try:
+            hdl = _core._open_proc_handle(pid)
+            _core.set_proc_cpubind(
+                self.native_handle,
+                hdl,
+                cpuset.native_handle,
+                _or_flags(flags),
+            )
+        finally:
+            if hdl:
+                _core._close_proc_handle(hdl)
+
+    def get_proc_cpu_bind(self, pid: int, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
+        """Get process CPU binding.
+
+        Parameters
+        ----------
+        pid
+            Process ID to query
+        flags
+            Flags for getting CPU binding
+
+        Returns
+        -------
+        Bitmap representing process CPU binding
+        """
+        cpuset = _Bitmap()
+        hdl = None
+        try:
+            hdl = _core._open_proc_handle(pid)
+            _core.get_proc_cpubind(
+                self.native_handle,
+                hdl,
+                cpuset.native_handle,
+                _or_flags(flags),
+            )
+            return cpuset
+        finally:
+            if hdl:
+                _core._close_proc_handle(hdl)
+
+    def set_thread_cpu_bind(
+        self, thread_id: int, cpuset: _Bitmap, flags: _Flags[CpuBindFlags] = 0
+    ) -> None:
+        """Bind specific thread to CPUs.
+
+        Parameters
+        ----------
+        thread_id
+            Thread ID to bind
+        cpuset
+            CPUs to bind thread to
+        flags
+            Additional flags for CPU binding
+        """
+
+        try:
+            hdl = _core._open_thread_handle(thread_id, read_only=False)
+            _core.set_thread_cpubind(
+                self.native_handle,
+                hdl,
+                cpuset.native_handle,
+                _or_flags(flags),
+            )
+        finally:
+            _core._close_thread_handle(hdl)
+
+    def get_thread_cpu_bind(
+        self, thread_id: int, flags: _Flags[CpuBindFlags] = 0
+    ) -> _Bitmap:
+        """Get thread CPU binding.
+
+        Parameters
+        ----------
+        thread_id
+            Thread ID to query
+        flags
+            Flags for getting CPU binding
+
+        Returns
+        -------
+        Bitmap representing thread CPU binding
+        """
+        cpuset = _Bitmap()
+        try:
+            hdl = _core._open_thread_handle(thread_id, read_only=True)
+            _core.get_thread_cpubind(
+                self.native_handle,
+                hdl,
+                cpuset.native_handle,
+                _or_flags(flags),
+            )
+            return cpuset
+        finally:
+            _core._close_thread_handle(hdl)
+
+    def get_last_cpu_location(self, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
+        """Get where current process last ran.
+
+        Parameters
+        ----------
+        flags
+            Flags for getting CPU location
+
+        Returns
+        -------
+        Bitmap representing where process last ran
+        """
+        cpuset = _Bitmap()
+        _core.get_last_cpu_location(
+            self.native_handle, cpuset.native_handle, _or_flags(flags)
+        )
+        return cpuset
+
+    def get_process_last_cpu_location(
+        self, pid: int, flags: _Flags[CpuBindFlags] = 0
+    ) -> _Bitmap:
+        """Get where specific process last ran.
+
+        Parameters
+        ----------
+        pid
+            Process ID to query
+        flags
+            Flags for getting CPU location
+
+        Returns
+        -------
+        Bitmap representing where process last ran
+        """
+        cpuset = _Bitmap()
+        hdl = None
+        try:
+            hdl = _core._open_proc_handle(pid)
+            _core.get_proc_last_cpu_location(
+                self.native_handle,
+                hdl,
+                cpuset.native_handle,
+                _or_flags(flags),
+            )
+            return cpuset
+        finally:
+            if hdl:
+                _core._close_proc_handle(hdl)
 
 
 @_reuse_doc(_core.get_api_version)

@@ -32,7 +32,7 @@ from pyhwloc.hwloc.core import (
     get_last_cpu_location,
     get_proc_last_cpu_location,
     get_thread_cpubind,
-    hwloc_cpubind_flags_t,
+    CpuBindFlags,
     hwloc_pid_t,
     set_cpubind,
     set_thread_cpubind,
@@ -81,7 +81,7 @@ def run_cpubind(flags: int) -> None:
 def test_cpubind() -> None:
     run_cpubind(0)  # The most portable way
     # Not so portable?
-    run_cpubind(hwloc_cpubind_flags_t.HWLOC_CPUBIND_STRICT)
+    run_cpubind(CpuBindFlags.HWLOC_CPUBIND_STRICT)
 
 
 def test_thread_cpubind() -> None:

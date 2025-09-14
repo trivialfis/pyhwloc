@@ -784,7 +784,7 @@ def topology_get_infos(topology: topology_t) -> InfosPtr:
 
 
 @_cenumdoc("hwloc_cpubind_flags_t")
-class hwloc_cpubind_flags_t(IntEnum):
+class CpuBindFlags(IntEnum):
     HWLOC_CPUBIND_PROCESS = 1 << 0
     HWLOC_CPUBIND_THREAD = 1 << 1
     HWLOC_CPUBIND_STRICT = 1 << 2
