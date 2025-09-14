@@ -133,10 +133,12 @@ def _c_prefix_fndoc(prefix: str) -> Callable[[Callable[_P, _R]], Callable[_P, _R
     return _decorator
 
 
-def _cenumdoc(enum: Type) -> Type:
-    doc = f"""See :c:enum:`{enum.__name__}`."""
-    enum.__doc__ = doc
-    return enum
+def _cenumdoc(name: str) -> Callable[[Type], Type]:
+    def _decorator(enum: Type) -> Type:
+        doc = f"""See :c:enum:`{name}`."""
+        enum.__doc__ = doc
+        return enum
+    return _decorator
 
 
 def _cstructdoc(parent: str | None = None) -> Callable[[Type], Type]:

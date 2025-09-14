@@ -75,7 +75,7 @@ hwloc_const_nodeset_t = const_bitmap_t
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00140.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_obj_type_t")
 class hwloc_obj_type_t(IntEnum):
     HWLOC_OBJ_MACHINE = 0
     HWLOC_OBJ_PACKAGE = 1
@@ -100,7 +100,7 @@ class hwloc_obj_type_t(IntEnum):
     HWLOC_OBJ_TYPE_MAX = 20
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_obj_cache_type_e")
 class hwloc_obj_cache_type_e(IntEnum):
     HWLOC_OBJ_CACHE_UNIFIED = 0
     HWLOC_OBJ_CACHE_DATA = 1
@@ -111,7 +111,7 @@ class hwloc_obj_cache_type_e(IntEnum):
 hwloc_obj_cache_type_t = hwloc_obj_cache_type_e
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_obj_bridge_type_e")
 class hwloc_obj_bridge_type_e(IntEnum):
     HWLOC_OBJ_BRIDGE_HOST = 0
     HWLOC_OBJ_BRIDGE_PCI = 1
@@ -121,7 +121,7 @@ class hwloc_obj_bridge_type_e(IntEnum):
 hwloc_obj_bridge_type_t = hwloc_obj_bridge_type_e
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_obj_osdev_type_e")
 class hwloc_obj_osdev_type_e(IntEnum):
     HWLOC_OBJ_OSDEV_STORAGE = 1 << 0
     HWLOC_OBJ_OSDEV_MEMORY = 1 << 1
@@ -435,7 +435,7 @@ def topology_check(topology: topology_t) -> None:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00143.php#gae54d1782ca9b54bea915f5c18a9158fa
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_get_type_depth_e")
 class hwloc_get_type_depth_e(IntEnum):
     HWLOC_TYPE_DEPTH_UNKNOWN = -1
     HWLOC_TYPE_DEPTH_MULTIPLE = -2
@@ -785,7 +785,7 @@ def topology_get_infos(topology: topology_t) -> InfosPtr:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00146.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_cpubind_flags_t")
 class hwloc_cpubind_flags_t(IntEnum):
     HWLOC_CPUBIND_PROCESS = 1 << 0
     HWLOC_CPUBIND_THREAD = 1 << 1
@@ -984,7 +984,7 @@ def get_proc_last_cpu_location(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00147.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_membind_policy_t")
 class MemBindPolicy(IntEnum):
     HWLOC_MEMBIND_DEFAULT = 0
     HWLOC_MEMBIND_FIRSTTOUCH = 1
@@ -995,7 +995,7 @@ class MemBindPolicy(IntEnum):
     HWLOC_MEMBIND_MIXED = -1
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_membind_flags_t")
 class MemBindFlags(IntEnum):
     HWLOC_MEMBIND_PROCESS = 1 << 0
     HWLOC_MEMBIND_THREAD = 1 << 1
@@ -1364,7 +1364,7 @@ class hwloc_topology_support(ctypes.Structure):
     ]
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_topology_flags_e")
 class hwloc_topology_flags_e(IntEnum):
     HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED = 1 << 0
     HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM = 1 << 1
@@ -1378,7 +1378,7 @@ class hwloc_topology_flags_e(IntEnum):
     HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS = 1 << 9
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_type_filter_e")
 class hwloc_type_filter_e(IntEnum):
     HWLOC_TYPE_FILTER_KEEP_ALL = 0
     HWLOC_TYPE_FILTER_KEEP_NONE = 1
@@ -1505,7 +1505,7 @@ def topology_get_userdata(topology: topology_t) -> int:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00150.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_restrict_flags_e")
 class hwloc_restrict_flags_e(IntEnum):
     HWLOC_RESTRICT_FLAG_REMOVE_CPULESS = 1 << 0
     HWLOC_RESTRICT_FLAG_ADAPT_MISC = 1 << 1
@@ -1514,7 +1514,7 @@ class hwloc_restrict_flags_e(IntEnum):
     HWLOC_RESTRICT_FLAG_REMOVE_MEMLESS = 1 << 4
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_allow_flags_e")
 class hwloc_allow_flags_e(IntEnum):
     HWLOC_ALLOW_FLAG_ALL = 1 << 0
     HWLOC_ALLOW_FLAG_LOCAL_RESTRICTIONS = 1 << 1
@@ -2243,7 +2243,7 @@ def get_obj_with_same_locality(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00157.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_allow_flags_e")
 class hwloc_distrib_flags_e(IntEnum):
     HWLOC_DISTRIB_FLAG_REVERSE = 1 << 0
 
@@ -2481,7 +2481,7 @@ def bridge_covers_pcibus(bridge: ObjPtr, domain: int, bus: int) -> int:
 #############################
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_topology_export_xml_flags_e")
 class hwloc_topology_export_xml_flags_e(IntEnum):
     HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2 = 1 << 1
 
@@ -2629,7 +2629,7 @@ def topology_set_userdata_import_callback(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00163.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_topology_export_synthetic_flags_e")
 class hwloc_topology_export_synthetic_flags_e(IntEnum):
     HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES = 1 << 0
     HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_ATTRS = 1 << 1
@@ -2668,7 +2668,7 @@ def topology_export_synthetic(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00164.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_distances_kind_e")
 class hwloc_distances_kind_e(IntEnum):
     HWLOC_DISTANCES_KIND_FROM_OS = 1 << 0
     HWLOC_DISTANCES_KIND_FROM_USER = 1 << 1
@@ -2678,7 +2678,7 @@ class hwloc_distances_kind_e(IntEnum):
     HWLOC_DISTANCES_KIND_VALUE_HOPS = 1 << 5
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_distances_transform_e")
 class hwloc_distances_transform_e(IntEnum):
     HWLOC_DISTANCES_TRANSFORM_REMOVE_NULL = 0
     HWLOC_DISTANCES_TRANSFORM_LINKS = 1
@@ -2912,7 +2912,7 @@ def distances_obj_pair_values(
 hwloc_distances_add_handle_t = ctypes.c_void_p
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_distances_add_flag_e")
 class hwloc_distances_add_flag_e(IntEnum):
     HWLOC_DISTANCES_ADD_FLAG_GROUP = 1 << 0
     HWLOC_DISTANCES_ADD_FLAG_GROUP_INACCURATE = 1 << 1
@@ -3032,7 +3032,7 @@ def distances_release_remove(topology: topology_t, distances: DistancesPtr) -> N
 hwloc_memattr_id_t = ctypes.c_uint
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_memattr_id_e")
 class hwloc_memattr_id_e(IntEnum):
     HWLOC_MEMATTR_ID_CAPACITY = 0
     HWLOC_MEMATTR_ID_LOCALITY = 1
@@ -3045,13 +3045,13 @@ class hwloc_memattr_id_e(IntEnum):
     HWLOC_MEMATTR_ID_MAX = 8
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_location_type_e")
 class hwloc_location_type_e(IntEnum):
     HWLOC_LOCATION_TYPE_OBJECT = 0
     HWLOC_LOCATION_TYPE_CPUSET = 1
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_local_numanode_flag_e")
 class hwloc_local_numanode_flag_e(IntEnum):
     HWLOC_LOCAL_NUMANODE_FLAG_LARGER_LOCALITY = 1 << 0
     HWLOC_LOCAL_NUMANODE_FLAG_SMALLER_LOCALITY = 1 << 1
@@ -3281,7 +3281,7 @@ def memattr_get_initiators(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00169.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_memattr_flag_e")
 class hwloc_memattr_flag_e(IntEnum):
     HWLOC_MEMATTR_FLAG_HIGHER_FIRST = 1 << 0
     HWLOC_MEMATTR_FLAG_LOWER_FIRST = 1 << 1

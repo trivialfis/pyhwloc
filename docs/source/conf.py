@@ -26,13 +26,6 @@ extensions = [
 
 templates_path = ["_templates"]
 exclude_patterns: list[str] = []
-
-# See the war: https://github.com/sphinx-doc/sphinx/issues/10785#issuecomment-1321100925
-autodoc_type_aliases = {
-    "ExportXmlFlags": "pyhwloc.topology.ExportXmlFlags",
-    "ExportSyntheticFlags": "pyhwloc.topology.ExportSyntheticFlags",
-}
-
 autodoc_typehints_format = "short"
 
 # -- Options for HTML output -------------------------------------------------
