@@ -103,6 +103,7 @@ def test_proc_membind() -> None:
         | hwloc_membind_flags_t.HWLOC_MEMBIND_BYNODESET,
     )
     policy = get_proc_membind(topo.hdl, phdl, nodeset, 0)
+    assert policy == hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
     set_proc_membind(
         topo.hdl,
         phdl,

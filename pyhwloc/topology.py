@@ -37,7 +37,7 @@ from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object, ObjType
-from .utils import _or_flags, _reuse_doc, _Flags
+from .utils import _Flags, _or_flags, _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
