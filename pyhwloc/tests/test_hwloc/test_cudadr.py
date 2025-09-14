@@ -23,8 +23,8 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_weight,
 )
 from pyhwloc.hwloc.core import (
+    TypeFilter,
     hwloc_obj_type_t,
-    hwloc_type_filter_e,
 )
 from pyhwloc.hwloc.cudadr import (
     _check_cu,
@@ -44,7 +44,7 @@ def test_get_device_osdev() -> None:
     res, cnt = cuda.cuDeviceGetCount()
     _check_cu(res)
 
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     for i in range(cnt):
         res, dev = cuda.cuDeviceGet(i)
@@ -64,7 +64,7 @@ def test_cuda_get_device_pci_ids() -> None:
     _check_cu(res)
     assert cnt > 0
 
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     for i in range(cnt):
         res, dev = cuda.cuDeviceGet(i)
@@ -92,7 +92,7 @@ def test_cuda_get_device_cpuset() -> None:
     _check_cu(res)
     assert cnt > 0
 
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     for i in range(cnt):
         res, dev = cuda.cuDeviceGet(i)
@@ -117,7 +117,7 @@ def test_cuda_get_device_pcidev() -> None:
     _check_cu(res)
     assert cnt > 0
 
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     for i in range(cnt):
         res, dev = cuda.cuDeviceGet(i)

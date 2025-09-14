@@ -138,6 +138,7 @@ def _cenumdoc(name: str) -> Callable[[Type], Type]:
         doc = f"""See :c:enum:`{name}`."""
         enum.__doc__ = doc
         return enum
+
     return _decorator
 
 

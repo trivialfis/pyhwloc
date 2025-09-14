@@ -23,13 +23,13 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_only,
 )
 from pyhwloc.hwloc.core import (
+    MemBindFlags,
+    MemBindPolicy,
     _close_proc_handle,
     _open_proc_handle,
     get_area_membind,
     get_membind,
     get_proc_membind,
-    MemBindFlags,
-    MemBindPolicy,
     set_area_membind,
     set_membind,
     set_proc_membind,
@@ -106,8 +106,7 @@ def test_proc_membind() -> None:
         phdl,
         nodeset,
         MemBindPolicy.HWLOC_MEMBIND_BIND,
-        MemBindFlags.HWLOC_MEMBIND_STRICT
-        | MemBindFlags.HWLOC_MEMBIND_BYNODESET,
+        MemBindFlags.HWLOC_MEMBIND_STRICT | MemBindFlags.HWLOC_MEMBIND_BYNODESET,
     )
     policy = get_proc_membind(topo.hdl, phdl, nodeset, 0)
     assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND

@@ -37,6 +37,8 @@ from pyhwloc.hwloc.bitmap import (
 )
 from pyhwloc.hwloc.core import (
     HWLOC_UNKNOWN_INDEX,
+    MemBindFlags,
+    MemBindPolicy,
     ObjPtr,
     alloc_membind,
     free,
@@ -48,8 +50,6 @@ from pyhwloc.hwloc.core import (
     get_type_depth,
     get_type_or_below_depth,
     hwloc_get_type_depth_e,
-    MemBindFlags,
-    MemBindPolicy,
     hwloc_obj_type_t,
     obj_attr_snprintf,
     obj_type_is_cache,

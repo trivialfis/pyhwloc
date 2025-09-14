@@ -23,8 +23,8 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_weight,
 )
 from pyhwloc.hwloc.core import (
+    TypeFilter,
     hwloc_obj_type_t,
-    hwloc_type_filter_e,
 )
 from pyhwloc.hwloc.nvml import get_device_cpuset, get_device_osdev
 
@@ -41,7 +41,7 @@ class Nvml:
 
 
 def test_get_device_osdev() -> None:
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     with Nvml():
         nvhdl = nm.nvmlDeviceGetHandleByIndex(0)
@@ -52,7 +52,7 @@ def test_get_device_osdev() -> None:
 
 
 def test_nvml_get_device_cpuset() -> None:
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     with Nvml():
         # Get handle for the first device

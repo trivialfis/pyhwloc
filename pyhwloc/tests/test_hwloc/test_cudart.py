@@ -23,8 +23,8 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_weight,
 )
 from pyhwloc.hwloc.core import (
+    TypeFilter,
     hwloc_obj_type_t,
-    hwloc_type_filter_e,
 )
 from pyhwloc.hwloc.cudart import (
     _check_cudart,
@@ -38,7 +38,7 @@ from .utils import _skip_if_none
 
 
 def test_get_device_osdev() -> None:
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     status, cnt = cudart.cudaGetDeviceCount()
     _check_cudart(status)
@@ -50,7 +50,7 @@ def test_get_device_osdev() -> None:
 
 
 def test_cudart_get_device_cpuset() -> None:
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     status, cnt = cudart.cudaGetDeviceCount()
     _check_cudart(status)
@@ -68,7 +68,7 @@ def test_cudart_get_device_cpuset() -> None:
 
 
 def test_get_device_pcidev() -> None:
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     status, cnt = cudart.cudaGetDeviceCount()
     _check_cudart(status)

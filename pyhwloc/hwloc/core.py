@@ -1035,9 +1035,7 @@ _LIB.hwloc_get_membind.restype = ctypes.c_int
 
 
 @_cfndoc
-def get_membind(
-    topology: topology_t, set: bitmap_t, flags: int
-) -> MemBindPolicy:
+def get_membind(topology: topology_t, set: bitmap_t, flags: int) -> MemBindPolicy:
     policy = ctypes.c_int()
     _checkc(_LIB.hwloc_get_membind(topology, set, ctypes.byref(policy), flags))
     return MemBindPolicy(policy.value)
@@ -1379,7 +1377,7 @@ class hwloc_topology_flags_e(IntEnum):
 
 
 @_cenumdoc("hwloc_type_filter_e")
-class hwloc_type_filter_e(IntEnum):
+class TypeFilter(IntEnum):
     HWLOC_TYPE_FILTER_KEEP_ALL = 0
     HWLOC_TYPE_FILTER_KEEP_NONE = 1
     HWLOC_TYPE_FILTER_KEEP_STRUCTURE = 2
@@ -1434,7 +1432,7 @@ _LIB.hwloc_topology_set_type_filter.restype = ctypes.c_int
 
 @_cfndoc
 def topology_set_type_filter(
-    topology: topology_t, obj_type: hwloc_obj_type_t, f: hwloc_type_filter_e
+    topology: topology_t, obj_type: hwloc_obj_type_t, f: TypeFilter
 ) -> None:
     _checkc(_LIB.hwloc_topology_set_type_filter(topology, obj_type, f))
 
@@ -1450,33 +1448,29 @@ _LIB.hwloc_topology_get_type_filter.restype = ctypes.c_int
 @_cfndoc
 def topology_get_type_filter(
     topology: topology_t, obj_type: hwloc_obj_type_t
-) -> hwloc_type_filter_e:
+) -> TypeFilter:
     f = ctypes.c_int()
     _checkc(_LIB.hwloc_topology_get_type_filter(topology, obj_type, ctypes.byref(f)))
-    return hwloc_type_filter_e(f.value)
+    return TypeFilter(f.value)
 
 
 @_cfndoc
-def topology_set_all_types_filter(topology: topology_t, f: hwloc_type_filter_e) -> None:
+def topology_set_all_types_filter(topology: topology_t, f: TypeFilter) -> None:
     _checkc(_LIB.hwloc_topology_set_all_types_filter(topology, f))
 
 
 @_cfndoc
-def topology_set_cache_types_filter(
-    topology: topology_t, f: hwloc_type_filter_e
-) -> None:
+def topology_set_cache_types_filter(topology: topology_t, f: TypeFilter) -> None:
     _checkc(_LIB.hwloc_topology_set_cache_types_filter(topology, f))
 
 
 @_cfndoc
-def topology_set_icache_types_filter(
-    topology: topology_t, f: hwloc_type_filter_e
-) -> None:
+def topology_set_icache_types_filter(topology: topology_t, f: TypeFilter) -> None:
     _checkc(_LIB.hwloc_topology_set_icache_types_filter(topology, f))
 
 
 @_cfndoc
-def topology_set_io_types_filter(topology: topology_t, f: hwloc_type_filter_e) -> None:
+def topology_set_io_types_filter(topology: topology_t, f: TypeFilter) -> None:
     _checkc(_LIB.hwloc_topology_set_io_types_filter(topology, f))
 
 

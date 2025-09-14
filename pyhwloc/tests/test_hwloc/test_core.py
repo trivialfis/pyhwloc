@@ -28,6 +28,7 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_weight,
 )
 from pyhwloc.hwloc.core import (
+    TypeFilter,
     bridge_covers_pcibus,
     compare_types,
     cpukinds_get_by_cpuset,
@@ -63,7 +64,6 @@ from pyhwloc.hwloc.core import (
     hwloc_topology_export_synthetic_flags_e,
     hwloc_topology_export_xml_flags_e,
     hwloc_topology_flags_e,
-    hwloc_type_filter_e,
     is_same_obj,
     obj_add_info,
     obj_attr_snprintf,
@@ -137,7 +137,7 @@ def test_compare_types() -> None:
 
 
 class Topology:
-    def __init__(self, filters: list[hwloc_type_filter_e] = []) -> None:
+    def __init__(self, filters: list[TypeFilter] = []) -> None:
         self.hdl = topology_t()
         topology_init(self.hdl)
         if filters:
@@ -180,9 +180,7 @@ def test_topology_get_infos() -> None:
     topo = topology_t()
     topology_init(topo)
 
-    topology_set_io_types_filter(
-        topo, hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
-    )
+    topology_set_io_types_filter(topo, TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT)
     topology_load(topo)
 
     infos = topology_get_infos(topo)
@@ -199,7 +197,7 @@ def test_error() -> None:
     with pytest.raises(HwLocError, match="error:"):
         topo = Topology()
         topology_set_io_types_filter(
-            topo.hdl, hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+            topo.hdl, TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         )
 
 
@@ -477,7 +475,7 @@ def find_numa_depth() -> int:
 
 def test_bridge_covers_pcibus() -> None:
     # Create a topology with I/O devices enabled
-    topo = Topology([hwloc_type_filter_e.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
 
     # Use prev=None to find the first bridge.
     bridge = get_next_bridge(topo.hdl, None)
