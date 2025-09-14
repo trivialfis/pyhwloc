@@ -76,7 +76,7 @@ def _from_impl(fn: Callable[[_core.topology_t], None], load: bool) -> _core.topo
         fn(hdl)
         if load is True:
             _core.topology_load(hdl)
-    except (_lib.HwLocError, NotImplementedError) as e:
+    except (_lib.HwLocError, NotImplementedError, OSError) as e:
         if hdl:
             _core.topology_destroy(hdl)
         raise e
