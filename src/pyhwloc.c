@@ -14,27 +14,6 @@ PYHWLOC_EXPORT void *pyhwloc_alloc_membind_policy(hwloc_topology_t topology,
   return hwloc_alloc_membind_policy(topology, len, set, policy, flags);
 }
 
-// Bitmap
-PYHWLOC_EXPORT int pyhwloc_bitmap_alloc(void **out) {
-  hwloc_bitmap_t ptr = hwloc_bitmap_alloc();
-  hwloc_bitmap_alloc_full();
-  if (!ptr) {
-    return 1;
-  }
-  *out = ptr;
-  return 0;
-}
-
-PYHWLOC_EXPORT int pyhwloc_bitmap_alloc_full(void **out) {
-  hwloc_bitmap_t ptr = hwloc_bitmap_alloc_full();
-  if (!ptr) {
-    return 1;
-  }
-  *out = ptr;
-
-  return 0;
-}
-
 // Object levels, depths and types
 PYHWLOC_EXPORT int pyhwloc_get_type_or_above_depth(hwloc_topology_t topology,
                                                    hwloc_obj_type_t type) {
