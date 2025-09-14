@@ -26,13 +26,13 @@ from pyhwloc.hwloc.bitmap import (
     bitmap_set,
 )
 from pyhwloc.hwloc.core import (
+    CpuBindFlags,
     _close_thread_handle,
     _open_thread_handle,
     get_cpubind,
     get_last_cpu_location,
     get_proc_last_cpu_location,
     get_thread_cpubind,
-    CpuBindFlags,
     hwloc_pid_t,
     set_cpubind,
     set_thread_cpubind,

@@ -86,6 +86,7 @@ def _to_bitmap(target: _Bitmap | set[int] | _Object) -> _Bitmap:
     return bitmap
 
 
+TopologyFlags: TypeAlias = _core.TopologyFlags
 ObjPtr = _core.ObjPtr
 ExportXmlFlags: TypeAlias = _core.ExportXmlFlags
 ExportSyntheticFlags: TypeAlias = _core.ExportSyntheticFlags
@@ -434,36 +435,34 @@ class Topology:
         self._loaded = True
         self._cleanup = []
 
-    def _checked_apply_filter(
-        self, fn: Callable, type_filter: TypeFilter
-    ) -> "Topology":
+    def _checked_apply(self, fn: Callable, values: int) -> "Topology":
         # If we don't raise here, hwloc returns EBUSY: Device or resource busy, which is
         # not really helpful.
         if self.is_loaded:
             raise RuntimeError("Cannot set filter after topology is loaded")
         # Unchecked access to handle as we haven't loaded the topo yet.
-        fn(self._hdl, type_filter)
+        fn(self._hdl, values)
         return self
 
+    def set_flags(self, flags: _Flags[TopologyFlags]) -> "Topology":
+        return self._checked_apply(_core.topology_set_flags, _or_flags(flags))
+
+    def get_flags(self) -> int:
+        # fixme: Create a better way to return composite flags
+        flags = _core.topology_get_flags(self.native_handle)
+        return flags
+
     def set_io_types_filter(self, type_filter: TypeFilter) -> "Topology":
-        return self._checked_apply_filter(
-            _core.topology_set_io_types_filter, type_filter
-        )
+        return self._checked_apply(_core.topology_set_io_types_filter, type_filter)
 
     def set_all_types_filter(self, type_filter: TypeFilter) -> "Topology":
-        return self._checked_apply_filter(
-            _core.topology_set_all_types_filter, type_filter
-        )
+        return self._checked_apply(_core.topology_set_all_types_filter, type_filter)
 
     def set_cache_types_filter(self, type_filter: TypeFilter) -> "Topology":
-        return self._checked_apply_filter(
-            _core.topology_set_cache_types_filter, type_filter
-        )
+        return self._checked_apply(_core.topology_set_cache_types_filter, type_filter)
 
     def set_icache_types_filter(self, type_filter: TypeFilter) -> "Topology":
-        return self._checked_apply_filter(
-            _core.topology_set_icache_types_filter, type_filter
-        )
+        return self._checked_apply(_core.topology_set_icache_types_filter, type_filter)
 
     def get_obj_by_depth(self, depth: int, idx: int) -> _Object | None:
         """Get object at specific depth and index.

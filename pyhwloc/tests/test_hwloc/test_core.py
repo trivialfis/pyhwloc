@@ -31,6 +31,7 @@ from pyhwloc.hwloc.core import (
     ExportSyntheticFlags,
     ExportXmlFlags,
     ObjType,
+    TopologyFlags,
     TypeFilter,
     bridge_covers_pcibus,
     compare_types,
@@ -63,7 +64,6 @@ from pyhwloc.hwloc.core import (
     hwloc_obj_attr_u,
     hwloc_obj_cache_type_t,
     hwloc_topology_components_flag_e,
-    hwloc_topology_flags_e,
     is_same_obj,
     obj_add_info,
     obj_attr_snprintf,
@@ -800,12 +800,10 @@ def test_topology_set_xmlbuffer() -> None:
 def test_topology_flags() -> None:
     hdl = topology_t()
     topology_init(hdl)
-    topology_set_flags(
-        hdl, hwloc_topology_flags_e.HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED
-    )
+    topology_set_flags(hdl, TopologyFlags.HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED)
     topology_load(hdl)
     flags = topology_get_flags(hdl)
-    assert flags == hwloc_topology_flags_e.HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED
+    assert flags == TopologyFlags.HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED
     topology_destroy(hdl)
 
 

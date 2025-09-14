@@ -1361,7 +1361,7 @@ class hwloc_topology_support(ctypes.Structure):
 
 
 @_cenumdoc("hwloc_topology_flags_e")
-class hwloc_topology_flags_e(IntEnum):
+class TopologyFlags(IntEnum):
     HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED = 1 << 0
     HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM = 1 << 1
     HWLOC_TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES = 1 << 2

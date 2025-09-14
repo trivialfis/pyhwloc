@@ -54,4 +54,4 @@ To test the membership, we can simply do:
 
 .. code-block:: python
 
-   is_strict = flags & MemBindFlags.HWLOC_MEMBIND_STRICT
+   is_strict = bool(flags & MemBindFlags.HWLOC_MEMBIND_STRICT)
