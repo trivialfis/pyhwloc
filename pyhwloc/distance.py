@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 """
-High-level Interface for hwloc Hardware Distance
-================================================
+High-level Interface for the Distance
+=====================================
 
 This module provides wrappers around hwloc distance matrices.
 

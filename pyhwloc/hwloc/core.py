@@ -133,7 +133,7 @@ class ObjOsdevType(IntEnum):
     HWLOC_OBJ_OSDEV_DMA = 1 << 6
 
 
-HWLOC_TYPE_UNORDERED = -1
+HWLOC_TYPE_UNORDERED = 2147483647
 
 _LIB.hwloc_compare_types.argtypes = [ctypes.c_int, ctypes.c_int]
 _LIB.hwloc_compare_types.restype = ctypes.c_int

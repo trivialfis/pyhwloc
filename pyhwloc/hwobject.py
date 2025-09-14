@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import ctypes
 import weakref
+from enum import IntEnum
 from typing import TYPE_CHECKING, Iterator, TypeAlias
 
 from .bitmap import Bitmap
@@ -33,7 +34,15 @@ from .hwloc import core as _core
 if TYPE_CHECKING:
     from .topology import Topology
 
-__all__ = ["Object", "ObjType", "ObjOsdevType", "ObjSnprintfFlag", "GetTypeDepth"]
+__all__ = [
+    "Object",
+    "ObjType",
+    "ObjOsdevType",
+    "ObjSnprintfFlag",
+    "GetTypeDepth",
+    "compare_types",
+    "ObjTypeCmp",
+]
 
 
 ObjType: TypeAlias = _core.ObjType
@@ -510,3 +519,32 @@ class Object:
     def __hash__(self) -> int:
         """Hash based on pointer address."""
         return hash(ctypes.addressof(self.native_handle.contents))
+
+
+class ObjTypeCmp(IntEnum):
+    """Result from :py:func:`~pyhwloc.hwobject.compare_types`."""
+
+    UNORDERED = _core.HWLOC_TYPE_UNORDERED
+    INCLUDE = -1
+    EQUAL = 0
+    INCLUDED_BY = 1
+
+
+def compare_types(type1: ObjType | Object, type2: ObjType | Object) -> ObjTypeCmp:
+    """See the relationship between two object types. If the returned enum is
+    ``INCLUDE``, it implies that `type1` objects **usually** include `type2`
+    objects. The reverse is indicated by the ``INCLUDED_BY``.
+
+    """
+    if isinstance(type1, Object):
+        type1 = type1.type
+    if isinstance(type2, Object):
+        type2 = type2.type
+    r = _core.compare_types(type1, type2)
+    if r == _core.HWLOC_TYPE_UNORDERED:
+        return ObjTypeCmp.UNORDERED
+    if r < 0:
+        return ObjTypeCmp.INCLUDE
+    if r > 0:
+        return ObjTypeCmp.INCLUDED_BY
+    return ObjTypeCmp.EQUAL
