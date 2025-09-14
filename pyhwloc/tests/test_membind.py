@@ -24,14 +24,8 @@ import pytest
 
 from pyhwloc import Topology
 from pyhwloc.bitmap import Bitmap
+from pyhwloc.tests.test_hwloc.test_membind import DFT_POLICY
 from pyhwloc.topology import MemBindFlags, MemBindPolicy
-
-DFT_POLICY = (
-    MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH
-    if platform.system() == "Linux"
-    # AIX, HP-UX, OSF, Solaris, Windows
-    else MemBindPolicy.HWLOC_MEMBIND_BIND
-)
 
 
 def reset(orig_cpuset: Bitmap, topo: Topology) -> None:

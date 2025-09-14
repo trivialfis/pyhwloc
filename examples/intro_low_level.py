@@ -12,6 +12,7 @@ about the features that you need.
 """
 
 import ctypes
+import platform
 from typing import cast
 
 from pyhwloc.hwloc.bitmap import (
@@ -196,15 +197,16 @@ def main() -> int:
     free(topology, m, size)
 
     # Allocate using malloc equivalent and bind
-    m = ctypes.cast(ctypes.c_char_p(b"\x00" * size), ctypes.c_void_p)
-    set_area_membind(
-        topology,
-        m,
-        size,
-        obj.contents.nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_BYNODESET,
-    )
+    if platform.system() == "Linux":
+        m = ctypes.cast(ctypes.c_char_p(b"\x00" * size), ctypes.c_void_p)
+        set_area_membind(
+            topology,
+            m,
+            size,
+            obj.contents.nodeset,
+            hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
+            hwloc_membind_flags_t.HWLOC_MEMBIND_BYNODESET,
+        )
 
     # Destroy topology object.
     topology_destroy(topology)

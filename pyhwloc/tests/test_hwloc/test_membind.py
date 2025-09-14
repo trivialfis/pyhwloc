@@ -39,6 +39,13 @@ from pyhwloc.hwloc.libc import malloc as cmalloc
 
 from .test_core import Topology
 
+DFT_POLICY = (
+    hwloc_membind_policy_t.HWLOC_MEMBIND_FIRSTTOUCH
+    if platform.system() == "Linux"
+    # AIX, HP-UX, OSF, Solaris, Windows
+    else hwloc_membind_policy_t.HWLOC_MEMBIND_BIND
+)
+
 
 def test_membind() -> None:
     """Test the set_membind function with different policies and flags."""
@@ -51,7 +58,7 @@ def test_membind() -> None:
     # Test basic set_membind with DEFAULT policy
     set_membind(topo.hdl, nodeset, hwloc_membind_policy_t.HWLOC_MEMBIND_DEFAULT, 0)
     policy = get_membind(topo.hdl, nodeset, 0)
-    assert policy == hwloc_membind_policy_t.HWLOC_MEMBIND_FIRSTTOUCH
+    assert policy == DFT_POLICY
 
     # Test with BIND policy
     set_membind(topo.hdl, nodeset, hwloc_membind_policy_t.HWLOC_MEMBIND_BIND, 0)
@@ -116,9 +123,12 @@ def test_proc_membind() -> None:
     _close_proc_handle(phdl)
 
 
+@pytest.mark.xfail(
+    "Windows" == platform.system(),
+    reason="HwLoc not implemented.",
+    raises=NotImplementedError,
+)
 def test_area_membind() -> None:
-    """Test the set_area_membind and get_area_membind functions."""
-
     topo = Topology()
 
     # Create a nodeset with the first NUMA node
