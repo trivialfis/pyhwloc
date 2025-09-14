@@ -198,11 +198,14 @@ class Object:
 
     def format_attr(
         self,
+        sep: str = ", ",
         flags: int = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
     ) -> str | None:
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
-        _core.obj_attr_snprintf(buf, n_bytes, self.native_handle, b", ", flags)
+        _core.obj_attr_snprintf(
+            buf, n_bytes, self.native_handle, sep.encode("utf-8"), flags
+        )
         if not buf.value:
             return None
         return buf.value.decode("utf-8")
