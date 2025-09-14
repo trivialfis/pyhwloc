@@ -33,6 +33,8 @@ autodoc_type_aliases = {
     "ExportSyntheticFlags": "pyhwloc.topology.ExportSyntheticFlags",
 }
 
+autodoc_typehints_format = "short"
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 

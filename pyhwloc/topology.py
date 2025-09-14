@@ -37,7 +37,7 @@ from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
 from .hwobject import Object as _Object
 from .hwobject import ObjType as _ObjType
-from .utils import _Flags, _memiew_to_mem, _or_flags, _reuse_doc
+from .utils import _Flags, _memview_to_mem, _or_flags, _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
@@ -89,8 +89,8 @@ ExportXmlFlags: TypeAlias = _core.hwloc_topology_export_xml_flags_e
 ExportSyntheticFlags: TypeAlias = _core.hwloc_topology_export_synthetic_flags_e
 TypeFilter: TypeAlias = _core.hwloc_type_filter_e
 # Memory bind type aliases
-MemBindPolicy = _core.hwloc_membind_policy_t
-MemBindFlags = _core.hwloc_membind_flags_t
+MemBindPolicy: TypeAlias = _core.hwloc_membind_policy_t
+MemBindFlags: TypeAlias = _core.hwloc_membind_flags_t
 
 
 class Topology:
@@ -717,9 +717,9 @@ class Topology:
         Parameters
         ----------
         target
-            NUMA nodes to bind memory to. This can be an :py:class:`Object`, a
-            :py:class:`Bitmap`, or a CPU set used by the `os.sched_*` routines
-            (`set[int]`).
+            NUMA nodes to bind memory to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
         policy
             Memory binding policy to use
         flags
@@ -765,9 +765,9 @@ class Topology:
         pid
             Process ID to bind.
         target
-            NUMA nodes to bind memory to. This can be an :py:class:`Object`, a
-            :py:class:`Bitmap`, or a CPU set used by the `os.sched_*` routines
-            (`set[int]`).
+            NUMA nodes to bind memory to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
         policy
             Memory binding policy to use
         flags
@@ -824,20 +824,19 @@ class Topology:
         Parameters
         ----------
         mem
-            Memory area.
-        size
-            Size of memory area in bytes. Ignored if input is a memoryview.
+            Memory area. Use :py:func:`~pyhwloc.utils.memoryview_from_memory` to
+            construct a :py:class:`memoryview` if you have pointers.
         target
-            NUMA nodes to bind memory to. This can be an :py:class:`Object`, a
-            :py:class:`Bitmap`, or a CPU set used by the `os.sched_*` routines
-            (`set[int]`).
+            NUMA nodes to bind memory to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
         policy
             Memory binding policy to use.
         flags
             Additional flags for memory binding.
         """
         bitmap = _to_bitmap(target)
-        addr, size = _memiew_to_mem(mem)
+        addr, size = _memview_to_mem(mem)
 
         _core.set_area_membind(
             self.native_handle,
@@ -857,10 +856,9 @@ class Topology:
 
         Parameters
         ----------
-        addr
-            Memory area address.
-        size
-            Size of memory area in bytes. Ignored if input is a memoryview.
+        mem
+            Memory area. Use :py:func:`~pyhwloc.utils.memoryview_from_memory` to
+            construct a :py:class:`memoryview` if you have pointers.
         flags
             Flags for getting memory binding.
 
@@ -869,7 +867,7 @@ class Topology:
         Tuple of (bitmap, policy) for memory area binding
         """
         bitmap = _Bitmap()
-        addr, size = _memiew_to_mem(mem)
+        addr, size = _memview_to_mem(mem)
 
         policy = _core.get_area_membind(
             self.native_handle, addr, size, bitmap.native_handle, _or_flags(flags)

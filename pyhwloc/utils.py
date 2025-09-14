@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Utilities
+=========
+"""
 from __future__ import annotations
 
 import ctypes
@@ -36,7 +40,7 @@ _Flags = Union[int, _Flag, Sequence[_Flag]]
 
 def _or_flags(flags: _Flags) -> int:
     if isinstance(flags, Sequence):
-        r = flags[0]
+        r = 0
         for f in flags:
             r |= f
         flags = r
@@ -54,7 +58,7 @@ ctypes.pythonapi.PyMemoryView_FromMemory.restype = ctypes.py_object  # Python me
 def memoryview_from_memory(
     ptr: ctypes.c_void_p, size: int, read_only: bool
 ) -> memoryview:
-    """Create a Python memoryview from a ctypes poitner.
+    """Create a Python memoryview from a ctypes pointer.
 
     Parameters
     ----------
@@ -77,7 +81,7 @@ def memoryview_from_memory(
     return mv
 
 
-def _memiew_to_mem(mem: memoryview) -> tuple[ctypes.c_void_p, int]:
+def _memview_to_mem(mem: memoryview) -> tuple[ctypes.c_void_p, int]:
     if not isinstance(mem, memoryview):
         raise TypeError(f"Expecting a memoryview, got: {type(mem)}")
 
