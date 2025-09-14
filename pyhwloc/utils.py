@@ -75,3 +75,14 @@ def memoryview_from_memory(
     flags = PyBUF_READ if read_only else PyBUF_WRITE
     mv = ctypes.pythonapi.PyMemoryView_FromMemory(ptr, size, flags)
     return mv
+
+
+def _memiew_to_mem(mem: memoryview) -> tuple[ctypes.c_void_p, int]:
+    if not isinstance(mem, memoryview):
+        raise TypeError(f"Expecting a memoryview, got: {type(mem)}")
+
+    size = len(mem)
+    Buffer = ctypes.c_char * size
+    buf = Buffer.from_buffer(mem)
+    addr = ctypes.cast(buf, ctypes.c_void_p)
+    return addr, size

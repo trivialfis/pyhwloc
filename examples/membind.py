@@ -12,11 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Example of using membind
+========================
+"""
 from pyhwloc import Topology
-from pyhwloc.topology import MemBindPolicy
+from pyhwloc.topology import MemBindFlags, MemBindPolicy
 
 
 def bind_np_array() -> None:
+    """Show how to bind a numpy array."""
     try:
         import numpy as np
     except ImportError:
@@ -28,16 +33,22 @@ def bind_np_array() -> None:
         if not topo.get_support().membind.set_area_membind:
             return
 
-        nodeset, policy = topo.get_area_membind(array.data, 0)
-        print(MemBindPolicy(policy).name, nodeset)
-
-        nodeset.only(0)
-        topo.set_area_membind(
-            array.data, 0, nodeset, MemBindPolicy.HWLOC_MEMBIND_BIND, 0
+        nodeset, policy = topo.get_area_membind(
+            array.data, MemBindFlags.HWLOC_MEMBIND_BYNODESET
         )
-
-        nodeset, policy = topo.get_area_membind(array.data, 0)
         print(MemBindPolicy(policy).name, nodeset)
+        # >>> HWLOC_MEMBIND_FIRSTTOUCH 0
+
+        # Use to the first node.
+        nodeset.only(0)
+        topo.set_area_membind(array.data, nodeset, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
+
+        nodeset, policy = topo.get_area_membind(
+            array.data, MemBindFlags.HWLOC_MEMBIND_BYNODESET
+        )
+        print(MemBindPolicy(policy).name, nodeset)
+        # >>> HWLOC_MEMBIND_BIND 0
+        assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
 
 
 def main() -> None:

@@ -58,3 +58,9 @@ def test_list_gpus() -> None:
     script = os.path.join(demo_dir, "list_gpus.py")
     results = subprocess.check_call(["python", script], stdout=subprocess.PIPE)
     assert results == 0
+
+
+def test_membind() -> None:
+    script = os.path.join(demo_dir, "membind.py")
+    results = subprocess.check_call(["python", script], stdout=subprocess.PIPE)
+    assert results == 0

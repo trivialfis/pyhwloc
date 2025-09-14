@@ -156,7 +156,7 @@ def test_area_membind() -> None:
         # Test with memoryview
         data = bytearray(1024 * kb)
         mv = memoryview(data)
-        bitmap, policy = topo.get_area_membind(mv, len(data))
+        bitmap, policy = topo.get_area_membind(mv)
         assert bitmap.weight >= 1
         assert policy in (DFT_POLICY, MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
 
@@ -165,15 +165,17 @@ def test_area_membind() -> None:
 
         topo.set_area_membind(
             mv,
-            len(data),
             target_set,
             MemBindPolicy.HWLOC_MEMBIND_BIND,
             [MemBindFlags.HWLOC_MEMBIND_STRICT],
         )
 
-        bitmap, policy = topo.get_area_membind(mv, len(data))
+        bitmap, policy = topo.get_area_membind(mv)
         assert bitmap.weight >= 1
         assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
+
+        with pytest.raises(ValueError):
+            topo.get_area_membind(mv, len(data))
 
 
 def test_proc_membind() -> None:

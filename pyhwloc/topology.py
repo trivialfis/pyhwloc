@@ -37,7 +37,7 @@ from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
 from .hwobject import Object as _Object
 from .hwobject import ObjType as _ObjType
-from .utils import _Flags, _or_flags, _reuse_doc
+from .utils import _Flags, _memiew_to_mem, _or_flags, _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
@@ -826,8 +826,7 @@ class Topology:
 
     def set_area_membind(
         self,
-        addr: ctypes.c_void_p | int | memoryview | ctypes.Array,
-        size: int,
+        mem: memoryview,
         target: _Bitmap | set[int] | _Object,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
@@ -836,8 +835,8 @@ class Topology:
 
         Parameters
         ----------
-        addr
-            Memory area address.
+        mem
+            Memory area.
         size
             Size of memory area in bytes. Ignored if input is a memoryview.
         target
@@ -849,12 +848,9 @@ class Topology:
         flags
             Additional flags for memory binding.
         """
-        if isinstance(addr, memoryview):
-            size = len(addr)
-            Buffer = ctypes.c_char * size
-            addr = Buffer.from_buffer(addr)
-        addr = ctypes.cast(addr, ctypes.c_void_p)
         bitmap = _to_bitmap(target)
+        addr, size = _memiew_to_mem(mem)
+
         _core.set_area_membind(
             self.native_handle,
             addr,
@@ -866,8 +862,7 @@ class Topology:
 
     def get_area_membind(
         self,
-        addr: ctypes.c_void_p | int | memoryview | ctypes.Array,
-        size: int,
+        mem: memoryview,
         flags: _Flags[MemBindFlags] = 0,
     ) -> tuple[_Bitmap, MemBindPolicy]:
         """Get memory area binding.
@@ -883,18 +878,15 @@ class Topology:
 
         Returns
         -------
-        Tuple of (nodeset, policy) for memory area binding
+        Tuple of (bitmap, policy) for memory area binding
         """
-        nodeset = _Bitmap()
-        if isinstance(addr, memoryview):
-            size = len(addr)
-            Buffer = ctypes.c_char * size
-            addr = Buffer.from_buffer(addr)
-        addr = ctypes.cast(addr, ctypes.c_void_p)
+        bitmap = _Bitmap()
+        addr, size = _memiew_to_mem(mem)
+
         policy = _core.get_area_membind(
-            self.native_handle, addr, size, nodeset.native_handle, _or_flags(flags)
+            self.native_handle, addr, size, bitmap.native_handle, _or_flags(flags)
         )
-        return nodeset, policy
+        return bitmap, policy
 
     # Allocator interface is not exposed. I checked popular libraries like torch, none
     # of them supports setting custom allocator in Python. We can come back to this if
