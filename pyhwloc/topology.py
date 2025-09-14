@@ -43,10 +43,6 @@ from .utils import _Flags, _or_flags, _reuse_doc
 if TYPE_CHECKING:
     from .distance import Distances
 
-# Memory bind type aliases
-MemBindPolicy = _core.hwloc_membind_policy_t
-MemBindFlags = _core.hwloc_membind_flags_t
-
 __all__ = [
     "Topology",
     "ExportXmlFlags",
@@ -59,12 +55,12 @@ __all__ = [
 # membind fixmes:
 # - work out an example for using numpy with memory migration.
 #   ctypes.c_char.from_buffer(array.data)
-# - see if we need a context manager.
-# - we don't need helpers in the object class.
-# - Test what the "single-threaded current process" assumption entails.
+# - [x] see if we need a context manager.
+# - [x] we don't need helpers in the object class.
+# - [x] Test what the "single-threaded current process" assumption entails.
 #   + How about new thread?
 #   + How to membind with existing threads?
-# - Do we need individual methods for various membind flags?
+# - [x] Do we need individual methods for various membind flags?
 # - [x] add to_sched_set in bitmap, we will return bitmap by default.
 # - [x] do we really want these from_xxx methods to be classmethod?
 
@@ -104,6 +100,9 @@ ObjPtr = _core.ObjPtr
 ExportXmlFlags: TypeAlias = _core.hwloc_topology_export_xml_flags_e
 ExportSyntheticFlags: TypeAlias = _core.hwloc_topology_export_synthetic_flags_e
 TypeFilter: TypeAlias = _core.hwloc_type_filter_e
+# Memory bind type aliases
+MemBindPolicy = _core.hwloc_membind_policy_t
+MemBindFlags = _core.hwloc_membind_flags_t
 
 
 class Topology:
@@ -851,7 +850,8 @@ class Topology:
             Additional flags for memory binding.
         """
         if isinstance(addr, memoryview):
-            Buffer = ctypes.c_char * len(addr)
+            size = len(addr)
+            Buffer = ctypes.c_char * size
             addr = Buffer.from_buffer(addr)
         addr = ctypes.cast(addr, ctypes.c_void_p)
         bitmap = _to_bitmap(target)
@@ -887,7 +887,8 @@ class Topology:
         """
         nodeset = _Bitmap()
         if isinstance(addr, memoryview):
-            Buffer = ctypes.c_char * len(addr)
+            size = len(addr)
+            Buffer = ctypes.c_char * size
             addr = Buffer.from_buffer(addr)
         addr = ctypes.cast(addr, ctypes.c_void_p)
         policy = _core.get_area_membind(
