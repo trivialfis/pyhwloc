@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING, Iterator, TypeAlias
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
+from .utils import _Flags, _or_flags
 
 if TYPE_CHECKING:
     from .topology import Topology
@@ -209,11 +210,13 @@ class Object:
     def format_attr(
         self,
         sep: str = ", ",
-        flags: int = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
+        flags: _Flags[
+            ObjSnprintfFlag
+        ] = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
     ) -> str | None:
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
-        _core.obj_attr_snprintf(buf, n_bytes, self.native_handle, sep, flags)
+        _core.obj_attr_snprintf(buf, n_bytes, self.native_handle, sep, _or_flags(flags))
         if not buf.value:
             return None
         return buf.value.decode("utf-8")

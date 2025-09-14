@@ -307,23 +307,23 @@ class Topology:
 
     @_reuse_doc(_core.topology_export_xml)
     def export_xml_file(
-        self, path: os.PathLike | str, flags: ExportXmlFlags | int
+        self, path: os.PathLike | str, flags: _Flags[ExportXmlFlags]
     ) -> None:
         path = os.fspath(os.path.expanduser(path))
-        _core.topology_export_xml(self.native_handle, path, flags)
+        _core.topology_export_xml(self.native_handle, path, _or_flags(flags))
 
     @_reuse_doc(_core.topology_export_synthetic)
-    def export_synthetic(self, flags: ExportSyntheticFlags | int) -> str:
+    def export_synthetic(self, flags: _Flags[ExportSyntheticFlags]) -> str:
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
         n_written = _core.topology_export_synthetic(
-            self.native_handle, buf, n_bytes, flags
+            self.native_handle, buf, n_bytes, _or_flags(flags)
         )
         while n_written == n_bytes - 1:
             n_bytes = n_bytes * 2
             buf = ctypes.create_string_buffer(n_bytes)
             n_written = _core.topology_export_synthetic(
-                self.native_handle, buf, n_bytes, flags
+                self.native_handle, buf, n_bytes, _or_flags(flags)
             )
             if n_bytes >= 8192:
                 raise RuntimeError("Failed to export synthetic.")
