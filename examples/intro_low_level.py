@@ -1,3 +1,17 @@
+# Copyright (c) 2025, NVIDIA CORPORATION.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 """
 Low-level API Example
 =====================
@@ -12,6 +26,7 @@ about the features that you need.
 """
 
 import ctypes
+import platform
 from typing import cast
 
 from pyhwloc.hwloc.bitmap import (
@@ -22,7 +37,11 @@ from pyhwloc.hwloc.bitmap import (
 )
 from pyhwloc.hwloc.core import (
     HWLOC_UNKNOWN_INDEX,
+    GetTypeDepth,
+    MemBindFlags,
+    MemBindPolicy,
     ObjPtr,
+    ObjType,
     alloc_membind,
     free,
     get_nbobjs_by_depth,
@@ -32,10 +51,6 @@ from pyhwloc.hwloc.core import (
     get_root_obj,
     get_type_depth,
     get_type_or_below_depth,
-    hwloc_get_type_depth_e,
-    hwloc_membind_flags_t,
-    hwloc_membind_policy_t,
-    hwloc_obj_type_t,
     obj_attr_snprintf,
     obj_type_is_cache,
     obj_type_snprintf,
@@ -59,7 +74,7 @@ def print_children(topology: topology_t, obj: ObjPtr, depth: int) -> None:
     if obj.contents.os_index != HWLOC_UNKNOWN_INDEX:
         print(f"#{obj.contents.os_index}", end="")
 
-    obj_attr_snprintf(cast(ctypes.c_char_p, attr_buf), 1024, obj, b" ", 0)
+    obj_attr_snprintf(attr_buf, 1024, obj, " ", 0)
     if attr_buf.value:
         print(f"({attr_buf.value.decode()})", end="")
 
@@ -125,8 +140,8 @@ def main() -> int:
     # Third example:
     # Print the number of packages.
     #########################################################################
-    depth = get_type_depth(topology, hwloc_obj_type_t.HWLOC_OBJ_PACKAGE)
-    if depth == hwloc_get_type_depth_e.HWLOC_TYPE_DEPTH_UNKNOWN:
+    depth = get_type_depth(topology, ObjType.HWLOC_OBJ_PACKAGE)
+    if depth == GetTypeDepth.HWLOC_TYPE_DEPTH_UNKNOWN:
         print("*** The number of packages is unknown")
     else:
         print(f"*** {get_nbobjs_by_depth(topology, depth)} package(s)")
@@ -138,7 +153,7 @@ def main() -> int:
     #########################################################################
     levels = 0
     size = 0
-    obj = get_obj_by_type(topology, hwloc_obj_type_t.HWLOC_OBJ_PU, 0)
+    obj = get_obj_by_type(topology, ObjType.HWLOC_OBJ_PU, 0)
     while obj:
         if obj_type_is_cache(obj.contents.type):
             levels += 1
@@ -153,7 +168,7 @@ def main() -> int:
     # First find out where cores are, or else smaller sets of CPUs if
     # the OS doesn't have the notion of a "core".
     #########################################################################
-    depth = get_type_or_below_depth(topology, hwloc_obj_type_t.HWLOC_OBJ_CORE)
+    depth = get_type_or_below_depth(topology, ObjType.HWLOC_OBJ_CORE)
 
     # Get last core.
     obj = get_obj_by_depth(topology, depth, get_nbobjs_by_depth(topology, depth) - 1)
@@ -181,8 +196,8 @@ def main() -> int:
     # memory to the last NUMA node.
     #########################################################################
     # Get last node. There's always at least one.
-    n = get_nbobjs_by_type(topology, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE)
-    obj = get_obj_by_type(topology, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE, n - 1)
+    n = get_nbobjs_by_type(topology, ObjType.HWLOC_OBJ_NUMANODE)
+    obj = get_obj_by_type(topology, ObjType.HWLOC_OBJ_NUMANODE, n - 1)
     assert obj is not None
 
     size = 1024 * 1024
@@ -190,21 +205,22 @@ def main() -> int:
         topology,
         size,
         obj.contents.nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_BYNODESET,
+        MemBindPolicy.HWLOC_MEMBIND_BIND,
+        MemBindFlags.HWLOC_MEMBIND_BYNODESET,
     )
     free(topology, m, size)
 
     # Allocate using malloc equivalent and bind
-    m = ctypes.cast(ctypes.c_char_p(b"\x00" * size), ctypes.c_void_p)
-    set_area_membind(
-        topology,
-        m,
-        size,
-        obj.contents.nodeset,
-        hwloc_membind_policy_t.HWLOC_MEMBIND_BIND,
-        hwloc_membind_flags_t.HWLOC_MEMBIND_BYNODESET,
-    )
+    if platform.system() == "Linux":
+        m = ctypes.cast(ctypes.c_char_p(b"\x00" * size), ctypes.c_void_p)
+        set_area_membind(
+            topology,
+            m,
+            size,
+            obj.contents.nodeset,
+            MemBindPolicy.HWLOC_MEMBIND_BIND,
+            MemBindFlags.HWLOC_MEMBIND_BYNODESET,
+        )
 
     # Destroy topology object.
     topology_destroy(topology)

@@ -17,8 +17,8 @@ import pickle
 
 import pytest
 
-from pyhwloc.hwloc.lib import HwLocError
-from pyhwloc.topology import ExportXmlFlags, ObjType, Topology, TypeFilter
+from pyhwloc.hwobject import ObjType
+from pyhwloc.topology import ExportXmlFlags, Topology, TypeFilter
 
 
 def test_context_manager_current_system() -> None:
@@ -83,7 +83,7 @@ def test_context_manager_synthetic() -> None:
     assert not topo.is_loaded
 
     desc = "node:2 core:2 foo:2"
-    with pytest.raises(HwLocError, match="Invalid argument"):
+    with pytest.raises(ValueError, match="Invalid argument"):
         with Topology.from_synthetic(desc) as topo:
             pass
 

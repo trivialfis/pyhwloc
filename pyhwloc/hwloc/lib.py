@@ -17,7 +17,7 @@ from __future__ import annotations
 import ctypes
 import errno
 import os
-import platform
+import sys
 from typing import Callable, ParamSpec, Type, TypeVar
 
 from .libc import strerror as cstrerror
@@ -29,7 +29,9 @@ def normpath(path: str) -> str:
 
 _file_path = normpath(__file__)
 
-if platform.system() != "Windows":
+_IS_WINDOWS = sys.platform == "win32"
+
+if not _IS_WINDOWS:
     prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
     _LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
     _libname = os.path.join("_lib", "libpyhwloc.so")
@@ -41,8 +43,12 @@ if platform.system() != "Windows":
         )
     )
 else:
-    prefix = os.path.expanduser("C:/Users/jiamingy/ws/pyhwloc_dev/bin/")
-    _LIB = ctypes.CDLL(os.path.join(prefix, "hwloc.dll"), use_errno=True)
+    prefix = os.path.expanduser(
+        "C:/Users/jiamingy/ws/pyhwloc_dev/hwloc/contrib/windows-cmake/build/"
+    )
+    _LIB = ctypes.CDLL(
+        os.path.join(prefix, "hwloc.dll"), use_errno=True, use_last_error=True
+    )
     _libname = os.path.join("_lib", "pyhwloc.dll")
     _lib_path = normpath(
         os.path.join(
@@ -57,6 +63,8 @@ _pyhwloc_lib = ctypes.cdll.LoadLibrary(_lib_path)
 
 
 class HwLocError(RuntimeError):
+    """Generic catch-all runtime error reported by pyhwloc."""
+
     def __init__(self, status: int, err: int, msg: bytes | str | None) -> None:
         self.status = status
         self.errno = err
@@ -72,12 +80,22 @@ class HwLocError(RuntimeError):
 
 def _checkc(status: int) -> None:
     """Raise errors for hwloc functions."""
-    if status != 0:
-        err = ctypes.get_errno()
-        msg = cstrerror(err)
-        if err == errno.ENOSYS:
-            raise NotImplementedError(msg)
-        raise HwLocError(status, err, msg)
+    if status == 0:
+        return
+
+    err = ctypes.get_errno()
+    msg = cstrerror(err)
+    if err == errno.ENOSYS:
+        raise NotImplementedError(msg)
+    elif err == errno.EINVAL:
+        raise ValueError(msg)
+    elif err == errno.ENOMEM:
+        raise MemoryError(msg)
+    if err == 0 and _IS_WINDOWS:
+        werr = ctypes.get_last_error()  # type: ignore[attr-defined]
+        if werr != 0:
+            raise ctypes.WinError(werr)  # type: ignore[attr-defined]
+    raise HwLocError(status, err, msg)
 
 
 def _hwloc_error(name: str) -> HwLocError:
@@ -115,14 +133,16 @@ def _c_prefix_fndoc(prefix: str) -> Callable[[Callable[_P, _R]], Callable[_P, _R
     return _decorator
 
 
-def _cenumdoc(enum: Type) -> Type:
-    doc = f"""See :c:enum:`{enum.__name__}`."""
-    enum.__doc__ = doc
-    return enum
+def _cenumdoc(name: str) -> Callable[[Type], Type]:
+    def _decorator(enum: Type) -> Type:
+        doc = f"""See :c:enum:`{name}`."""
+        enum.__doc__ = doc
+        return enum
+
+    return _decorator
 
 
 def _cstructdoc(parent: str | None = None) -> Callable[[Type], Type]:
-
     def _decorator(struct: Type) -> Type:
         assert issubclass(struct, ctypes.Structure), struct
         if parent is not None:
@@ -136,7 +156,6 @@ def _cstructdoc(parent: str | None = None) -> Callable[[Type], Type]:
 
 
 def _cuniondoc(parent: str | None = None) -> Callable[[Type], Type]:
-
     def _decorator(union: Type) -> Type:
         assert issubclass(union, ctypes.Union)
         if parent is not None:

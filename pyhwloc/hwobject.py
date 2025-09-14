@@ -20,25 +20,36 @@ The Object Interface
 Python interface of the hwloc_obj type.
 
 """
+
 from __future__ import annotations
 
 import ctypes
 import weakref
-from typing import TYPE_CHECKING, Iterator
+from enum import IntEnum
+from typing import TYPE_CHECKING, Iterator, TypeAlias
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
+from .utils import _Flags, _or_flags
 
 if TYPE_CHECKING:
     from .topology import Topology
 
-__all__ = ["Object", "ObjType"]
+__all__ = [
+    "Object",
+    "ObjType",
+    "ObjOsdevType",
+    "ObjSnprintfFlag",
+    "GetTypeDepth",
+    "compare_types",
+    "ObjTypeCmp",
+]
 
 
-ObjType = _core.hwloc_obj_type_t
-ObjOsdevType = _core.hwloc_obj_osdev_type_e
-ObjSnprintfFlag = _core.hwloc_obj_snprintf_flag_e
-GetTypeDepth = _core.hwloc_get_type_depth_e
+ObjType: TypeAlias = _core.ObjType
+ObjOsdevType: TypeAlias = _core.ObjOsdevType
+ObjSnprintfFlag: TypeAlias = _core.ObjSnprintfFlag
+GetTypeDepth: TypeAlias = _core.GetTypeDepth
 
 
 class Object:
@@ -198,11 +209,14 @@ class Object:
 
     def format_attr(
         self,
-        flags: int = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
+        sep: str = ", ",
+        flags: _Flags[
+            ObjSnprintfFlag
+        ] = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
     ) -> str | None:
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
-        _core.obj_attr_snprintf(buf, n_bytes, self.native_handle, b", ", flags)
+        _core.obj_attr_snprintf(buf, n_bytes, self.native_handle, sep, _or_flags(flags))
         if not buf.value:
             return None
         return buf.value.decode("utf-8")
@@ -508,3 +522,32 @@ class Object:
     def __hash__(self) -> int:
         """Hash based on pointer address."""
         return hash(ctypes.addressof(self.native_handle.contents))
+
+
+class ObjTypeCmp(IntEnum):
+    """Result from :py:func:`~pyhwloc.hwobject.compare_types`."""
+
+    UNORDERED = _core.HWLOC_TYPE_UNORDERED
+    INCLUDE = -1
+    EQUAL = 0
+    INCLUDED_BY = 1
+
+
+def compare_types(type1: ObjType | Object, type2: ObjType | Object) -> ObjTypeCmp:
+    """See the relationship between two object types. If the returned enum is
+    ``INCLUDE``, it implies that `type1` objects **usually** include `type2`
+    objects. The reverse is indicated by the ``INCLUDED_BY``.
+
+    """
+    if isinstance(type1, Object):
+        type1 = type1.type
+    if isinstance(type2, Object):
+        type2 = type2.type
+    r = _core.compare_types(type1, type2)
+    if r == _core.HWLOC_TYPE_UNORDERED:
+        return ObjTypeCmp.UNORDERED
+    if r < 0:
+        return ObjTypeCmp.INCLUDE
+    if r > 0:
+        return ObjTypeCmp.INCLUDED_BY
+    return ObjTypeCmp.EQUAL

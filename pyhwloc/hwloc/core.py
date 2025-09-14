@@ -16,6 +16,7 @@
 Core API
 ========
 """
+
 from __future__ import annotations
 
 import ctypes
@@ -36,8 +37,6 @@ from .lib import (
 )
 
 hwloc_uint64_t = ctypes.c_uint64
-hwloc_pid_t = ctypes.c_int
-
 HWLOC_UNKNOWN_INDEX = ctypes.c_uint(-1).value
 
 
@@ -77,8 +76,8 @@ hwloc_const_nodeset_t = const_bitmap_t
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00140.php
 
 
-@_cenumdoc
-class hwloc_obj_type_t(IntEnum):
+@_cenumdoc("hwloc_obj_type_t")
+class ObjType(IntEnum):
     HWLOC_OBJ_MACHINE = 0
     HWLOC_OBJ_PACKAGE = 1
     HWLOC_OBJ_DIE = 2
@@ -102,7 +101,7 @@ class hwloc_obj_type_t(IntEnum):
     HWLOC_OBJ_TYPE_MAX = 20
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_obj_cache_type_e")
 class hwloc_obj_cache_type_e(IntEnum):
     HWLOC_OBJ_CACHE_UNIFIED = 0
     HWLOC_OBJ_CACHE_DATA = 1
@@ -113,7 +112,7 @@ class hwloc_obj_cache_type_e(IntEnum):
 hwloc_obj_cache_type_t = hwloc_obj_cache_type_e
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_obj_bridge_type_e")
 class hwloc_obj_bridge_type_e(IntEnum):
     HWLOC_OBJ_BRIDGE_HOST = 0
     HWLOC_OBJ_BRIDGE_PCI = 1
@@ -123,8 +122,8 @@ class hwloc_obj_bridge_type_e(IntEnum):
 hwloc_obj_bridge_type_t = hwloc_obj_bridge_type_e
 
 
-@_cenumdoc
-class hwloc_obj_osdev_type_e(IntEnum):
+@_cenumdoc("hwloc_obj_osdev_type_e")
+class ObjOsdevType(IntEnum):
     HWLOC_OBJ_OSDEV_STORAGE = 1 << 0
     HWLOC_OBJ_OSDEV_MEMORY = 1 << 1
     HWLOC_OBJ_OSDEV_GPU = 1 << 2
@@ -134,14 +133,14 @@ class hwloc_obj_osdev_type_e(IntEnum):
     HWLOC_OBJ_OSDEV_DMA = 1 << 6
 
 
-HWLOC_TYPE_UNORDERED = -1
+HWLOC_TYPE_UNORDERED = 2147483647
 
 _LIB.hwloc_compare_types.argtypes = [ctypes.c_int, ctypes.c_int]
 _LIB.hwloc_compare_types.restype = ctypes.c_int
 
 
 @_cfndoc
-def compare_types(type1: hwloc_obj_type_t, type2: hwloc_obj_type_t) -> int:
+def compare_types(type1: ObjType, type2: ObjType) -> int:
     return _LIB.hwloc_compare_types(type1, type2)
 
 
@@ -298,7 +297,7 @@ class hwloc_bridge_attr_s(ctypes.Structure):
     ]
 
 
-# OR'ed set of ::hwloc_obj_osdev_type_e.
+# OR'ed set of ::ObjOsdevType.
 hwloc_obj_osdev_types_t = ctypes.c_ulong
 
 
@@ -437,8 +436,8 @@ def topology_check(topology: topology_t) -> None:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00143.php#gae54d1782ca9b54bea915f5c18a9158fa
 
 
-@_cenumdoc
-class hwloc_get_type_depth_e(IntEnum):
+@_cenumdoc("hwloc_get_type_depth_e")
+class GetTypeDepth(IntEnum):
     HWLOC_TYPE_DEPTH_UNKNOWN = -1
     HWLOC_TYPE_DEPTH_MULTIPLE = -2
     HWLOC_TYPE_DEPTH_NUMANODE = -3
@@ -463,13 +462,13 @@ _LIB.hwloc_get_type_depth.restype = ctypes.c_int
 
 
 @_cfndoc
-def get_type_depth(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
+def get_type_depth(topology: topology_t, obj_type: ObjType) -> int:
     return _LIB.hwloc_get_type_depth(topology, obj_type)
 
 
 _LIB.hwloc_get_type_depth_with_attr.argtypes = [
     topology_t,
-    ctypes.c_int,  # hwloc_obj_type_t
+    ctypes.c_int,  # ObjType
     ctypes.POINTER(hwloc_obj_attr_u),
     ctypes.c_size_t,
 ]
@@ -479,7 +478,7 @@ _LIB.hwloc_get_type_depth_with_attr.restype = ctypes.c_int
 @_cfndoc
 def get_type_depth_with_attr(
     topology: topology_t,
-    obj_type: hwloc_obj_type_t,
+    obj_type: ObjType,
     attr: ctypes._Pointer,  # [hwloc_obj_attr_u]
     attrsize: int,
 ) -> int:
@@ -500,12 +499,12 @@ _pyhwloc_lib.pyhwloc_get_type_or_above_depth.restype = ctypes.c_int
 
 
 @_cfndoc
-def get_type_or_below_depth(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
+def get_type_or_below_depth(topology: topology_t, obj_type: ObjType) -> int:
     return _pyhwloc_lib.pyhwloc_get_type_or_below_depth(topology, obj_type)
 
 
 @_cfndoc
-def get_type_or_above_depth(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
+def get_type_or_above_depth(topology: topology_t, obj_type: ObjType) -> int:
     return _pyhwloc_lib.pyhwloc_get_type_or_above_depth(topology, obj_type)
 
 
@@ -514,8 +513,8 @@ _LIB.hwloc_get_depth_type.restype = ctypes.c_int
 
 
 @_cfndoc
-def get_depth_type(topology: topology_t, depth: int) -> hwloc_obj_type_t:
-    return hwloc_obj_type_t(_LIB.hwloc_get_depth_type(topology, depth))
+def get_depth_type(topology: topology_t, depth: int) -> ObjType:
+    return ObjType(_LIB.hwloc_get_depth_type(topology, depth))
 
 
 _pyhwloc_lib.pyhwloc_get_nbobjs_by_type.argtypes = [topology_t, ctypes.c_int]
@@ -523,7 +522,7 @@ _pyhwloc_lib.pyhwloc_get_nbobjs_by_type.restype = ctypes.c_int
 
 
 @_cfndoc
-def get_nbobjs_by_type(topology: topology_t, obj_type: hwloc_obj_type_t) -> int:
+def get_nbobjs_by_type(topology: topology_t, obj_type: ObjType) -> int:
     return _pyhwloc_lib.pyhwloc_get_nbobjs_by_type(topology, obj_type)
 
 
@@ -546,9 +545,7 @@ _pyhwloc_lib.pyhwloc_get_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
 
 
 @_cfndoc
-def get_obj_by_type(
-    topology: topology_t, obj_type: hwloc_obj_type_t, idx: int
-) -> ObjPtr | None:
+def get_obj_by_type(topology: topology_t, obj_type: ObjType, idx: int) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_obj_by_type(topology, obj_type, idx)
     if not obj:
         return None
@@ -583,7 +580,7 @@ _pyhwloc_lib.pyhwloc_get_next_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
 
 @_cfndoc
 def get_next_obj_by_type(
-    topology: topology_t, obj_type: hwloc_obj_type_t, prev: ObjPtr | None
+    topology: topology_t, obj_type: ObjType, prev: ObjPtr | None
 ) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_next_obj_by_type(topology, obj_type, prev)
     if not obj:
@@ -619,11 +616,12 @@ _LIB.hwloc_obj_type_string.restype = ctypes.c_char_p
 
 
 @_cfndoc
-def hwloc_obj_type_string(obj_type: hwloc_obj_type_t) -> bytes:
+def hwloc_obj_type_string(obj_type: ObjType) -> bytes:
     return _LIB.hwloc_obj_type_string(obj_type).value
 
 
-class hwloc_obj_snprintf_flag_e(IntEnum):
+@_cenumdoc("hwloc_obj_snprintf_flag_e")
+class ObjSnprintfFlag(IntEnum):
     HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE = 1 << 0
     HWLOC_OBJ_SNPRINTF_FLAG_LONG_NAMES = 1 << 1
     HWLOC_OBJ_SNPRINTF_FLAG_SHORT_NAMES = 1 << 2
@@ -664,11 +662,13 @@ def obj_attr_snprintf(
     string: ctypes.c_char_p | ctypes.Array,
     size: int,
     obj: ObjPtr,
-    separator: ctypes.c_char_p | bytes,
+    separator: str,
     flags: int,
 ) -> int:
     # flags are hwloc_obj_snprintf_flag_e
-    return _LIB.hwloc_obj_attr_snprintf(string, size, obj, separator, int(flags))
+    return _LIB.hwloc_obj_attr_snprintf(
+        string, size, obj, separator.encode("utf-8"), int(flags)
+    )
 
 
 _LIB.hwloc_type_sscanf.argtypes = [
@@ -681,7 +681,7 @@ _LIB.hwloc_type_sscanf.restype = ctypes.c_int
 
 
 @_cfndoc
-def type_sscanf(string: str) -> tuple[hwloc_obj_type_t, hwloc_obj_attr_u | None]:
+def type_sscanf(string: str) -> tuple[ObjType, hwloc_obj_attr_u | None]:
     string_bytes = string.encode("utf-8")
     typep = ctypes.c_int()
 
@@ -690,7 +690,7 @@ def type_sscanf(string: str) -> tuple[hwloc_obj_type_t, hwloc_obj_attr_u | None]
         string_bytes, ctypes.byref(typep), ctypes.byref(attrp), ctypes.sizeof(attrp)
     )
     _checkc(result)
-    return hwloc_obj_type_t(typep.value), attrp
+    return ObjType(typep.value), attrp
 
 
 _LIB.hwloc_type_sscanf_as_depth.argtypes = [
@@ -703,9 +703,7 @@ _LIB.hwloc_type_sscanf_as_depth.restype = ctypes.c_int
 
 
 @_cfndoc
-def type_sscanf_as_depth(
-    string: str, topology: topology_t
-) -> tuple[hwloc_obj_type_t, int]:
+def type_sscanf_as_depth(string: str, topology: topology_t) -> tuple[ObjType, int]:
     string_bytes = string.encode("utf-8")
     typep = ctypes.c_int()
     depthp = ctypes.c_int()
@@ -716,7 +714,7 @@ def type_sscanf_as_depth(
         )
     )
 
-    return hwloc_obj_type_t(typep.value), depthp.value
+    return ObjType(typep.value), depthp.value
 
 
 #######################################
@@ -785,12 +783,84 @@ def topology_get_infos(topology: topology_t) -> InfosPtr:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00146.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_cpubind_flags_t")
 class hwloc_cpubind_flags_t(IntEnum):
     HWLOC_CPUBIND_PROCESS = 1 << 0
     HWLOC_CPUBIND_THREAD = 1 << 1
     HWLOC_CPUBIND_STRICT = 1 << 2
     HWLOC_CPUBIND_NOMEMBIND = 1 << 3
+
+
+if sys.platform == "win32":
+    hwloc_thread_t = ctypes.c_void_p
+    hwloc_pid_t = ctypes.c_void_p
+
+    ctypes.windll.kernel32.OpenThread.restype = hwloc_thread_t
+    ctypes.windll.kernel32.OpenThread.argtypes = [
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+    ]
+
+    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
+        THREAD_SET_INFORMATION = 0x0020
+        THREAD_QUERY_INFORMATION = 0x0040
+
+        access = THREAD_QUERY_INFORMATION
+        if not read_only:
+            access |= THREAD_SET_INFORMATION
+        hdl = ctypes.windll.kernel32.OpenThread(access, 0, thread_id)
+        if not hdl:
+            raise ctypes.WinError()
+        return ctypes.cast(hdl, hwloc_thread_t)
+
+    ctypes.windll.kernel32.CloseHandle.argtypes = [ctypes.c_void_p]
+    ctypes.windll.kernel32.CloseHandle.restype = ctypes.c_int
+
+    def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
+        status = ctypes.windll.kernel32.CloseHandle(thread_hdl)
+        if status == 0:
+            raise ctypes.WinError()
+
+    ctypes.windll.kernel32.OpenProcess.restype = hwloc_pid_t
+    ctypes.windll.kernel32.OpenProcess.argtypes = [
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+    ]
+
+    def _open_proc_handle(pid: int, read_only: bool = True) -> hwloc_pid_t:
+        PROCESS_SET_INFORMATION = 0x0200
+        PROCESS_QUERY_INFORMATION = 0x0400
+
+        access = PROCESS_QUERY_INFORMATION
+        if not read_only:
+            access |= PROCESS_SET_INFORMATION
+        hdl = ctypes.windll.kernel32.OpenProcess(access, 0, pid)
+        if not hdl:
+            raise ctypes.WinError()
+        return ctypes.cast(hdl, hwloc_pid_t)
+
+    def _close_proc_handle(proc_hdl: hwloc_pid_t) -> None:
+        status = ctypes.windll.kernel32.CloseHandle(proc_hdl)
+        if status == 0:
+            raise ctypes.WinError()
+
+else:
+    hwloc_thread_t = ctypes.c_ulong
+    hwloc_pid_t = ctypes.c_int
+
+    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
+        return hwloc_thread_t(thread_id)
+
+    def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
+        pass
+
+    def _open_proc_handle(pid: int, read_only: bool = True) -> hwloc_pid_t:
+        return hwloc_pid_t(pid)
+
+    def _close_proc_handle(thread_hdl: hwloc_pid_t) -> None:
+        pass
 
 
 _LIB.hwloc_set_cpubind.argtypes = [topology_t, hwloc_const_cpuset_t, ctypes.c_int]
@@ -841,46 +911,6 @@ def get_proc_cpubind(
     topology: topology_t, pid: hwloc_pid_t, cpuset: hwloc_cpuset_t, flags: int
 ) -> None:
     _checkc(_LIB.hwloc_get_proc_cpubind(topology, pid, cpuset, flags))
-
-
-if sys.platform == "win32":
-    hwloc_thread_t = ctypes.c_void_p
-
-    ctypes.windll.kernel32.OpenThread.restype = hwloc_thread_t
-    ctypes.windll.kernel32.OpenThread.argtypes = [
-        ctypes.c_int,
-        ctypes.c_int,
-        ctypes.c_int,
-    ]
-
-    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
-        THREAD_SET_INFORMATION = 0x0020
-        THREAD_QUERY_INFORMATION = 0x0040
-        if read_only:
-            access = THREAD_QUERY_INFORMATION
-        else:
-            access = THREAD_QUERY_INFORMATION | THREAD_SET_INFORMATION
-        hdl = ctypes.windll.kernel32.OpenThread(access, 0, thread_id)
-        if not hdl:
-            raise ctypes.WinError()
-        return hdl
-
-    ctypes.windll.kernel32.CloseHandle.argtypes = [hwloc_thread_t]
-    ctypes.windll.kernel32.CloseHandle.restype = ctypes.c_int
-
-    def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
-        status = ctypes.windll.kernel32.CloseHandle(thread_hdl)
-        if status == 0:
-            raise ctypes.WinError()
-
-else:
-    hwloc_thread_t = ctypes.c_ulong
-
-    def _open_thread_handle(thread_id: int, read_only: bool = True) -> hwloc_thread_t:
-        return hwloc_thread_t(thread_id)
-
-    def _close_thread_handle(thread_hdl: hwloc_thread_t) -> None:
-        pass
 
 
 _LIB.hwloc_set_thread_cpubind.argtypes = [
@@ -949,11 +979,11 @@ def get_proc_last_cpu_location(
 # Memory binding
 ################
 
-# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00147.php#gadf87089ef533db40460ccc24b5bc0d65
+# https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00147.php
 
 
-@_cenumdoc
-class hwloc_membind_policy_t(IntEnum):
+@_cenumdoc("hwloc_membind_policy_t")
+class MemBindPolicy(IntEnum):
     HWLOC_MEMBIND_DEFAULT = 0
     HWLOC_MEMBIND_FIRSTTOUCH = 1
     HWLOC_MEMBIND_BIND = 2
@@ -963,11 +993,12 @@ class hwloc_membind_policy_t(IntEnum):
     HWLOC_MEMBIND_MIXED = -1
 
 
-@_cenumdoc
-class hwloc_membind_flags_t(IntEnum):
+@_cenumdoc("hwloc_membind_flags_t")
+class MemBindFlags(IntEnum):
     HWLOC_MEMBIND_PROCESS = 1 << 0
     HWLOC_MEMBIND_THREAD = 1 << 1
     HWLOC_MEMBIND_STRICT = 1 << 2
+    # Only used by Linux `set_area_membind` and `set_thisthread_membind`.
     HWLOC_MEMBIND_MIGRATE = 1 << 3
     HWLOC_MEMBIND_NOCPUBIND = 1 << 4
     HWLOC_MEMBIND_BYNODESET = 1 << 5
@@ -986,7 +1017,7 @@ _LIB.hwloc_set_membind.restype = ctypes.c_int
 def set_membind(
     topology: topology_t,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> None:
     _checkc(_LIB.hwloc_set_membind(topology, set, policy, flags))
@@ -1002,12 +1033,10 @@ _LIB.hwloc_get_membind.restype = ctypes.c_int
 
 
 @_cfndoc
-def get_membind(
-    topology: topology_t, set: bitmap_t, flags: int
-) -> hwloc_membind_policy_t:
+def get_membind(topology: topology_t, set: bitmap_t, flags: int) -> MemBindPolicy:
     policy = ctypes.c_int()
     _checkc(_LIB.hwloc_get_membind(topology, set, ctypes.byref(policy), flags))
-    return hwloc_membind_policy_t(policy.value)
+    return MemBindPolicy(policy.value)
 
 
 _LIB.hwloc_set_proc_membind.argtypes = [
@@ -1023,12 +1052,12 @@ _LIB.hwloc_set_proc_membind.restype = ctypes.c_int
 @_cfndoc
 def set_proc_membind(
     topology: topology_t,
-    pid: int,
+    pid: hwloc_pid_t,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> None:
-    _checkc(_LIB.hwloc_set_proc_membind(topology, hwloc_pid_t(pid), set, policy, flags))
+    _checkc(_LIB.hwloc_set_proc_membind(topology, pid, set, policy, flags))
 
 
 _LIB.hwloc_get_proc_membind.argtypes = [
@@ -1043,15 +1072,14 @@ _LIB.hwloc_get_proc_membind.restype = ctypes.c_int
 
 @_cfndoc
 def get_proc_membind(
-    topology: topology_t, pid: int, set: bitmap_t, flags: int
-) -> hwloc_membind_policy_t:
+    topology: topology_t, pid: hwloc_pid_t, set: bitmap_t, flags: int
+) -> MemBindPolicy:
+    # Note that it does not make sense to pass ::HWLOC_MEMBIND_THREAD to this function.
     policy = ctypes.c_int()
     _checkc(
-        _LIB.hwloc_get_proc_membind(
-            topology, hwloc_pid_t(pid), set, ctypes.byref(policy), flags
-        )
+        _LIB.hwloc_get_proc_membind(topology, pid, set, ctypes.byref(policy), flags)
     )
-    return hwloc_membind_policy_t(policy.value)
+    return MemBindPolicy(policy.value)
 
 
 _LIB.hwloc_set_area_membind.argtypes = [
@@ -1071,7 +1099,7 @@ def set_area_membind(
     addr: ctypes.c_void_p,
     length: int,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> None:
     _checkc(_LIB.hwloc_set_area_membind(topology, addr, length, set, policy, flags))
@@ -1091,14 +1119,14 @@ _LIB.hwloc_get_area_membind.restype = ctypes.c_int
 @_cfndoc
 def get_area_membind(
     topology: topology_t, addr: ctypes.c_void_p, length: int, set: bitmap_t, flags: int
-) -> hwloc_membind_policy_t:
+) -> MemBindPolicy:
     policy = ctypes.c_int()
     _checkc(
         _LIB.hwloc_get_area_membind(
             topology, addr, length, set, ctypes.byref(policy), flags
         )
     )
-    return hwloc_membind_policy_t(policy.value)
+    return MemBindPolicy(policy.value)
 
 
 _LIB.hwloc_get_area_memlocation.argtypes = [
@@ -1145,7 +1173,7 @@ def alloc_membind(
     topology: topology_t,
     length: int,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> ctypes.c_void_p:
     result = _LIB.hwloc_alloc_membind(topology, length, set, policy, flags)
@@ -1169,7 +1197,7 @@ def alloc_membind_policy(
     topology: topology_t,
     length: int,
     set: const_bitmap_t,
-    policy: hwloc_membind_policy_t,
+    policy: MemBindPolicy,
     flags: int,
 ) -> ctypes.c_void_p:
     result = _pyhwloc_lib.pyhwloc_alloc_membind_policy(
@@ -1332,7 +1360,7 @@ class hwloc_topology_support(ctypes.Structure):
     ]
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_topology_flags_e")
 class hwloc_topology_flags_e(IntEnum):
     HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED = 1 << 0
     HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM = 1 << 1
@@ -1346,8 +1374,8 @@ class hwloc_topology_flags_e(IntEnum):
     HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS = 1 << 9
 
 
-@_cenumdoc
-class hwloc_type_filter_e(IntEnum):
+@_cenumdoc("hwloc_type_filter_e")
+class TypeFilter(IntEnum):
     HWLOC_TYPE_FILTER_KEEP_ALL = 0
     HWLOC_TYPE_FILTER_KEEP_NONE = 1
     HWLOC_TYPE_FILTER_KEEP_STRUCTURE = 2
@@ -1402,7 +1430,7 @@ _LIB.hwloc_topology_set_type_filter.restype = ctypes.c_int
 
 @_cfndoc
 def topology_set_type_filter(
-    topology: topology_t, obj_type: hwloc_obj_type_t, f: hwloc_type_filter_e
+    topology: topology_t, obj_type: ObjType, f: TypeFilter
 ) -> None:
     _checkc(_LIB.hwloc_topology_set_type_filter(topology, obj_type, f))
 
@@ -1416,35 +1444,29 @@ _LIB.hwloc_topology_get_type_filter.restype = ctypes.c_int
 
 
 @_cfndoc
-def topology_get_type_filter(
-    topology: topology_t, obj_type: hwloc_obj_type_t
-) -> hwloc_type_filter_e:
+def topology_get_type_filter(topology: topology_t, obj_type: ObjType) -> TypeFilter:
     f = ctypes.c_int()
     _checkc(_LIB.hwloc_topology_get_type_filter(topology, obj_type, ctypes.byref(f)))
-    return hwloc_type_filter_e(f.value)
+    return TypeFilter(f.value)
 
 
 @_cfndoc
-def topology_set_all_types_filter(topology: topology_t, f: hwloc_type_filter_e) -> None:
+def topology_set_all_types_filter(topology: topology_t, f: TypeFilter) -> None:
     _checkc(_LIB.hwloc_topology_set_all_types_filter(topology, f))
 
 
 @_cfndoc
-def topology_set_cache_types_filter(
-    topology: topology_t, f: hwloc_type_filter_e
-) -> None:
+def topology_set_cache_types_filter(topology: topology_t, f: TypeFilter) -> None:
     _checkc(_LIB.hwloc_topology_set_cache_types_filter(topology, f))
 
 
 @_cfndoc
-def topology_set_icache_types_filter(
-    topology: topology_t, f: hwloc_type_filter_e
-) -> None:
+def topology_set_icache_types_filter(topology: topology_t, f: TypeFilter) -> None:
     _checkc(_LIB.hwloc_topology_set_icache_types_filter(topology, f))
 
 
 @_cfndoc
-def topology_set_io_types_filter(topology: topology_t, f: hwloc_type_filter_e) -> None:
+def topology_set_io_types_filter(topology: topology_t, f: TypeFilter) -> None:
     _checkc(_LIB.hwloc_topology_set_io_types_filter(topology, f))
 
 
@@ -1473,7 +1495,7 @@ def topology_get_userdata(topology: topology_t) -> int:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00150.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_restrict_flags_e")
 class hwloc_restrict_flags_e(IntEnum):
     HWLOC_RESTRICT_FLAG_REMOVE_CPULESS = 1 << 0
     HWLOC_RESTRICT_FLAG_ADAPT_MISC = 1 << 1
@@ -1482,7 +1504,7 @@ class hwloc_restrict_flags_e(IntEnum):
     HWLOC_RESTRICT_FLAG_REMOVE_MEMLESS = 1 << 4
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_allow_flags_e")
 class hwloc_allow_flags_e(IntEnum):
     HWLOC_ALLOW_FLAG_ALL = 1 << 0
     HWLOC_ALLOW_FLAG_LOCAL_RESTRICTIONS = 1 << 1
@@ -1604,7 +1626,7 @@ _LIB.hwloc_obj_type_is_normal.restype = ctypes.c_int
 
 
 @_cfndoc
-def obj_type_is_normal(obj_type: hwloc_obj_type_t) -> bool:
+def obj_type_is_normal(obj_type: ObjType) -> bool:
     # For the definition of normal:
     # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00343.php
     return bool(_LIB.hwloc_obj_type_is_normal(int(obj_type)))
@@ -1615,7 +1637,7 @@ _LIB.hwloc_obj_type_is_io.restype = ctypes.c_int
 
 
 @_cfndoc
-def obj_type_is_io(obj_type: hwloc_obj_type_t) -> bool:
+def obj_type_is_io(obj_type: ObjType) -> bool:
     return bool(_LIB.hwloc_obj_type_is_io(obj_type))
 
 
@@ -1624,7 +1646,7 @@ _LIB.hwloc_obj_type_is_memory.restype = ctypes.c_int
 
 
 @_cfndoc
-def obj_type_is_memory(obj_type: hwloc_obj_type_t) -> bool:
+def obj_type_is_memory(obj_type: ObjType) -> bool:
     return bool(_LIB.hwloc_obj_type_is_memory(obj_type))
 
 
@@ -1633,7 +1655,7 @@ _LIB.hwloc_obj_type_is_cache.restype = ctypes.c_int
 
 
 @_cfndoc
-def obj_type_is_cache(obj_type: hwloc_obj_type_t) -> bool:
+def obj_type_is_cache(obj_type: ObjType) -> bool:
     return bool(_LIB.hwloc_obj_type_is_cache(obj_type))
 
 
@@ -1642,7 +1664,7 @@ _LIB.hwloc_obj_type_is_dcache.restype = ctypes.c_int
 
 
 @_cfndoc
-def obj_type_is_dcache(obj_type: hwloc_obj_type_t) -> bool:
+def obj_type_is_dcache(obj_type: ObjType) -> bool:
     return bool(_LIB.hwloc_obj_type_is_dcache(obj_type))
 
 
@@ -1651,7 +1673,7 @@ _LIB.hwloc_obj_type_is_icache.restype = ctypes.c_int
 
 
 @_cfndoc
-def obj_type_is_icache(obj_type: hwloc_obj_type_t) -> bool:
+def obj_type_is_icache(obj_type: ObjType) -> bool:
     return bool(_LIB.hwloc_obj_type_is_icache(obj_type))
 
 
@@ -1731,7 +1753,7 @@ _pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type.restype = obj_t
 def get_next_obj_inside_cpuset_by_type(
     topology: topology_t,
     cpuset: hwloc_const_cpuset_t,
-    obj_type: hwloc_obj_type_t,
+    obj_type: ObjType,
     prev: ObjPtr,
 ) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_next_obj_inside_cpuset_by_type(
@@ -1776,7 +1798,7 @@ _pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type.restype = obj_t
 def get_obj_inside_cpuset_by_type(
     topology: topology_t,
     cpuset: hwloc_const_cpuset_t,
-    obj_type: hwloc_obj_type_t,
+    obj_type: ObjType,
     idx: int,
 ) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_obj_inside_cpuset_by_type(
@@ -1814,7 +1836,7 @@ _pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type.restype = ctypes.c_int
 
 @_cfndoc
 def get_nbobjs_inside_cpuset_by_type(
-    topology: topology_t, cpuset: hwloc_const_cpuset_t, obj_type: hwloc_obj_type_t
+    topology: topology_t, cpuset: hwloc_const_cpuset_t, obj_type: ObjType
 ) -> int:
     return _pyhwloc_lib.pyhwloc_get_nbobjs_inside_cpuset_by_type(
         topology, cpuset, obj_type
@@ -1912,7 +1934,7 @@ _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type.restype = obj_t
 def get_next_obj_covering_cpuset_by_type(
     topology: topology_t,
     cpuset: hwloc_const_cpuset_t,
-    obj_type: hwloc_obj_type_t,
+    obj_type: ObjType,
     prev: ObjPtr,
 ) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_next_obj_covering_cpuset_by_type(
@@ -1958,7 +1980,7 @@ _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type.restype = obj_t
 
 @_cfndoc
 def get_ancestor_obj_by_type(
-    topology: topology_t, obj_type: hwloc_obj_type_t, obj: ObjPtr
+    topology: topology_t, obj_type: ObjType, obj: ObjPtr
 ) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_ancestor_obj_by_type(topology, obj_type, obj)
     if not obj:
@@ -2141,9 +2163,9 @@ _pyhwloc_lib.pyhwloc_get_obj_below_by_type.restype = obj_t
 @_cfndoc
 def get_obj_below_by_type(
     topology: topology_t,
-    type1: hwloc_obj_type_t,
+    type1: ObjType,
     idx1: int,
-    type2: hwloc_obj_type_t,
+    type2: ObjType,
     idx2: int,
 ) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_obj_below_by_type(topology, type1, idx1, type2, idx2)
@@ -2189,7 +2211,7 @@ _pyhwloc_lib.pyhwloc_get_obj_with_same_locality.restype = obj_t
 def get_obj_with_same_locality(
     topology: topology_t,
     src: ObjPtr,
-    obj_type: hwloc_obj_type_t,
+    obj_type: ObjType,
     subtype: str | None,
     nameprefix: str | None,
     flags: int,
@@ -2211,7 +2233,7 @@ def get_obj_with_same_locality(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00157.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_allow_flags_e")
 class hwloc_distrib_flags_e(IntEnum):
     HWLOC_DISTRIB_FLAG_REVERSE = 1 << 0
 
@@ -2449,8 +2471,8 @@ def bridge_covers_pcibus(bridge: ObjPtr, domain: int, bus: int) -> int:
 #############################
 
 
-@_cenumdoc
-class hwloc_topology_export_xml_flags_e(IntEnum):
+@_cenumdoc("hwloc_topology_export_xml_flags_e")
+class ExportXmlFlags(IntEnum):
     HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2 = 1 << 1
 
 
@@ -2597,8 +2619,8 @@ def topology_set_userdata_import_callback(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00163.php
 
 
-@_cenumdoc
-class hwloc_topology_export_synthetic_flags_e(IntEnum):
+@_cenumdoc("hwloc_topology_export_synthetic_flags_e")
+class ExportSyntheticFlags(IntEnum):
     HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES = 1 << 0
     HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_ATTRS = 1 << 1
     HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_V1 = 1 << 2
@@ -2636,7 +2658,7 @@ def topology_export_synthetic(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00164.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_distances_kind_e")
 class hwloc_distances_kind_e(IntEnum):
     HWLOC_DISTANCES_KIND_FROM_OS = 1 << 0
     HWLOC_DISTANCES_KIND_FROM_USER = 1 << 1
@@ -2646,7 +2668,7 @@ class hwloc_distances_kind_e(IntEnum):
     HWLOC_DISTANCES_KIND_VALUE_HOPS = 1 << 5
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_distances_transform_e")
 class hwloc_distances_transform_e(IntEnum):
     HWLOC_DISTANCES_TRANSFORM_REMOVE_NULL = 0
     HWLOC_DISTANCES_TRANSFORM_LINKS = 1
@@ -2739,7 +2761,7 @@ _LIB.hwloc_distances_get_by_type.restype = ctypes.c_int
 @_cfndoc
 def distances_get_by_type(
     topology: topology_t,
-    obj_type: hwloc_obj_type_t,
+    obj_type: ObjType,
     nr: UintPtr,  # this is both input and output
     distances: DistancesPtrPtr,
     kind: int,
@@ -2880,7 +2902,7 @@ def distances_obj_pair_values(
 hwloc_distances_add_handle_t = ctypes.c_void_p
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_distances_add_flag_e")
 class hwloc_distances_add_flag_e(IntEnum):
     HWLOC_DISTANCES_ADD_FLAG_GROUP = 1 << 0
     HWLOC_DISTANCES_ADD_FLAG_GROUP_INACCURATE = 1 << 1
@@ -2975,7 +2997,7 @@ _pyhwloc_lib.pyhwloc_distances_remove_by_type.restype = ctypes.c_int
 
 
 @_cfndoc
-def distances_remove_by_type(topology: topology_t, obj_type: hwloc_obj_type_t) -> None:
+def distances_remove_by_type(topology: topology_t, obj_type: ObjType) -> None:
     _checkc(_pyhwloc_lib.pyhwloc_distances_remove_by_type(topology, obj_type))
 
 
@@ -3000,7 +3022,7 @@ def distances_release_remove(topology: topology_t, distances: DistancesPtr) -> N
 hwloc_memattr_id_t = ctypes.c_uint
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_memattr_id_e")
 class hwloc_memattr_id_e(IntEnum):
     HWLOC_MEMATTR_ID_CAPACITY = 0
     HWLOC_MEMATTR_ID_LOCALITY = 1
@@ -3013,13 +3035,13 @@ class hwloc_memattr_id_e(IntEnum):
     HWLOC_MEMATTR_ID_MAX = 8
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_location_type_e")
 class hwloc_location_type_e(IntEnum):
     HWLOC_LOCATION_TYPE_OBJECT = 0
     HWLOC_LOCATION_TYPE_CPUSET = 1
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_local_numanode_flag_e")
 class hwloc_local_numanode_flag_e(IntEnum):
     HWLOC_LOCAL_NUMANODE_FLAG_LARGER_LOCALITY = 1 << 0
     HWLOC_LOCAL_NUMANODE_FLAG_SMALLER_LOCALITY = 1 << 1
@@ -3249,7 +3271,7 @@ def memattr_get_initiators(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00169.php
 
 
-@_cenumdoc
+@_cenumdoc("hwloc_memattr_flag_e")
 class hwloc_memattr_flag_e(IntEnum):
     HWLOC_MEMATTR_FLAG_HIGHER_FIRST = 1 << 0
     HWLOC_MEMATTR_FLAG_LOWER_FIRST = 1 << 1

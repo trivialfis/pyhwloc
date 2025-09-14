@@ -16,6 +16,7 @@
 Interoperability with Python sched affinity
 ===========================================
 """
+
 from __future__ import annotations
 
 from .bitmap import (

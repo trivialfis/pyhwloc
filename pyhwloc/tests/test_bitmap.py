@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import copy
+import ctypes
 from typing import Callable
 
 from pyhwloc.bitmap import Bitmap
@@ -68,7 +69,7 @@ def test_bitmap_ulong_ctor() -> None:
     masks = [mask, 1 << 3]
     bitmap = Bitmap.from_ulongs(masks)
     assert 2 in bitmap
-    assert (64 + 3) in bitmap
+    assert (ctypes.sizeof(ctypes.c_ulong) * 8 + 3) in bitmap
     assert bitmap.weight == 2
 
 

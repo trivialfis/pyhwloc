@@ -16,6 +16,7 @@
 The Topology Interface
 ======================
 """
+
 from __future__ import annotations
 
 import ctypes
@@ -24,12 +25,20 @@ import os
 import weakref
 from collections import namedtuple
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Type, TypeAlias
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterator,
+    Type,
+    TypeAlias,
+)
 
+from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
-from .hwloc import lib as _lib
-from .hwobject import Object, ObjType
-from .utils import _reuse_doc
+from .hwobject import Object as _Object
+from .hwobject import ObjType as _ObjType
+from .utils import _Flags, _memview_to_mem, _or_flags, _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
@@ -40,6 +49,8 @@ __all__ = [
     "ExportXmlFlags",
     "ExportSyntheticFlags",
     "TypeFilter",
+    "MemBindPolicy",
+    "MemBindFlags",
 ]
 
 
@@ -50,10 +61,10 @@ def _from_impl(fn: Callable[[_core.topology_t], None], load: bool) -> _core.topo
         fn(hdl)
         if load is True:
             _core.topology_load(hdl)
-    except (_lib.HwLocError, NotImplementedError) as e:
+    except Exception:
         if hdl:
             _core.topology_destroy(hdl)
-        raise e
+        raise
     return hdl
 
 
@@ -61,10 +72,26 @@ def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
     return _from_impl(lambda hdl: _core.topology_set_xmlbuffer(hdl, xml_buffer), load)
 
 
+def _to_bitmap(target: _Bitmap | set[int] | _Object) -> _Bitmap:
+    if isinstance(target, set):
+        bitmap = _Bitmap.from_sched_set(target)
+    elif isinstance(target, _Object):
+        ns = target.nodeset
+        if ns is None:
+            raise ValueError("Object has no associated NUMA nodes")
+        bitmap = ns
+    else:
+        bitmap = target
+    return bitmap
+
+
 ObjPtr = _core.ObjPtr
-ExportXmlFlags: TypeAlias = _core.hwloc_topology_export_xml_flags_e
-ExportSyntheticFlags: TypeAlias = _core.hwloc_topology_export_synthetic_flags_e
-TypeFilter: TypeAlias = _core.hwloc_type_filter_e
+ExportXmlFlags: TypeAlias = _core.ExportXmlFlags
+ExportSyntheticFlags: TypeAlias = _core.ExportSyntheticFlags
+TypeFilter: TypeAlias = _core.TypeFilter
+# Memory bind type aliases
+MemBindPolicy: TypeAlias = _core.MemBindPolicy
+MemBindFlags: TypeAlias = _core.MemBindFlags
 
 
 class Topology:
@@ -280,23 +307,23 @@ class Topology:
 
     @_reuse_doc(_core.topology_export_xml)
     def export_xml_file(
-        self, path: os.PathLike | str, flags: ExportXmlFlags | int
+        self, path: os.PathLike | str, flags: _Flags[ExportXmlFlags]
     ) -> None:
         path = os.fspath(os.path.expanduser(path))
-        _core.topology_export_xml(self.native_handle, path, flags)
+        _core.topology_export_xml(self.native_handle, path, _or_flags(flags))
 
     @_reuse_doc(_core.topology_export_synthetic)
-    def export_synthetic(self, flags: ExportSyntheticFlags | int) -> str:
+    def export_synthetic(self, flags: _Flags[ExportSyntheticFlags]) -> str:
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
         n_written = _core.topology_export_synthetic(
-            self.native_handle, buf, n_bytes, flags
+            self.native_handle, buf, n_bytes, _or_flags(flags)
         )
         while n_written == n_bytes - 1:
             n_bytes = n_bytes * 2
             buf = ctypes.create_string_buffer(n_bytes)
             n_written = _core.topology_export_synthetic(
-                self.native_handle, buf, n_bytes, flags
+                self.native_handle, buf, n_bytes, _or_flags(flags)
             )
             if n_bytes >= 8192:
                 raise RuntimeError("Failed to export synthetic.")
@@ -436,7 +463,7 @@ class Topology:
             _core.topology_set_icache_types_filter, type_filter
         )
 
-    def get_obj_by_depth(self, depth: int, idx: int) -> Object | None:
+    def get_obj_by_depth(self, depth: int, idx: int) -> _Object | None:
         """Get object at specific depth and index.
 
         Parameters
@@ -451,26 +478,26 @@ class Topology:
         Object instance or None if not found
         """
         ptr = _core.get_obj_by_depth(self.native_handle, depth, idx)
-        return Object(ptr, weakref.ref(self)) if ptr else None
+        return _Object(ptr, weakref.ref(self)) if ptr else None
 
     @_reuse_doc(_core.get_root_obj)
-    def get_root_obj(self) -> Object:
-        return Object(_core.get_root_obj(self.native_handle), weakref.ref(self))
+    def get_root_obj(self) -> _Object:
+        return _Object(_core.get_root_obj(self.native_handle), weakref.ref(self))
 
     @_reuse_doc(_core.get_obj_by_type)
-    def get_obj_by_type(self, obj_type: ObjType, idx: int) -> Object | None:
+    def get_obj_by_type(self, obj_type: _ObjType, idx: int) -> _Object | None:
         ptr = _core.get_obj_by_type(self.native_handle, obj_type, idx)
-        return Object(ptr, weakref.ref(self)) if ptr else None
+        return _Object(ptr, weakref.ref(self)) if ptr else None
 
     @_reuse_doc(_core.get_nbobjs_by_depth)
     def get_nbobjs_by_depth(self, depth: int) -> int:
         return _core.get_nbobjs_by_depth(self.native_handle, depth)
 
     @_reuse_doc(_core.get_nbobjs_by_type)
-    def get_nbobjs_by_type(self, obj_type: ObjType) -> int:
+    def get_nbobjs_by_type(self, obj_type: _ObjType) -> int:
         return _core.get_nbobjs_by_type(self.native_handle, obj_type)
 
-    def iter_objects_by_depth(self, depth: int) -> Iterator[Object]:
+    def iter_objects_by_depth(self, depth: int) -> Iterator[_Object]:
         """Iterate over all objects at specific depth.
 
         Parameters
@@ -488,7 +515,7 @@ class Topology:
             ptr = _core.get_next_obj_by_depth(self.native_handle, depth, prev)
             if ptr is None:
                 break
-            obj = Object(ptr, weakref.ref(self))
+            obj = _Object(ptr, weakref.ref(self))
             yield obj
             prev = ptr
 
@@ -500,9 +527,9 @@ class Topology:
         -------
         Number of core objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_CORE)
 
-    def iter_objects_by_type(self, obj_type: ObjType) -> Iterator[Object]:
+    def iter_objects_by_type(self, obj_type: _ObjType) -> Iterator[_Object]:
         """Iterate over all objects of specific type.
 
         Parameters
@@ -519,11 +546,11 @@ class Topology:
             ptr = _core.get_next_obj_by_type(self.native_handle, obj_type, prev)
             if ptr is None:
                 break
-            obj = Object(ptr, weakref.ref(self))
+            obj = _Object(ptr, weakref.ref(self))
             yield obj
             prev = ptr
 
-    def iter_all_breadth_first(self) -> Iterator[Object]:
+    def iter_all_breadth_first(self) -> Iterator[_Object]:
         """Iterate over all objects in the topology.
 
         Yields
@@ -536,7 +563,7 @@ class Topology:
 
     # We can implement pre/in/post-order traversal if needed.
 
-    def get_depth_type(self, depth: int) -> ObjType:
+    def get_depth_type(self, depth: int) -> _ObjType:
         """Get the object type at specific depth.
 
         Parameters
@@ -550,41 +577,41 @@ class Topology:
         """
         return _core.get_depth_type(self.native_handle, depth)
 
-    def iter_cpus(self) -> Iterator[Object]:
+    def iter_cpus(self) -> Iterator[_Object]:
         """Iterate over all processing units (CPUs).
 
         Yields
         ------
         All PU (processing unit) object instances
         """
-        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_PU)
+        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_PU)
 
-    def iter_cores(self) -> Iterator[Object]:
+    def iter_cores(self) -> Iterator[_Object]:
         """Iterate over all cores.
 
         Yields
         ------
         All core object instances
         """
-        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_CORE)
+        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_CORE)
 
-    def iter_numa_nodes(self) -> Iterator[Object]:
+    def iter_numa_nodes(self) -> Iterator[_Object]:
         """Iterate over all NUMA nodes.
 
         Yields
         ------
         All NUMA node object instances
         """
-        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_NUMANODE)
+        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_NUMANODE)
 
-    def iter_packages(self) -> Iterator[Object]:
+    def iter_packages(self) -> Iterator[_Object]:
         """Iterate over all packages (sockets).
 
         Yields
         ------
         All package object instances
         """
-        return self.iter_objects_by_type(ObjType.HWLOC_OBJ_PACKAGE)
+        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
 
     @property
     def n_cpus(self) -> int:
@@ -594,7 +621,7 @@ class Topology:
         -------
         Number of PU objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PU)
 
     @property
     def n_numa_nodes(self) -> int:
@@ -604,7 +631,7 @@ class Topology:
         -------
         Number of NUMA node objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_NUMANODE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_NUMANODE)
 
     @property
     def n_packages(self) -> int:
@@ -614,7 +641,7 @@ class Topology:
         -------
         Number of package objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PACKAGE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
 
     @property
     def n_pci_devices(self) -> int:
@@ -624,7 +651,7 @@ class Topology:
         -------
         Number of PCI device objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PCI_DEVICE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PCI_DEVICE)
 
     @property
     def n_os_devices(self) -> int:
@@ -634,7 +661,7 @@ class Topology:
         -------
         Number of OS device objects in the topology
         """
-        return self.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE)
+        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_OS_DEVICE)
 
     # Distance Methods
     @_reuse_doc(_core.distances_get)
@@ -677,6 +704,180 @@ class Topology:
         self._cleanup.extend([weakref.ref(dist) for dist in result])
 
         return result
+
+    # Memory Binding Methods
+    def set_membind(
+        self,
+        target: _Bitmap | set[int] | _Object,
+        policy: MemBindPolicy,
+        flags: _Flags[MemBindFlags],
+    ) -> None:
+        """Bind the current process memory to specified NUMA nodes. The current process
+        is assumed to be single-threaded.
+
+        Parameters
+        ----------
+        target
+            NUMA nodes to bind memory to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
+        policy
+            Memory binding policy to use
+        flags
+            Additional flags for memory binding.
+
+        """
+        bitmap = _to_bitmap(target)
+        _core.set_membind(
+            self.native_handle, bitmap.native_handle, policy, _or_flags(flags)
+        )
+
+    def get_membind(
+        self, flags: _Flags[MemBindFlags] = 0
+    ) -> tuple[_Bitmap, MemBindPolicy]:
+        """Get current process memory binding.
+
+        Parameters
+        ----------
+        flags
+            Flags for getting memory binding
+
+        Returns
+        -------
+        Tuple of (bitmap, policy) for current memory binding
+        """
+        bitmap = _Bitmap()
+        policy = _core.get_membind(
+            self.native_handle, bitmap.native_handle, _or_flags(flags)
+        )
+        return bitmap, policy
+
+    def set_proc_membind(
+        self,
+        pid: int,
+        target: _Bitmap | set[int] | _Object,
+        policy: MemBindPolicy,
+        flags: _Flags[MemBindFlags],
+    ) -> None:
+        """Bind specific process memory to NUMA nodes.
+
+        Parameters
+        ----------
+        pid
+            Process ID to bind.
+        target
+            NUMA nodes to bind memory to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
+        policy
+            Memory binding policy to use
+        flags
+            Additional flags for memory binding
+        """
+        bitmap = _to_bitmap(target)
+        hdl = None
+        try:
+            hdl = _core._open_proc_handle(pid, False)
+            _core.set_proc_membind(
+                self.native_handle, hdl, bitmap.native_handle, policy, _or_flags(flags)
+            )
+        finally:
+            if hdl:
+                _core._close_proc_handle(hdl)
+
+    def get_proc_membind(
+        self, pid: int, flags: _Flags[MemBindFlags] = 0
+    ) -> tuple[_Bitmap, MemBindPolicy]:
+        """Get process memory binding.
+
+        Parameters
+        ----------
+        pid
+            Process ID to query.
+        flags
+            Flags for getting memory binding.
+
+        Returns
+        -------
+        Tuple of (nodeset, policy) for process memory binding
+        """
+        nodeset = _Bitmap()
+        hdl = None
+        try:
+            hdl = _core._open_proc_handle(pid)
+            policy = _core.get_proc_membind(
+                self.native_handle, hdl, nodeset.native_handle, _or_flags(flags)
+            )
+            return nodeset, policy
+        finally:
+            if hdl:
+                _core._close_proc_handle(hdl)
+
+    def set_area_membind(
+        self,
+        mem: memoryview,
+        target: _Bitmap | set[int] | _Object,
+        policy: MemBindPolicy,
+        flags: _Flags[MemBindFlags],
+    ) -> None:
+        """Bind memory area to NUMA nodes.
+
+        Parameters
+        ----------
+        mem
+            Memory area. Use :py:func:`~pyhwloc.utils.memoryview_from_memory` to
+            construct a :py:class:`memoryview` if you have pointers.
+        target
+            NUMA nodes to bind memory to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
+        policy
+            Memory binding policy to use.
+        flags
+            Additional flags for memory binding.
+        """
+        bitmap = _to_bitmap(target)
+        addr, size = _memview_to_mem(mem)
+
+        _core.set_area_membind(
+            self.native_handle,
+            addr,
+            size,
+            bitmap.native_handle,
+            policy,
+            _or_flags(flags),
+        )
+
+    def get_area_membind(
+        self,
+        mem: memoryview,
+        flags: _Flags[MemBindFlags] = 0,
+    ) -> tuple[_Bitmap, MemBindPolicy]:
+        """Get memory area binding.
+
+        Parameters
+        ----------
+        mem
+            Memory area. Use :py:func:`~pyhwloc.utils.memoryview_from_memory` to
+            construct a :py:class:`memoryview` if you have pointers.
+        flags
+            Flags for getting memory binding.
+
+        Returns
+        -------
+        Tuple of (bitmap, policy) for memory area binding
+        """
+        bitmap = _Bitmap()
+        addr, size = _memview_to_mem(mem)
+
+        policy = _core.get_area_membind(
+            self.native_handle, addr, size, bitmap.native_handle, _or_flags(flags)
+        )
+        return bitmap, policy
+
+    # Allocator interface is not exposed. I checked popular libraries like torch, none
+    # of them supports setting custom allocator in Python. We can come back to this if
+    # someone asks for it.
 
 
 @_reuse_doc(_core.get_api_version)

@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 """
-High-level Interface for hwloc Hardware Distance
-================================================
+High-level Interface for the Distance
+=====================================
 
 This module provides wrappers around hwloc distance matrices.
 
@@ -22,6 +22,7 @@ See `Topology Attributes: Distances, Memory Attributes and CPU Kinds
 <https://www.open-mpi.org/projects/hwloc/doc/v2.12.2/topoattrs.html>`__ for an
 introduction to the basic concepts.
 """
+
 from __future__ import annotations
 
 import ctypes

@@ -17,6 +17,7 @@ from __future__ import annotations
 import ctypes
 
 from pyhwloc.hwloc.core import (
+    ObjType,
     get_obj_by_type,
     hwloc_location,
     hwloc_location_type_e,
@@ -24,7 +25,6 @@ from pyhwloc.hwloc.core import (
     hwloc_memattr_flag_e,
     hwloc_memattr_id_e,
     hwloc_memattr_id_t,
-    hwloc_obj_type_t,
     memattr_get_flags,
     memattr_get_name,
     memattr_get_value,
@@ -75,7 +75,7 @@ def test_memattr_register_and_set_value() -> None:
     assert retrieved_flags == attr_flags
 
     # Create an initiator location (using CPU object)
-    cpu_obj = get_obj_by_type(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_PU, 0)
+    cpu_obj = get_obj_by_type(topo.hdl, ObjType.HWLOC_OBJ_PU, 0)
     assert cpu_obj
     # Create location structure for the initiator
     initiator = hwloc_location()

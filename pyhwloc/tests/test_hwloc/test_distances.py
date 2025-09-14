@@ -21,6 +21,7 @@ import ctypes
 from functools import partial
 
 from pyhwloc.hwloc.core import (
+    ObjType,
     distances_add_commit,
     distances_add_create,
     distances_add_values,
@@ -34,7 +35,6 @@ from pyhwloc.hwloc.core import (
     hwloc_distances_kind_e,
     hwloc_distances_s,
     hwloc_obj,
-    hwloc_obj_type_t,
     hwloc_uint64_t,
     topology_destroy,
     topology_get_depth,
@@ -79,7 +79,7 @@ def test_distances_comprehensive() -> None:
 
     # Get NUMA node objects
     for i in range(n_nodes):
-        obj = get_obj_by_type(topo, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE, i)
+        obj = get_obj_by_type(topo, ObjType.HWLOC_OBJ_NUMANODE, i)
         assert obj is not None
         objs[i] = obj
 
@@ -129,7 +129,7 @@ def test_distances_comprehensive() -> None:
     nr = ctypes.c_uint(1)
     distances_get_by_type(
         topo,
-        hwloc_obj_type_t.HWLOC_OBJ_NUMANODE,
+        ObjType.HWLOC_OBJ_NUMANODE,
         ctypes.byref(nr),
         ctypes.byref(distances),
         kind=0,
@@ -140,13 +140,13 @@ def test_distances_comprehensive() -> None:
     assert distances.contents.kind == kind
 
     # Test helper functions
-    numa_node_2 = get_obj_by_type(topo, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE, 2)
+    numa_node_2 = get_obj_by_type(topo, ObjType.HWLOC_OBJ_NUMANODE, 2)
     assert numa_node_2 is not None
     index = distances_obj_index(distances[0], numa_node_2)
     assert index == 2
 
     # Test distance pair values
-    numa_node_1 = get_obj_by_type(topo, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE, 1)
+    numa_node_1 = get_obj_by_type(topo, ObjType.HWLOC_OBJ_NUMANODE, 1)
     assert numa_node_1 is not None
     value1to2, value2to1 = distances_obj_pair_values(
         distances,
@@ -157,7 +157,7 @@ def test_distances_comprehensive() -> None:
     assert value2to1 == values[_r(2, 1)]
 
     # Test error cases - PU objects should not be in NUMA distance matrix
-    pu_obj = get_obj_by_type(topo, hwloc_obj_type_t.HWLOC_OBJ_PU, 0)
+    pu_obj = get_obj_by_type(topo, ObjType.HWLOC_OBJ_PU, 0)
     assert pu_obj is not None
     pu_index = distances_obj_index(distances[0], pu_obj)
     assert pu_index == -1, "PU object should not be in NUMA distances."

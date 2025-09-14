@@ -16,6 +16,7 @@
 Interoperability with the NVIDIA Management Library
 ===================================================
 """
+
 import ctypes
 
 import pynvml

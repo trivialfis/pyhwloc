@@ -16,39 +16,43 @@
 The bitmap API
 ==============
 """
+
 from __future__ import annotations
 
 import ctypes
 from typing import Callable
 
-from .lib import _LIB, HwLocError, _cfndoc, _checkc, _pyhwloc_lib
+from .lib import _LIB, HwLocError, _cfndoc, _checkc, _hwloc_error
 from .libc import free as cfree
 from .libc import strerror as cstrerror
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00161.php#gae679434c1a5f41d3560a8a7e2c1b0dee
 
-_pyhwloc_lib.pyhwloc_bitmap_alloc.argtypes = [ctypes.POINTER(ctypes.c_void_p)]
-_pyhwloc_lib.pyhwloc_bitmap_alloc.restype = int
-
 bitmap_t = ctypes.c_void_p
 const_bitmap_t = ctypes.c_void_p
 
 
+_LIB.hwloc_bitmap_alloc.argtypes = []
+_LIB.hwloc_bitmap_alloc.restype = ctypes.c_void_p
+
+
 @_cfndoc
 def bitmap_alloc() -> bitmap_t:
-    ptr = ctypes.c_void_p()
-    _checkc(_pyhwloc_lib.pyhwloc_bitmap_alloc(ctypes.byref(ptr)))
+    ptr = ctypes.cast(_LIB.hwloc_bitmap_alloc(), bitmap_t)
+    if not ptr:
+        raise _hwloc_error("hwloc_bitmap_alloc")
     return ptr
 
 
-_pyhwloc_lib.pyhwloc_bitmap_alloc_full.argtypes = [ctypes.POINTER(ctypes.c_void_p)]
-_pyhwloc_lib.pyhwloc_bitmap_alloc_full.restype = int
+_LIB.hwloc_bitmap_alloc_full.argtypes = []
+_LIB.hwloc_bitmap_alloc_full.restype = ctypes.c_void_p
 
 
 @_cfndoc
 def bitmap_alloc_full() -> bitmap_t:
-    ptr = ctypes.c_void_p()
-    _checkc(_pyhwloc_lib.pyhwloc_bitmap_alloc_full(ctypes.byref(ptr)))
+    ptr = ctypes.cast(_LIB.hwloc_bitmap_alloc_full(), bitmap_t)
+    if not ptr:
+        raise _hwloc_error("hwloc_bitmap_alloc_full")
     return ptr
 
 

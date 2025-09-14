@@ -16,6 +16,7 @@
 Windows-specific helpers
 ========================
 """
+
 import ctypes
 import os
 import platform
