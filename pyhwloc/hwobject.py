@@ -32,13 +32,13 @@ from .hwloc import core as _core
 if TYPE_CHECKING:
     from .topology import Topology
 
-__all__ = ["Object", "ObjType"]
+__all__ = ["Object", "ObjType", "ObjOsdevType", "ObjSnprintfFlag", "GetTypeDepth"]
 
 
-ObjType = _core.hwloc_obj_type_t
-ObjOsdevType = _core.hwloc_obj_osdev_type_e
-ObjSnprintfFlag = _core.hwloc_obj_snprintf_flag_e
-GetTypeDepth = _core.hwloc_get_type_depth_e
+ObjType = _core.ObjType
+ObjOsdevType = _core.ObjOsdevType
+ObjSnprintfFlag = _core.ObjSnprintfFlag
+GetTypeDepth = _core.GetTypeDepth
 
 
 class Object:

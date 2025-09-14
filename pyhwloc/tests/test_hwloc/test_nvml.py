@@ -24,7 +24,7 @@ from pyhwloc.hwloc.bitmap import (
 )
 from pyhwloc.hwloc.core import (
     TypeFilter,
-    hwloc_obj_type_t,
+    ObjType,
 )
 from pyhwloc.hwloc.nvml import get_device_cpuset, get_device_osdev
 
@@ -48,7 +48,7 @@ def test_get_device_osdev() -> None:
 
         dev_obj = get_device_osdev(topo.hdl, nvhdl)
         assert _skip_if_none(dev_obj)
-        assert dev_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_OS_DEVICE
+        assert dev_obj.contents.type == ObjType.HWLOC_OBJ_OS_DEVICE
 
 
 def test_nvml_get_device_cpuset() -> None:

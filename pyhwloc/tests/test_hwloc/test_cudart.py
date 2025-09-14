@@ -24,7 +24,7 @@ from pyhwloc.hwloc.bitmap import (
 )
 from pyhwloc.hwloc.core import (
     TypeFilter,
-    hwloc_obj_type_t,
+    ObjType,
 )
 from pyhwloc.hwloc.cudart import (
     _check_cudart,
@@ -46,7 +46,7 @@ def test_get_device_osdev() -> None:
     for ordinal in range(cnt):
         dev_obj = get_device_osdev_by_index(topo.hdl, ordinal)
         assert _skip_if_none(dev_obj)
-        assert dev_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_OS_DEVICE
+        assert dev_obj.contents.type == ObjType.HWLOC_OBJ_OS_DEVICE
 
 
 def test_cudart_get_device_cpuset() -> None:
@@ -77,4 +77,4 @@ def test_get_device_pcidev() -> None:
         pci_obj = get_device_pcidev(topo.hdl, ordinal)
         assert _skip_if_none(pci_obj)
         assert pci_obj is not None
-        assert pci_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_PCI_DEVICE
+        assert pci_obj.contents.type == ObjType.HWLOC_OBJ_PCI_DEVICE

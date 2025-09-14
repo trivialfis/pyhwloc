@@ -2,7 +2,7 @@
 #include <hwloc.h>
 
 PYHWLOC_EXPORT int pyhwloc_get_type_or_below_depth(hwloc_topology_t topology,
-                                                   hwloc_obj_type_t type) {
+                                                   ObjType type) {
   return hwloc_get_type_or_below_depth(topology, type);
 }
 
@@ -16,13 +16,13 @@ PYHWLOC_EXPORT void *pyhwloc_alloc_membind_policy(hwloc_topology_t topology,
 
 // Object levels, depths and types
 PYHWLOC_EXPORT int pyhwloc_get_type_or_above_depth(hwloc_topology_t topology,
-                                                   hwloc_obj_type_t type) {
+                                                   ObjType type) {
 
   return hwloc_get_type_or_above_depth(topology, type);
 }
 
 PYHWLOC_EXPORT int pyhwloc_get_nbobjs_by_type(hwloc_topology_t topology,
-                                              hwloc_obj_type_t type) {
+                                              ObjType type) {
   return hwloc_get_nbobjs_by_type(topology, type);
 }
 
@@ -32,7 +32,7 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_root_obj(hwloc_topology_t topology) {
 }
 
 PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_by_type(hwloc_topology_t topology,
-                                                   hwloc_obj_type_t type,
+                                                   ObjType type,
                                                    unsigned idx) {
 
   return hwloc_get_obj_by_type(topology, type, idx);
@@ -45,7 +45,7 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_by_depth(
 }
 
 PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_by_type(
-    hwloc_topology_t topology, hwloc_obj_type_t type, hwloc_obj_t prev) {
+    hwloc_topology_t topology, ObjType type, hwloc_obj_t prev) {
   return hwloc_get_next_obj_by_type(topology, type, prev);
 }
 
@@ -141,19 +141,19 @@ PYHWLOC_EXPORT unsigned pyhwloc_get_closest_objs(hwloc_topology_t topology,
 }
 
 PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_below_by_type(
-    hwloc_topology_t topology, hwloc_obj_type_t type1, unsigned idx1,
-    hwloc_obj_type_t type2, unsigned idx2) {
+    hwloc_topology_t topology, ObjType type1, unsigned idx1,
+    ObjType type2, unsigned idx2) {
   return hwloc_get_obj_below_by_type(topology, type1, idx1, type2, idx2);
 }
 
 PYHWLOC_EXPORT hwloc_obj_t
 pyhwloc_get_obj_below_array_by_type(hwloc_topology_t topology, int nr,
-                                    hwloc_obj_type_t *typev, unsigned *idxv) {
+                                    ObjType *typev, unsigned *idxv) {
   return hwloc_get_obj_below_array_by_type(topology, nr, typev, idxv);
 }
 
 PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_with_same_locality(
-    hwloc_topology_t topology, hwloc_obj_t src, hwloc_obj_type_t type,
+    hwloc_topology_t topology, hwloc_obj_t src, ObjType type,
     const char *subtype, const char *nameprefix, unsigned long flags) {
   return hwloc_get_obj_with_same_locality(topology, src, type, subtype,
                                           nameprefix, flags);
@@ -193,7 +193,7 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_covering_cpuset_by_depth(
 
 PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_covering_cpuset_by_type(
     hwloc_topology_t topology, hwloc_const_cpuset_t cpuset,
-    hwloc_obj_type_t type, hwloc_obj_t prev) {
+    ObjType type, hwloc_obj_t prev) {
   return hwloc_get_next_obj_covering_cpuset_by_type(topology, cpuset, type,
                                                     prev);
 }
@@ -220,7 +220,7 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_inside_cpuset_by_depth(
 
 PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_next_obj_inside_cpuset_by_type(
     hwloc_topology_t topology, hwloc_const_cpuset_t cpuset,
-    hwloc_obj_type_t type, hwloc_obj_t prev) {
+    ObjType type, hwloc_obj_t prev) {
   return hwloc_get_next_obj_inside_cpuset_by_type(topology, cpuset, type, prev);
 }
 
@@ -232,7 +232,7 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_inside_cpuset_by_depth(
 
 PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_obj_inside_cpuset_by_type(
     hwloc_topology_t topology, hwloc_const_cpuset_t cpuset,
-    hwloc_obj_type_t type, unsigned idx) {
+    ObjType type, unsigned idx) {
   return hwloc_get_obj_inside_cpuset_by_type(topology, cpuset, type, idx);
 }
 
@@ -244,7 +244,7 @@ PYHWLOC_EXPORT unsigned pyhwloc_get_nbobjs_inside_cpuset_by_depth(
 PYHWLOC_EXPORT int
 pyhwloc_get_nbobjs_inside_cpuset_by_type(hwloc_topology_t topology,
                                          hwloc_const_cpuset_t cpuset,
-                                         hwloc_obj_type_t type) {
+                                         ObjType type) {
   return hwloc_get_nbobjs_inside_cpuset_by_type(topology, cpuset, type);
 }
 
@@ -260,7 +260,7 @@ PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_ancestor_obj_by_depth(
 }
 
 PYHWLOC_EXPORT hwloc_obj_t pyhwloc_get_ancestor_obj_by_type(
-    hwloc_topology_t topology, hwloc_obj_type_t type, hwloc_obj_t obj) {
+    hwloc_topology_t topology, ObjType type, hwloc_obj_t obj) {
   return hwloc_get_ancestor_obj_by_type(topology, type, obj);
 }
 
@@ -305,6 +305,6 @@ PYHWLOC_EXPORT int pyhwloc_distrib(hwloc_topology_t topology,
 
 // Remove distances between objects
 PYHWLOC_EXPORT int pyhwloc_distances_remove_by_type(hwloc_topology_t topology,
-                                                    hwloc_obj_type_t type) {
+                                                    ObjType type) {
   return hwloc_distances_remove_by_type(topology, type);
 }

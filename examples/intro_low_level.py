@@ -49,8 +49,8 @@ from pyhwloc.hwloc.core import (
     get_root_obj,
     get_type_depth,
     get_type_or_below_depth,
-    hwloc_get_type_depth_e,
-    hwloc_obj_type_t,
+    GetTypeDepth,
+    ObjType,
     obj_attr_snprintf,
     obj_type_is_cache,
     obj_type_snprintf,
@@ -140,8 +140,8 @@ def main() -> int:
     # Third example:
     # Print the number of packages.
     #########################################################################
-    depth = get_type_depth(topology, hwloc_obj_type_t.HWLOC_OBJ_PACKAGE)
-    if depth == hwloc_get_type_depth_e.HWLOC_TYPE_DEPTH_UNKNOWN:
+    depth = get_type_depth(topology, ObjType.HWLOC_OBJ_PACKAGE)
+    if depth == GetTypeDepth.HWLOC_TYPE_DEPTH_UNKNOWN:
         print("*** The number of packages is unknown")
     else:
         print(f"*** {get_nbobjs_by_depth(topology, depth)} package(s)")
@@ -153,7 +153,7 @@ def main() -> int:
     #########################################################################
     levels = 0
     size = 0
-    obj = get_obj_by_type(topology, hwloc_obj_type_t.HWLOC_OBJ_PU, 0)
+    obj = get_obj_by_type(topology, ObjType.HWLOC_OBJ_PU, 0)
     while obj:
         if obj_type_is_cache(obj.contents.type):
             levels += 1
@@ -168,7 +168,7 @@ def main() -> int:
     # First find out where cores are, or else smaller sets of CPUs if
     # the OS doesn't have the notion of a "core".
     #########################################################################
-    depth = get_type_or_below_depth(topology, hwloc_obj_type_t.HWLOC_OBJ_CORE)
+    depth = get_type_or_below_depth(topology, ObjType.HWLOC_OBJ_CORE)
 
     # Get last core.
     obj = get_obj_by_depth(topology, depth, get_nbobjs_by_depth(topology, depth) - 1)
@@ -196,8 +196,8 @@ def main() -> int:
     # memory to the last NUMA node.
     #########################################################################
     # Get last node. There's always at least one.
-    n = get_nbobjs_by_type(topology, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE)
-    obj = get_obj_by_type(topology, hwloc_obj_type_t.HWLOC_OBJ_NUMANODE, n - 1)
+    n = get_nbobjs_by_type(topology, ObjType.HWLOC_OBJ_NUMANODE)
+    obj = get_obj_by_type(topology, ObjType.HWLOC_OBJ_NUMANODE, n - 1)
     assert obj is not None
 
     size = 1024 * 1024

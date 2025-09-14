@@ -59,7 +59,7 @@ from pyhwloc.hwloc.core import (
     hwloc_infos_s,
     hwloc_obj_attr_u,
     hwloc_obj_cache_type_t,
-    hwloc_obj_type_t,
+    ObjType,
     hwloc_topology_components_flag_e,
     ExportSyntheticFlags,
     ExportXmlFlags,
@@ -116,17 +116,17 @@ def test_get_api_version() -> None:
 
 def test_compare_types() -> None:
     # Test equal types
-    r = compare_types(hwloc_obj_type_t.HWLOC_OBJ_CORE, hwloc_obj_type_t.HWLOC_OBJ_CORE)
+    r = compare_types(ObjType.HWLOC_OBJ_CORE, ObjType.HWLOC_OBJ_CORE)
     assert r == 0
-    r = compare_types(hwloc_obj_type_t.HWLOC_OBJ_PU, hwloc_obj_type_t.HWLOC_OBJ_PU)
+    r = compare_types(ObjType.HWLOC_OBJ_PU, ObjType.HWLOC_OBJ_PU)
     assert r == 0
 
     r = compare_types(
-        hwloc_obj_type_t.HWLOC_OBJ_MACHINE, hwloc_obj_type_t.HWLOC_OBJ_CORE
+        ObjType.HWLOC_OBJ_MACHINE, ObjType.HWLOC_OBJ_CORE
     )
     assert r != 0
     r = compare_types(
-        hwloc_obj_type_t.HWLOC_OBJ_CORE, hwloc_obj_type_t.HWLOC_OBJ_MACHINE
+        ObjType.HWLOC_OBJ_CORE, ObjType.HWLOC_OBJ_MACHINE
     )
     assert r != 0
 
@@ -210,10 +210,10 @@ def test_get_type_depth() -> None:
     topo = Topology()
 
     # Test common object types
-    machine_depth = get_type_depth(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_MACHINE)
+    machine_depth = get_type_depth(topo.hdl, ObjType.HWLOC_OBJ_MACHINE)
     assert machine_depth == 0
 
-    pu_depth = get_type_depth(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_PU)
+    pu_depth = get_type_depth(topo.hdl, ObjType.HWLOC_OBJ_PU)
     # PU should typically be at the deepest level
     assert pu_depth > 0
 
@@ -228,7 +228,7 @@ def test_get_depth_type() -> None:
     # Test each depth level
     for depth in range(total_depth):
         obj_type = get_depth_type(topo.hdl, depth)
-        assert isinstance(obj_type, hwloc_obj_type_t)
+        assert isinstance(obj_type, ObjType)
         assert obj_type >= 0
 
         # Roundtrip
@@ -261,14 +261,14 @@ def test_get_type_or_above_depth() -> None:
     topo = Topology()
 
     # Test with common types
-    core_depth = get_type_or_above_depth(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_CORE)
+    core_depth = get_type_or_above_depth(topo.hdl, ObjType.HWLOC_OBJ_CORE)
     assert core_depth > 0
     # Should be a valid depth
     total_depth = topology_get_depth(topo.hdl)
     assert core_depth < total_depth
 
     obj_type = get_depth_type(topo.hdl, core_depth)
-    assert obj_type == hwloc_obj_type_t.HWLOC_OBJ_CORE
+    assert obj_type == ObjType.HWLOC_OBJ_CORE
 
 
 def test_get_type_or_below_depth() -> None:
@@ -276,19 +276,19 @@ def test_get_type_or_below_depth() -> None:
 
     # Test with machine type - should find machine or something below it
     machine_depth = get_type_or_below_depth(
-        topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_MACHINE
+        topo.hdl, ObjType.HWLOC_OBJ_MACHINE
     )
     assert machine_depth >= 0  # Should always find something
 
     # Test with core type
-    core_depth = get_type_or_below_depth(topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_CORE)
+    core_depth = get_type_or_below_depth(topo.hdl, ObjType.HWLOC_OBJ_CORE)
     assert core_depth > 0
     total_depth = topology_get_depth(topo.hdl)
     assert core_depth < total_depth
 
     # The returned depth should contain objects of the requested type or below
     obj_type = get_depth_type(topo.hdl, core_depth)
-    assert obj_type == hwloc_obj_type_t.HWLOC_OBJ_CORE
+    assert obj_type == ObjType.HWLOC_OBJ_CORE
 
 
 def test_get_memory_parents_depth() -> None:
@@ -322,7 +322,7 @@ def test_get_root_obj() -> None:
     assert root_obj is not None and root_obj.contents.depth == 0
 
     # Root object should be of type MACHINE
-    assert root_obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_MACHINE
+    assert root_obj.contents.type == ObjType.HWLOC_OBJ_MACHINE
 
     buf = ctypes.create_string_buffer(1024)
     length = obj_type_snprintf(buf, 256, root_obj, 1)
@@ -363,8 +363,8 @@ def test_get_root_obj() -> None:
 def test_kinds_of_object_type() -> None:
     # Test normal object types
     normal_types = [
-        hwloc_obj_type_t.HWLOC_OBJ_MACHINE,
-        hwloc_obj_type_t.HWLOC_OBJ_PACKAGE,
+        ObjType.HWLOC_OBJ_MACHINE,
+        ObjType.HWLOC_OBJ_PACKAGE,
     ]
 
     for obj_type in normal_types:
@@ -373,8 +373,8 @@ def test_kinds_of_object_type() -> None:
 
     # Test non-normal object types
     non_normal_types = [
-        hwloc_obj_type_t.HWLOC_OBJ_BRIDGE,
-        hwloc_obj_type_t.HWLOC_OBJ_PCI_DEVICE,
+        ObjType.HWLOC_OBJ_BRIDGE,
+        ObjType.HWLOC_OBJ_PCI_DEVICE,
     ]
 
     # Verify non-normal types return False
@@ -384,7 +384,7 @@ def test_kinds_of_object_type() -> None:
         assert result is False
 
     # Others
-    assert obj_type_is_memory(hwloc_obj_type_t.HWLOC_OBJ_NUMANODE) is True
+    assert obj_type_is_memory(ObjType.HWLOC_OBJ_NUMANODE) is True
 
 
 #############################################################
@@ -401,18 +401,18 @@ def test_type_sscanf_functions() -> None:
     for type_str in test_cases:
         # Test type_sscanf without attributes
         obj_type, attr = type_sscanf(type_str)
-        assert isinstance(obj_type, hwloc_obj_type_t)
+        assert isinstance(obj_type, ObjType)
         assert attr is not None
         # The depth should be reliable. Other info like size is set to 0 for some reason
-        if obj_type == hwloc_obj_type_t.HWLOC_OBJ_L1CACHE:
+        if obj_type == ObjType.HWLOC_OBJ_L1CACHE:
             assert attr.cache.depth == 1
-        if obj_type == hwloc_obj_type_t.HWLOC_OBJ_L2CACHE:
+        if obj_type == ObjType.HWLOC_OBJ_L2CACHE:
             assert attr.cache.depth == 2
-        if obj_type == hwloc_obj_type_t.HWLOC_OBJ_L3CACHE:
+        if obj_type == ObjType.HWLOC_OBJ_L3CACHE:
             assert attr.cache.depth == 3
         # Test type_sscanf_as_depth
         obj_type_depth, depth = type_sscanf_as_depth(type_str, topo.hdl)
-        assert isinstance(obj_type_depth, hwloc_obj_type_t)
+        assert isinstance(obj_type_depth, ObjType)
         assert isinstance(depth, int)
 
         assert obj_type == obj_type_depth
@@ -462,7 +462,7 @@ def find_numa_depth() -> int:
     for depth in range(10):  # reasonable upper limit
         if get_nbobjs_by_depth(topo.hdl, depth) > 0:
             obj = get_obj_by_depth(topo.hdl, depth, 0)
-            if obj and obj.contents.type == hwloc_obj_type_t.HWLOC_OBJ_NUMANODE:
+            if obj and obj.contents.type == ObjType.HWLOC_OBJ_NUMANODE:
                 numa_depth = depth
                 break
     return numa_depth
@@ -966,14 +966,14 @@ def test_get_ancestor_obj_by_type() -> None:
 
     # Test getting ancestor of type MACHINE (root)
     machine_ancestor = get_ancestor_obj_by_type(
-        topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_MACHINE, leaf_obj
+        topo.hdl, ObjType.HWLOC_OBJ_MACHINE, leaf_obj
     )
     assert machine_ancestor is not None
-    assert machine_ancestor.contents.type == hwloc_obj_type_t.HWLOC_OBJ_MACHINE
+    assert machine_ancestor.contents.type == ObjType.HWLOC_OBJ_MACHINE
 
     # Test with a type that doesn't exist as ancestor
     nonexistent_ancestor = get_ancestor_obj_by_type(
-        topo.hdl, hwloc_obj_type_t.HWLOC_OBJ_MISC, leaf_obj
+        topo.hdl, ObjType.HWLOC_OBJ_MISC, leaf_obj
     )
     assert nonexistent_ancestor is None
 
