@@ -807,9 +807,8 @@ if sys.platform == "win32":
         THREAD_QUERY_INFORMATION = 0x0040
 
         access = THREAD_QUERY_INFORMATION
-
         if not read_only:
-            access |= PROCESS_SET_INFORMATION
+            access |= THREAD_SET_INFORMATION
         hdl = ctypes.windll.kernel32.OpenThread(access, 0, thread_id)
         if not hdl:
             raise ctypes.WinError()
