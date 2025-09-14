@@ -29,7 +29,9 @@ def normpath(path: str) -> str:
 
 _file_path = normpath(__file__)
 
-if platform.system() != "Windows":
+_IS_WINDOWS = platform.system() == "Windows"
+
+if not _IS_WINDOWS:
     prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
     _LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
     _libname = os.path.join("_lib", "libpyhwloc.so")
@@ -44,7 +46,9 @@ else:
     prefix = os.path.expanduser(
         "C:/Users/jiamingy/ws/pyhwloc_dev/hwloc/contrib/windows-cmake/build/"
     )
-    _LIB = ctypes.CDLL(os.path.join(prefix, "hwloc.dll"), use_errno=True)
+    _LIB = ctypes.CDLL(
+        os.path.join(prefix, "hwloc.dll"), use_errno=True, use_last_error=True
+    )
     _libname = os.path.join("_lib", "pyhwloc.dll")
     _lib_path = normpath(
         os.path.join(
@@ -74,12 +78,18 @@ class HwLocError(RuntimeError):
 
 def _checkc(status: int) -> None:
     """Raise errors for hwloc functions."""
-    if status != 0:
-        err = ctypes.get_errno()
-        msg = cstrerror(err)
-        if err == errno.ENOSYS:
-            raise NotImplementedError(msg)
-        raise HwLocError(status, err, msg)
+    if status == 0:
+        return
+
+    err = ctypes.get_errno()
+    msg = cstrerror(err)
+    if err == errno.ENOSYS:
+        raise NotImplementedError(msg)
+    if err == 0 and _IS_WINDOWS:
+        werr = ctypes.get_last_error()
+        if werr != 0:
+            raise ctypes.WinError(werr)
+    raise HwLocError(status, err, msg)
 
 
 def _hwloc_error(name: str) -> HwLocError:
