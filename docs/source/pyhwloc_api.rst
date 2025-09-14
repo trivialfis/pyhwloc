@@ -14,17 +14,6 @@ This page provides the reference of the high-level interface.
 .. automodule:: pyhwloc.topology
   :members:
 
-.. Sphinx auto-doc doesn't know how to create references for alias. We use both the class
-   and autoclass as a workaround.
-
-.. class:: pyhwloc.topology.ExportXmlFlags
-.. autoclass:: pyhwloc.topology.ExportXmlFlags
-  :no-index:
-
-.. class:: pyhwloc.topology.ExportSyntheticFlags
-.. autoclass:: pyhwloc.topology.ExportSyntheticFlags
-  :no-index:
-
 .. automodule:: pyhwloc.hwobject
   :members:
 

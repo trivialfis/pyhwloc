@@ -62,7 +62,7 @@ from pyhwloc.hwloc.core import (
     hwloc_obj_type_t,
     hwloc_topology_components_flag_e,
     hwloc_topology_export_synthetic_flags_e,
-    hwloc_topology_export_xml_flags_e,
+    ExportXmlFlags,
     hwloc_topology_flags_e,
     is_same_obj,
     obj_add_info,
@@ -505,7 +505,7 @@ def test_bridge_covers_pcibus() -> None:
 def test_topology_export_xmlbuffer() -> None:
     topo = Topology()
     result = topology_export_xmlbuffer(
-        topo.hdl, hwloc_topology_export_xml_flags_e.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2
+        topo.hdl, ExportXmlFlags.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2
     )
     assert """<!DOCTYPE topology SYSTEM "hwloc2.dtd">""" in result
 
@@ -787,7 +787,7 @@ def test_topology_set_xmlbuffer() -> None:
     topo = Topology()
     assert topology_is_thissystem(topo.hdl)
     buf = topology_export_xmlbuffer(
-        topo.hdl, hwloc_topology_export_xml_flags_e.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2
+        topo.hdl, ExportXmlFlags.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2
     )
 
     hdl = topology_t()

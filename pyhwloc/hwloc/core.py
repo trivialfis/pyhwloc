@@ -2476,7 +2476,7 @@ def bridge_covers_pcibus(bridge: ObjPtr, domain: int, bus: int) -> int:
 
 
 @_cenumdoc("hwloc_topology_export_xml_flags_e")
-class hwloc_topology_export_xml_flags_e(IntEnum):
+class ExportXmlFlags(IntEnum):
     HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2 = 1 << 1
 
 
