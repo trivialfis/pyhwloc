@@ -46,6 +46,22 @@ def test_distance_numa() -> None:
         idx = dist.find_object_index(dist.objects[1])
         assert idx == 1
 
+        # Test using the values directly
+        d0 = dist[dist.objects[0], dist.objects[1]]
+        d1 = dist[dist.objects[1], dist.objects[0]]
+        d2 = dist[dist.objects[0], dist.objects[0]]
+        d3 = dist[dist.objects[1], dist.objects[1]]
+        assert d0 == d1 == 21
+        assert d2 == d3 == 10
+        d0 = dist[0, dist.objects[1]]
+        d1 = dist[dist.objects[1], 0]
+        d2 = dist[0, dist.objects[0]]
+        d3 = dist[dist.objects[1], 1]
+        assert d0 == d1 == 21
+        assert d2 == d3 == 10
+        with pytest.raises(IndexError):
+            _ = dist[dist.objects[1], 2]
+
         # Test with invalid objects.
         root = topo.get_root_obj()
         assert dist.find_object_index(root) == -1

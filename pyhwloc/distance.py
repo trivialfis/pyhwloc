@@ -39,8 +39,25 @@ if TYPE_CHECKING:
 __all__ = ["Distances"]
 
 
+def _ravel(n_objs: int, i: int, j: int) -> int:
+    if not (0 <= i < n_objs and 0 <= j < n_objs):
+        raise IndexError(
+            f"Index ({i}, {j}) is out of bounds for matrix of "
+            f"size {n_objs}x{n_objs}"
+        )
+    return i * n_objs + j
+
+
 class Distances:
-    """High-level interface for hwloc distance matrix."""
+    """High-level interface for hwloc distance matrix. Users can index the Distances
+    class like a matrix:
+
+    .. code-block:: python
+
+        dist = topo.get_disances()
+        d = dist[0, 1]
+
+    """
 
     def __init__(
         self, hdl: _core.DistancesPtr, topo: weakref.ReferenceType[Topology]
@@ -96,6 +113,37 @@ class Distances:
         self, key: tuple[int, int] | tuple[Object, Object] | int, value: float
     ) -> None:
         raise RuntimeError("Distance matrices are read-only")
+
+    def __getitem__(self, key: tuple[int | Object, int | Object]) -> float:
+        """Get distance value by matrix coordinates or objects.
+
+        Parameters
+        ----------
+        key
+            Matrix coordinates (i, j), or an object pair.
+
+        Returns
+        -------
+        Distance value
+
+        """
+        hdl = self.native_handle
+
+        def _get_idx(k: int | Object) -> int:
+            if isinstance(k, int):
+                return k
+            kidx = self.find_object_index(k)
+            return kidx
+
+        if not (isinstance(key, tuple) and len(key) == 2):
+            raise TypeError("Key must be (i, j) or (Object, Object)")
+
+        i, j = key
+        iidx, jidx = _get_idx(i), _get_idx(j)
+        # Convert to flat index
+        nbobjs = self.nbobjs
+        flat_idx = _ravel(nbobjs, iidx, jidx)
+        return float(hdl.contents.values[flat_idx])
 
     # Iteration Protocols
     def __str__(self) -> str:
