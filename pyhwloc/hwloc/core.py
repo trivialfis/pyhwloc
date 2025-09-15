@@ -252,6 +252,16 @@ class hwloc_pcidev_attr_s(_PrintableStruct):
         ("linkspeed", ctypes.c_float),  # Link speed in GB/s
     ]
 
+    @property
+    def base_class(self) -> int:
+        # upper byte
+        return self.class_id >> 8
+
+    @property
+    def subclass(self) -> int:
+        # lower byte
+        return self.class_id & 0xFF
+
 
 @_cuniondoc("hwloc_obj_attr_u.hwloc_bridge_attr_s")
 class hwloc_bridge_upstream_u(ctypes.Union):
