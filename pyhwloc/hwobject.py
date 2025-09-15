@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING, Iterator, TypeAlias
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
-from .utils import _Flags, _or_flags
+from .utils import _Flags, _or_flags, _reuse_doc
 
 if TYPE_CHECKING:
     from .topology import Topology
@@ -163,33 +163,33 @@ class Object:
 
     # Kinds of object Type
     @property
+    @_reuse_doc(_core.obj_type_is_normal)
     def is_normal(self) -> bool:
-        """Check if this object type is normal (not I/O or Memory)."""
         return _core.obj_type_is_normal(self.type)
 
     @property
+    @_reuse_doc(_core.obj_type_is_io)
     def is_io(self) -> bool:
-        """Check if this object type is an I/O object."""
         return _core.obj_type_is_io(self.type)
 
     @property
+    @_reuse_doc(_core.obj_type_is_memory)
     def is_memory(self) -> bool:
-        """Check if this object type is a memory object."""
         return _core.obj_type_is_memory(self.type)
 
     @property
+    @_reuse_doc(_core.obj_type_is_cache)
     def is_cache(self) -> bool:
-        """Check if this object type is any kind of cache."""
         return _core.obj_type_is_cache(self.type)
 
     @property
+    @_reuse_doc(_core.obj_type_is_dcache)
     def is_dcache(self) -> bool:
-        """Check if this object type is a data cache."""
         return _core.obj_type_is_dcache(self.type)
 
     @property
+    @_reuse_doc(_core.obj_type_is_icache)
     def is_icache(self) -> bool:
-        """Check if this object type is an instruction cache."""
         return _core.obj_type_is_icache(self.type)
 
     @property
@@ -236,6 +236,7 @@ class Object:
             ObjSnprintfFlag
         ] = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
     ) -> str | None:
+        """Print the attributes."""
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
         _core.obj_attr_snprintf(buf, n_bytes, self.native_handle, sep, _or_flags(flags))
@@ -442,22 +443,13 @@ class Object:
             yield current
             current = current.next_sibling
 
+    @_reuse_doc(_core.obj_get_info_by_name)
     def get_info_by_name(self, name: str) -> str | None:
-        """Get info value by name.
-
-        Parameters
-        ----------
-        name
-            Name of the info to retrieve
-
-        Returns
-        -------
-        Info value or None if not found
-        """
         return _core.obj_get_info_by_name(self.native_handle, name)
 
     # Looking at Ancestor and Child Objects
 
+    @_reuse_doc(_core.get_common_ancestor_obj)
     def common_ancestor_obj(self, other: Object) -> Object:
         if self.depth < 0 or other.depth < 0:
             raise ValueError("This function only works with objects in the main tree.")
@@ -468,6 +460,7 @@ class Object:
             self._topo_ref,
         )
 
+    @_reuse_doc(_core.get_ancestor_obj_by_depth)
     def get_ancestor_obj_by_depth(self, depth: int) -> Object | None:
         obj = _core.get_ancestor_obj_by_depth(
             self._topo.native_handle, depth, self.native_handle
@@ -479,18 +472,8 @@ class Object:
             self._topo_ref,
         )
 
+    @_reuse_doc(_core.get_ancestor_obj_by_type)
     def get_ancestor_obj_by_type(self, obj_type: ObjType) -> Object | None:
-        """Get ancestor object by type.
-
-        Parameters
-        ----------
-        obj_type
-            Object type to search for
-
-        Returns
-        -------
-        Ancestor object of the given type, if any.
-        """
         obj = _core.get_ancestor_obj_by_type(
             self._topo.native_handle, obj_type, self.native_handle
         )
@@ -501,19 +484,8 @@ class Object:
             self._topo_ref,
         )
 
+    @_reuse_doc(_core.obj_is_in_subtree)
     def is_in_subtree(self, subtree_root: Object) -> bool:
-        """Check if this object is in the subtree of another object.
-
-        Parameters
-        ----------
-        subtree_root :
-            Root object of the subtree to check
-
-        Returns
-        -------
-        True if this object is in the subtree.
-        """
-
         return _core.obj_is_in_subtree(
             self._topo.native_handle, self.native_handle, subtree_root.native_handle
         )
