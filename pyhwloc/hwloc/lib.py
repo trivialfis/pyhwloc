@@ -185,9 +185,9 @@ class _PrintableStruct(ctypes.Structure):
                 if v:
                     result += f"Pointer[{k}]({v.contents})"
                 else:
-                    result += f"{k}:{v}"
+                    result += f"{k}={v}"
             else:
-                result += f"{k}:{v}"
+                result += f"{k}={v}"
             if i != len(names) - 1:
                 result += ", "
 

@@ -194,6 +194,16 @@ class Object:
 
     @property
     def attr(self) -> ctypes.Structure | None:
+        """Get attributes of this object. The return type depends on the type of this
+        object as the underlying type is a C union :c:union:`hwloc_obj_attr_u`. We have
+        a number of methods for commonly used attributes like the :py:meth:`is_normal`,
+        but don't have a proper wrapper for the entire union yet.
+
+        All pyhwloc structs can be properly printed in Python. To get an overview of the
+        object attributes, you can print the result from this method, or use the
+        :py:meth:`format_attr`.
+
+        """
         attr = self.native_handle.contents.attr
         if not attr:
             return None
