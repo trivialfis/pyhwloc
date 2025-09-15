@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING, Iterator, TypeAlias
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
-from .utils import _Flags, _or_flags
+from .utils import _Flags, _or_flags, _reuse_doc
 
 if TYPE_CHECKING:
     from .topology import Topology
@@ -115,28 +115,29 @@ class Object:
         return self.native_handle.contents.total_memory
 
     # - Begin accessors for attr
-    @property
     def is_numa_node(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_NUMANODE
 
-    @property
     def is_group(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_GROUP
 
-    @property
     def is_pci_device(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_PCI_DEVICE
 
-    @property
     def is_bridge(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_BRIDGE
 
-    @property
     def is_os_device(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_OS_DEVICE
 
+    def is_package(self) -> bool:
+        return self.type == ObjType.HWLOC_OBJ_PACKAGE
+
+    def is_machine(self) -> bool:
+        return self.type == ObjType.HWLOC_OBJ_MACHINE
+
     def is_osdev_type(self, typ: int) -> bool:
-        if not self.is_os_device:
+        if not self.is_os_device():
             return False
 
         attr = self.attr
@@ -145,50 +146,56 @@ class Object:
         osdev_types = attr.types
         return bool(osdev_types & typ)
 
-    @property
     def is_osdev_gpu(self) -> bool:
         return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_GPU)
 
+    def is_osdev_storage(self) -> bool:
+        return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_STORAGE)
+
     # Kinds of object Type
-    @property
+    @_reuse_doc(_core.obj_type_is_normal)
     def is_normal(self) -> bool:
-        """Check if this object type is normal (not I/O or Memory)."""
         return _core.obj_type_is_normal(self.type)
 
-    @property
+    @_reuse_doc(_core.obj_type_is_io)
     def is_io(self) -> bool:
-        """Check if this object type is an I/O object."""
         return _core.obj_type_is_io(self.type)
 
-    @property
+    @_reuse_doc(_core.obj_type_is_memory)
     def is_memory(self) -> bool:
-        """Check if this object type is a memory object."""
         return _core.obj_type_is_memory(self.type)
 
-    @property
+    @_reuse_doc(_core.obj_type_is_cache)
     def is_cache(self) -> bool:
-        """Check if this object type is any kind of cache."""
         return _core.obj_type_is_cache(self.type)
 
-    @property
+    @_reuse_doc(_core.obj_type_is_dcache)
     def is_dcache(self) -> bool:
-        """Check if this object type is a data cache."""
         return _core.obj_type_is_dcache(self.type)
 
-    @property
+    @_reuse_doc(_core.obj_type_is_icache)
     def is_icache(self) -> bool:
-        """Check if this object type is an instruction cache."""
         return _core.obj_type_is_icache(self.type)
 
     @property
     def attr(self) -> ctypes.Structure | None:
+        """Get attributes of this object. The return type depends on the type of this
+        object as the underlying type is a C union :c:union:`hwloc_obj_attr_u`. We have
+        a number of methods for commonly used attributes like the :py:meth:`is_normal`,
+        but don't have a proper wrapper for the entire union yet.
+
+        All pyhwloc structs can be properly printed in Python. To get an overview of the
+        object attributes, you can print the result from this method, or use the
+        :py:meth:`format_attr`.
+
+        """
         attr = self.native_handle.contents.attr
         if not attr:
             return None
         # FIXME: Am I getting this right? I looked into the `hwloc_obj_attr_snprintf`
         # implementation, but it doesn't use the group. Also, if the bridge upstream is
         # HWLOC_OBJ_BRIDGE_PCI, this union can be converted to PCIe?
-        if self.is_cache:
+        if self.is_cache():
             return attr.contents.cache
 
         typ = self.type
@@ -214,6 +221,7 @@ class Object:
             ObjSnprintfFlag
         ] = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
     ) -> str | None:
+        """Print the attributes."""
         n_bytes = 1024
         buf = ctypes.create_string_buffer(n_bytes)
         _core.obj_attr_snprintf(buf, n_bytes, self.native_handle, sep, _or_flags(flags))
@@ -372,6 +380,7 @@ class Object:
     # struct hwloc_infos_s infos
     # void *userdata
 
+    @property
     def gp_index(self) -> int:
         "Global persistent index."
         return int(self.native_handle.contents.gp_index)
@@ -419,23 +428,16 @@ class Object:
             yield current
             current = current.next_sibling
 
+    @_reuse_doc(_core.obj_get_info_by_name)
     def get_info_by_name(self, name: str) -> str | None:
-        """Get info value by name.
-
-        Parameters
-        ----------
-        name
-            Name of the info to retrieve
-
-        Returns
-        -------
-        Info value or None if not found
-        """
         return _core.obj_get_info_by_name(self.native_handle, name)
 
     # Looking at Ancestor and Child Objects
 
+    @_reuse_doc(_core.get_common_ancestor_obj)
     def common_ancestor_obj(self, other: Object) -> Object:
+        if self.depth < 0 or other.depth < 0:
+            raise ValueError("This function only works with objects in the main tree.")
         return Object(
             _core.get_common_ancestor_obj(
                 self._topo.native_handle, self.native_handle, other.native_handle
@@ -443,6 +445,7 @@ class Object:
             self._topo_ref,
         )
 
+    @_reuse_doc(_core.get_ancestor_obj_by_depth)
     def get_ancestor_obj_by_depth(self, depth: int) -> Object | None:
         obj = _core.get_ancestor_obj_by_depth(
             self._topo.native_handle, depth, self.native_handle
@@ -454,18 +457,8 @@ class Object:
             self._topo_ref,
         )
 
+    @_reuse_doc(_core.get_ancestor_obj_by_type)
     def get_ancestor_obj_by_type(self, obj_type: ObjType) -> Object | None:
-        """Get ancestor object by type.
-
-        Parameters
-        ----------
-        obj_type
-            Object type to search for
-
-        Returns
-        -------
-        Ancestor object of the given type, if any.
-        """
         obj = _core.get_ancestor_obj_by_type(
             self._topo.native_handle, obj_type, self.native_handle
         )
@@ -476,19 +469,8 @@ class Object:
             self._topo_ref,
         )
 
+    @_reuse_doc(_core.obj_is_in_subtree)
     def is_in_subtree(self, subtree_root: Object) -> bool:
-        """Check if this object is in the subtree of another object.
-
-        Parameters
-        ----------
-        subtree_root :
-            Root object of the subtree to check
-
-        Returns
-        -------
-        True if this object is in the subtree.
-        """
-
         return _core.obj_is_in_subtree(
             self._topo.native_handle, self.native_handle, subtree_root.native_handle
         )

@@ -34,8 +34,11 @@ def reset(orig_cpuset: Bitmap, topo: Topology) -> None:
 
 
 def with_tpool(worker: Callable, *args: Any) -> None:
+    cnt = os.cpu_count()
+    assert cnt is not None
+    n_workers = min(cnt, 8)
     futures = []
-    with ThreadPoolExecutor(max_workers=os.cpu_count()) as execu:
+    with ThreadPoolExecutor(max_workers=n_workers) as execu:
         n_cpus = os.cpu_count()
         assert n_cpus
         for i in range(n_cpus):
@@ -49,7 +52,7 @@ def with_tpool(worker: Callable, *args: Any) -> None:
 def worker_1(exp: MemBindFlags) -> bool:
     with Topology.from_this_system() as topo:
         cpuset, policy = topo.get_membind()
-        assert cpuset.weight >= 1
+        assert cpuset.weight() >= 1
         return policy == exp
 
 
@@ -57,7 +60,7 @@ def test_membind() -> None:
     with Topology.from_this_system() as topo:
         orig_cpuset, policy = topo.get_membind()
         assert policy in (DFT_POLICY, MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
-        assert orig_cpuset.weight == os.cpu_count()
+        assert orig_cpuset.weight() == os.cpu_count()
 
         target_set = Bitmap()
         target_set.set(0)
@@ -66,7 +69,7 @@ def test_membind() -> None:
         topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
 
         cpuset_1, policy_1 = topo.get_membind()
-        assert cpuset_1.weight >= 1  # All CPUs in a socket.
+        assert cpuset_1.weight() >= 1  # All CPUs in a socket.
         assert policy_1 == MemBindPolicy.HWLOC_MEMBIND_BIND, MemBindPolicy(
             policy_1
         ).name
@@ -74,7 +77,7 @@ def test_membind() -> None:
         # Test the child threads correctly inherits the bind policy
         def worker_0(exp: MemBindPolicy) -> bool:
             cpuset, policy = topo.get_membind()
-            assert cpuset.weight >= 1
+            assert cpuset.weight() >= 1
             return policy == exp
 
         with_tpool(worker_0, MemBindPolicy.HWLOC_MEMBIND_BIND)
@@ -157,7 +160,7 @@ def test_area_membind() -> None:
         data = bytearray(1024 * kb)
         mv = memoryview(data)
         bitmap, policy = topo.get_area_membind(mv)
-        assert bitmap.weight >= 1
+        assert bitmap.weight() >= 1
         assert policy in (DFT_POLICY, MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
 
         target_set = Bitmap()
@@ -171,7 +174,7 @@ def test_area_membind() -> None:
         )
 
         bitmap, policy = topo.get_area_membind(mv)
-        assert bitmap.weight >= 1
+        assert bitmap.weight() >= 1
         assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
 
         with pytest.raises(ValueError):
@@ -193,6 +196,6 @@ def test_proc_membind() -> None:
 
         bitmap, policy = topo.get_proc_membind(pid, 0)
         assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
-        assert bitmap.weight > 1
+        assert bitmap.weight() > 1
 
         reset(orig_cpuset, topo)

@@ -175,7 +175,7 @@ def test_query_ancestor() -> None:
         objs = list(topo.iter_objects_by_depth(topo.depth - 1))
         assert len(objs) == 8
         ancestor = objs[0].common_ancestor_obj(objs[1])
-        assert ancestor.is_normal
+        assert ancestor.is_normal()
         assert ancestor.type == ObjType.HWLOC_OBJ_CORE
         assert objs[0].is_in_subtree(ancestor)
         assert objs[1].is_in_subtree(ancestor)

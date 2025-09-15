@@ -23,15 +23,15 @@ from pyhwloc.bitmap import Bitmap
 
 def test_bitmap_constructor_empty() -> None:
     bitmap = Bitmap()
-    assert bitmap.is_zero
-    assert bitmap.weight == 0
+    assert bitmap.is_zero()
+    assert bitmap.weight() == 0
 
 
 def test_bitmap_full_ctor() -> None:
     """Test full bitmap constructor."""
     bitmap = Bitmap.full()
-    assert bitmap.is_full
-    assert not bitmap.is_zero
+    assert bitmap.is_full()
+    assert not bitmap.is_zero()
     # Check that many bits are set
     count = 0
     for bit in bitmap:
@@ -64,13 +64,13 @@ def test_bitmap_ulong_ctor() -> None:
     mask = 1 << 2
     bitmap = Bitmap.from_ulong(mask)
     assert 2 in bitmap
-    assert bitmap.weight == 1
+    assert bitmap.weight() == 1
 
     masks = [mask, 1 << 3]
     bitmap = Bitmap.from_ulongs(masks)
     assert 2 in bitmap
     assert (ctypes.sizeof(ctypes.c_ulong) * 8 + 3) in bitmap
-    assert bitmap.weight == 2
+    assert bitmap.weight() == 2
 
 
 def test_bitmap_copy() -> None:
@@ -79,7 +79,7 @@ def test_bitmap_copy() -> None:
     def run(meth: Callable) -> None:
         cp = meth(original)
         # Verify they have the same content
-        assert original.weight == cp.weight
+        assert original.weight() == cp.weight()
         for bit in original:
             assert bit in cp
 
@@ -120,8 +120,8 @@ def test_iter() -> None:
     bitmap = Bitmap.from_pyseq([1, 2, 3])
     for i, idx in enumerate(bitmap):
         assert i + 1 == idx
-    assert bitmap.first == 1
-    assert bitmap.last == 3
+    assert bitmap.first() == 1
+    assert bitmap.last() == 3
 
     assert bitmap[2] is True
     bitmap[2] = False
@@ -131,7 +131,7 @@ def test_iter() -> None:
 def test_misc_ops() -> None:
     bitmap0 = Bitmap.from_pyseq([1, 2, 3])
     bitmap0.singlify()
-    assert 1 in bitmap0 and bitmap0.weight == 1
+    assert 1 in bitmap0 and bitmap0.weight() == 1
 
     bitmap1 = Bitmap.from_pyseq([1, 2, 3])
     bitmap1.allbut(3)

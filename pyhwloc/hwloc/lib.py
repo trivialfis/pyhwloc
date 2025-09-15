@@ -85,17 +85,23 @@ def _checkc(status: int) -> None:
 
     err = ctypes.get_errno()
     msg = cstrerror(err)
-    if err == errno.ENOSYS:
-        raise NotImplementedError(msg)
-    elif err == errno.EINVAL:
-        raise ValueError(msg)
-    elif err == errno.ENOMEM:
-        raise MemoryError(msg)
-    if err == 0 and _IS_WINDOWS:
-        werr = ctypes.get_last_error()  # type: ignore[attr-defined]
-        if werr != 0:
-            raise ctypes.WinError(werr)  # type: ignore[attr-defined]
-    raise HwLocError(status, err, msg)
+    match err:
+        case errno.ENOSYS:
+            raise NotImplementedError(msg)
+        case errno.EINVAL:
+            raise ValueError(msg)
+        case errno.ENOMEM:
+            raise MemoryError(msg)
+        case errno.ENOENT:
+            raise FileNotFoundError(msg)
+        case 0:
+            if _IS_WINDOWS:
+                werr = ctypes.get_last_error()  # type: ignore[attr-defined]
+                if werr != 0:
+                    raise ctypes.WinError(werr)  # type: ignore[attr-defined]
+            raise HwLocError(status, err, msg)
+        case _:
+            raise HwLocError(status, err, msg)
 
 
 def _hwloc_error(name: str) -> HwLocError:
@@ -166,3 +172,24 @@ def _cuniondoc(parent: str | None = None) -> Callable[[Type], Type]:
         return union
 
     return _decorator
+
+
+class _PrintableStruct(ctypes.Structure):
+    def __str__(self) -> str:
+        name = type(self).__name__
+        result = f"{name}("
+        names = [f[0] for f in self._fields_]
+        for i, k in enumerate(names):
+            v = getattr(self, k)
+            if isinstance(v, ctypes._Pointer):
+                if v:
+                    result += f"Pointer[{k}]({v.contents})"
+                else:
+                    result += f"{k}={v}"
+            else:
+                result += f"{k}={v}"
+            if i != len(names) - 1:
+                result += ", "
+
+        result += ")"
+        return result

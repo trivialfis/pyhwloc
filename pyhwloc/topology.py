@@ -51,6 +51,7 @@ __all__ = [
     "TypeFilter",
     "MemBindPolicy",
     "MemBindFlags",
+    "CpuBindFlags",
 ]
 
 
@@ -72,19 +73,29 @@ def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
     return _from_impl(lambda hdl: _core.topology_set_xmlbuffer(hdl, xml_buffer), load)
 
 
-def _to_bitmap(target: _Bitmap | set[int] | _Object) -> _Bitmap:
+def _not_nodeset(flags: int) -> bool:
+    return not bool(flags & MemBindFlags.HWLOC_MEMBIND_BYNODESET)
+
+
+def _to_bitmap(target: _BindTarget, is_cpuset: bool) -> _Bitmap:
     if isinstance(target, set):
         bitmap = _Bitmap.from_sched_set(target)
     elif isinstance(target, _Object):
-        ns = target.nodeset
-        if ns is None:
-            raise ValueError("Object has no associated NUMA nodes")
+        if is_cpuset:
+            ns = target.cpuset
+            if ns is None:
+                raise ValueError("Object has no associated CPUs.")
+        else:
+            ns = target.nodeset
+            if ns is None:
+                raise ValueError("Object has no associated NUMA nodes")
         bitmap = ns
     else:
         bitmap = target
     return bitmap
 
 
+TopologyFlags: TypeAlias = _core.TopologyFlags
 ObjPtr = _core.ObjPtr
 ExportXmlFlags: TypeAlias = _core.ExportXmlFlags
 ExportSyntheticFlags: TypeAlias = _core.ExportSyntheticFlags
@@ -92,6 +103,10 @@ TypeFilter: TypeAlias = _core.TypeFilter
 # Memory bind type aliases
 MemBindPolicy: TypeAlias = _core.MemBindPolicy
 MemBindFlags: TypeAlias = _core.MemBindFlags
+CpuBindFlags: TypeAlias = _core.CpuBindFlags
+
+# internal
+_BindTarget: TypeAlias = _Bitmap | set[int] | _Object
 
 
 class Topology:
@@ -335,7 +350,6 @@ class Topology:
         """Check if topology is loaded and ready for use."""
         return hasattr(self, "_hdl") and self._loaded
 
-    @property
     def is_this_system(self) -> bool:
         """Check if topology represents the current system."""
         if not self.is_loaded:
@@ -432,36 +446,34 @@ class Topology:
         self._loaded = True
         self._cleanup = []
 
-    def _checked_apply_filter(
-        self, fn: Callable, type_filter: TypeFilter
-    ) -> "Topology":
+    def _checked_apply(self, fn: Callable, values: int) -> "Topology":
         # If we don't raise here, hwloc returns EBUSY: Device or resource busy, which is
         # not really helpful.
         if self.is_loaded:
             raise RuntimeError("Cannot set filter after topology is loaded")
         # Unchecked access to handle as we haven't loaded the topo yet.
-        fn(self._hdl, type_filter)
+        fn(self._hdl, values)
         return self
 
+    def set_flags(self, flags: _Flags[TopologyFlags]) -> "Topology":
+        return self._checked_apply(_core.topology_set_flags, _or_flags(flags))
+
+    def get_flags(self) -> int:
+        # fixme: Create a better way to return composite flags
+        flags = _core.topology_get_flags(self.native_handle)
+        return flags
+
     def set_io_types_filter(self, type_filter: TypeFilter) -> "Topology":
-        return self._checked_apply_filter(
-            _core.topology_set_io_types_filter, type_filter
-        )
+        return self._checked_apply(_core.topology_set_io_types_filter, type_filter)
 
     def set_all_types_filter(self, type_filter: TypeFilter) -> "Topology":
-        return self._checked_apply_filter(
-            _core.topology_set_all_types_filter, type_filter
-        )
+        return self._checked_apply(_core.topology_set_all_types_filter, type_filter)
 
     def set_cache_types_filter(self, type_filter: TypeFilter) -> "Topology":
-        return self._checked_apply_filter(
-            _core.topology_set_cache_types_filter, type_filter
-        )
+        return self._checked_apply(_core.topology_set_cache_types_filter, type_filter)
 
     def set_icache_types_filter(self, type_filter: TypeFilter) -> "Topology":
-        return self._checked_apply_filter(
-            _core.topology_set_icache_types_filter, type_filter
-        )
+        return self._checked_apply(_core.topology_set_icache_types_filter, type_filter)
 
     def get_obj_by_depth(self, depth: int, idx: int) -> _Object | None:
         """Get object at specific depth and index.
@@ -708,9 +720,9 @@ class Topology:
     # Memory Binding Methods
     def set_membind(
         self,
-        target: _Bitmap | set[int] | _Object,
+        target: _BindTarget,
         policy: MemBindPolicy,
-        flags: _Flags[MemBindFlags],
+        flags: _Flags[MemBindFlags] = 0,
     ) -> None:
         """Bind the current process memory to specified NUMA nodes. The current process
         is assumed to be single-threaded.
@@ -727,10 +739,9 @@ class Topology:
             Additional flags for memory binding.
 
         """
-        bitmap = _to_bitmap(target)
-        _core.set_membind(
-            self.native_handle, bitmap.native_handle, policy, _or_flags(flags)
-        )
+        flags = _or_flags(flags)
+        bitmap = _to_bitmap(target, _not_nodeset(flags))
+        _core.set_membind(self.native_handle, bitmap.native_handle, policy, flags)
 
     def get_membind(
         self, flags: _Flags[MemBindFlags] = 0
@@ -755,9 +766,9 @@ class Topology:
     def set_proc_membind(
         self,
         pid: int,
-        target: _Bitmap | set[int] | _Object,
+        target: _BindTarget,
         policy: MemBindPolicy,
-        flags: _Flags[MemBindFlags],
+        flags: _Flags[MemBindFlags] = 0,
     ) -> None:
         """Bind specific process memory to NUMA nodes.
 
@@ -774,12 +785,13 @@ class Topology:
         flags
             Additional flags for memory binding
         """
-        bitmap = _to_bitmap(target)
+        flags = _or_flags(flags)
+        bitmap = _to_bitmap(target, _not_nodeset(flags))
         hdl = None
         try:
-            hdl = _core._open_proc_handle(pid, False)
+            hdl = _core._open_proc_handle(pid, read_only=False)
             _core.set_proc_membind(
-                self.native_handle, hdl, bitmap.native_handle, policy, _or_flags(flags)
+                self.native_handle, hdl, bitmap.native_handle, policy, flags
             )
         finally:
             if hdl:
@@ -816,9 +828,9 @@ class Topology:
     def set_area_membind(
         self,
         mem: memoryview,
-        target: _Bitmap | set[int] | _Object,
+        target: _BindTarget,
         policy: MemBindPolicy,
-        flags: _Flags[MemBindFlags],
+        flags: _Flags[MemBindFlags] = 0,
     ) -> None:
         """Bind memory area to NUMA nodes.
 
@@ -836,7 +848,8 @@ class Topology:
         flags
             Additional flags for memory binding.
         """
-        bitmap = _to_bitmap(target)
+        flags = _or_flags(flags)
+        bitmap = _to_bitmap(target, _not_nodeset(flags))
         addr, size = _memview_to_mem(mem)
 
         _core.set_area_membind(
@@ -845,7 +858,7 @@ class Topology:
             size,
             bitmap.native_handle,
             policy,
-            _or_flags(flags),
+            flags,
         )
 
     def get_area_membind(
@@ -878,6 +891,209 @@ class Topology:
     # Allocator interface is not exposed. I checked popular libraries like torch, none
     # of them supports setting custom allocator in Python. We can come back to this if
     # someone asks for it.
+
+    # CPU Binding Methods
+    def set_cpubind(self, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0) -> None:
+        """Bind current process to specified CPUs.
+
+        Parameters
+        ----------
+        target
+            CPUs to bind the current process to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
+        flags
+            Additional flags for CPU binding
+        """
+        bitmap = _to_bitmap(target, is_cpuset=True)
+        _core.set_cpubind(self.native_handle, bitmap.native_handle, _or_flags(flags))
+
+    def get_cpubind(self, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
+        """Get current process CPU binding.
+
+        Parameters
+        ----------
+        flags
+            Flags for getting CPU binding
+
+        Returns
+        -------
+        Bitmap representing current CPU binding
+        """
+        cpuset = _Bitmap()
+        _core.get_cpubind(self.native_handle, cpuset.native_handle, _or_flags(flags))
+        return cpuset
+
+    def set_proc_cpubind(
+        self, pid: int, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
+    ) -> None:
+        """Bind specific process to CPUs.
+
+        Parameters
+        ----------
+        pid
+            Process ID to bind
+        target
+            CPUs to bind the current process to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
+        flags
+            Additional flags for CPU binding
+        """
+        bitmap = _to_bitmap(target, is_cpuset=True)
+        hdl = None
+        try:
+            hdl = _core._open_proc_handle(pid, read_only=False)
+            _core.set_proc_cpubind(
+                self.native_handle,
+                hdl,
+                bitmap.native_handle,
+                _or_flags(flags),
+            )
+        finally:
+            if hdl:
+                _core._close_proc_handle(hdl)
+
+    def get_proc_cpubind(self, pid: int, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
+        """Get process CPU binding.
+
+        Parameters
+        ----------
+        pid
+            Process ID to query
+        flags
+            Flags for getting CPU binding
+
+        Returns
+        -------
+        Bitmap representing process CPU binding
+        """
+        cpuset = _Bitmap()
+        hdl = None
+        try:
+            hdl = _core._open_proc_handle(pid)
+            _core.get_proc_cpubind(
+                self.native_handle,
+                hdl,
+                cpuset.native_handle,
+                _or_flags(flags),
+            )
+            return cpuset
+        finally:
+            if hdl:
+                _core._close_proc_handle(hdl)
+
+    def set_thread_cpubind(
+        self, thread_id: int, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
+    ) -> None:
+        """Bind specific thread to CPUs.
+
+        Parameters
+        ----------
+        thread_id
+            Thread ID to bind
+        target
+            CPUs to bind the current process to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
+        flags
+            Additional flags for CPU binding
+        """
+        bitmap = _to_bitmap(target, is_cpuset=True)
+        hdl = None
+        try:
+            hdl = _core._open_thread_handle(thread_id, read_only=False)
+            _core.set_thread_cpubind(
+                self.native_handle,
+                hdl,
+                bitmap.native_handle,
+                _or_flags(flags),
+            )
+        finally:
+            if hdl:
+                _core._close_thread_handle(hdl)
+
+    def get_thread_cpubind(
+        self, thread_id: int, flags: _Flags[CpuBindFlags] = 0
+    ) -> _Bitmap:
+        """Get thread CPU binding.
+
+        Parameters
+        ----------
+        thread_id
+            Thread ID to query
+        flags
+            Flags for getting CPU binding
+
+        Returns
+        -------
+        Bitmap representing thread CPU binding
+        """
+        cpuset = _Bitmap()
+        hdl = None
+        try:
+            hdl = _core._open_thread_handle(thread_id)
+            _core.get_thread_cpubind(
+                self.native_handle,
+                hdl,
+                cpuset.native_handle,
+                _or_flags(flags),
+            )
+            return cpuset
+        finally:
+            if hdl:
+                _core._close_thread_handle(hdl)
+
+    def get_last_cpu_location(self, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
+        """Get where current process last ran.
+
+        Parameters
+        ----------
+        flags
+            Flags for getting CPU location
+
+        Returns
+        -------
+        Bitmap representing the cpuset where the process last ran.
+        """
+        cpuset = _Bitmap()
+        _core.get_last_cpu_location(
+            self.native_handle, cpuset.native_handle, _or_flags(flags)
+        )
+        return cpuset
+
+    def get_proc_last_cpu_location(
+        self, pid: int, flags: _Flags[CpuBindFlags] = 0
+    ) -> _Bitmap:
+        """Get where specific process last ran.
+
+        Parameters
+        ----------
+        pid
+            Process ID to query. On Linux, pid can also be a thread ID if the flag is
+            set to HWLOC_CPUBIND_THREAD.
+        flags
+            Flags for getting CPU location
+
+        Returns
+        -------
+        Bitmap representing the cpuset where process last ran
+
+        """
+        cpuset = _Bitmap()
+        hdl = None
+        try:
+            hdl = _core._open_proc_handle(pid)
+            _core.get_proc_last_cpu_location(
+                self.native_handle,
+                hdl,
+                cpuset.native_handle,
+                _or_flags(flags),
+            )
+            return cpuset
+        finally:
+            if hdl:
+                _core._close_proc_handle(hdl)
 
 
 @_reuse_doc(_core.get_api_version)

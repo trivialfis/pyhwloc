@@ -26,6 +26,7 @@ def bind_np_array() -> None:
     try:
         import numpy as np
     except ImportError:
+        print("Numpy is not available.")
         return
 
     array = np.arange(0, 8196)

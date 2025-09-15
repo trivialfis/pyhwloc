@@ -13,6 +13,11 @@ The ``pyhwloc`` document aims to provide an introduction to using ``hwloc`` with
 Python. For an in-depth explanation about hardware topology and related concepts, please
 visit the `hwloc <https://www.open-mpi.org/projects/hwloc/>`__ document instead.
 
+The interface is split into two tiers. The low-level layer directly maps the C API into
+Python through ``ctypes``, then the high-level interface exposes them into a more Pythonic
+class structure. Most users should interact with the high-level interface, and only reach
+down to the second layer when a feature is missing.
+
 Handling Enum Flags
 ===================
 
@@ -54,4 +59,4 @@ To test the membership, we can simply do:
 
 .. code-block:: python
 
-   is_strict = flags & MemBindFlags.HWLOC_MEMBIND_STRICT
+   is_strict = bool(flags & MemBindFlags.HWLOC_MEMBIND_STRICT)
