@@ -12,7 +12,7 @@ dependencies:
 - cxx-compiler
 - cmake
 - cuda-cudart-dev
-- cuda-nvml-dev
+# - cuda-nvml-dev
 - cuda-nvcc
 - cuda-version=12.8
 - nvidia-ml-py
