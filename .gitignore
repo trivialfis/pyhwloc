@@ -3,4 +3,6 @@ pyhwloc/_lib
 .gdb_history
 .coverage
 *.whl
+
 build
+dist

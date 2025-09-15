@@ -18,6 +18,7 @@ import ctypes
 import errno
 import os
 import sys
+from ctypes.util import find_library
 from typing import Any, Callable, ParamSpec, Type, TypeVar
 
 from .libc import strerror as cstrerror
@@ -40,12 +41,16 @@ _lib_path = normpath(
         "_lib",
     )
 )
-with open(os.path.join(_lib_path, "hwloc_deps.txt"), "r") as fd:
-    _hwloc_path = fd.read().strip()
-    if _IS_WINDOWS:
-        _LIB = ctypes.CDLL(_hwloc_path, use_errno=True, use_last_error=True)
-    else:
-        _LIB = ctypes.CDLL(_hwloc_path, use_errno=True)
+
+# Dynamically find hwloc library at runtime
+_hwloc_lib_name = find_library("hwloc")
+if _hwloc_lib_name is None:
+    raise ImportError("hwloc library not found.")
+
+if _IS_WINDOWS:
+    _LIB = ctypes.CDLL(_hwloc_lib_name, use_errno=True, use_last_error=True)
+else:
+    _LIB = ctypes.CDLL(_hwloc_lib_name, use_errno=True)
 
 
 if not _IS_WINDOWS:
@@ -190,5 +195,5 @@ class _PrintableStruct(ctypes.Structure):
 
 
 def libinfo() -> dict[str, Any]:
-    info = {"hwloc": _hwloc_path}
+    info = {"hwloc": _hwloc_lib_name}
     return info

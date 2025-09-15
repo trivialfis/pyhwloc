@@ -53,6 +53,3 @@ foreach(lib IN LISTS PYHWLOC_LIBS)
   set_output_directory(${lib} ${pyhwloc_SOURCE_DIR}/pyhwloc/_lib/)
   target_include_directories(${lib} PRIVATE ${pyhwloc_BINARY_DIR})
 endforeach()
-
-# Write out dependency library paths for packaging
-file(WRITE "${CMAKE_BINARY_DIR}/hwloc_deps.txt" "${HWLOC_LIBRARY}\n")
