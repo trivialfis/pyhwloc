@@ -18,7 +18,7 @@ import ctypes
 import errno
 import os
 import sys
-from typing import Callable, ParamSpec, Type, TypeVar
+from typing import Any, Callable, ParamSpec, Type, TypeVar
 
 from .libc import strerror as cstrerror
 
@@ -31,35 +31,26 @@ _file_path = normpath(__file__)
 
 _IS_WINDOWS = sys.platform == "win32"
 
+
+_lib_path = normpath(
+    os.path.join(
+        os.path.dirname(_file_path),
+        os.path.pardir,
+        "_lib",
+    )
+)
+with open(os.path.join(_lib_path, "hwloc_deps.txt"), "r") as fd:
+    _hwloc_path = fd.read().strip()
+    if _IS_WINDOWS:
+        _LIB = ctypes.CDLL(_hwloc_path, use_errno=True, use_last_error=True)
+    else:
+        _LIB = ctypes.CDLL(_hwloc_path, use_errno=True)
+
+
 if not _IS_WINDOWS:
-    prefix = os.path.expanduser("~/ws/pyhwloc_dev/hwloc/build/hwloc/.libs")
-    _LIB = ctypes.CDLL(os.path.join(prefix, "libhwloc.so"), use_errno=True)
-    _libname = os.path.join("_lib", "libpyhwloc.so")
-    _lib_path = normpath(
-        os.path.join(
-            os.path.dirname(_file_path),
-            os.path.pardir,
-            _libname,
-        )
-    )
+    _pyhwloc_lib = ctypes.cdll.LoadLibrary(os.path.join(_lib_path, "libpyhwloc.so"))
 else:
-    prefix = os.path.expanduser(
-        "C:/Users/jiamingy/ws/pyhwloc_dev/hwloc/contrib/windows-cmake/build/"
-    )
-    _LIB = ctypes.CDLL(
-        os.path.join(prefix, "hwloc.dll"), use_errno=True, use_last_error=True
-    )
-    _libname = os.path.join("_lib", "pyhwloc.dll")
-    _lib_path = normpath(
-        os.path.join(
-            os.path.dirname(_file_path),
-            os.path.pardir,
-            _libname,
-        )
-    )
-
-
-_pyhwloc_lib = ctypes.cdll.LoadLibrary(_lib_path)
+    _pyhwloc_lib = ctypes.cdll.LoadLibrary(os.path.join(_lib_path, "pyhwloc.dll"))
 
 
 class HwLocError(RuntimeError):
@@ -193,3 +184,8 @@ class _PrintableStruct(ctypes.Structure):
 
         result += ")"
         return result
+
+
+def libinfo() -> dict[str, Any]:
+    info = {"hwloc": _hwloc_path}
+    return info
