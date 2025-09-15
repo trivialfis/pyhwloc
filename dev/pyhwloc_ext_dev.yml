@@ -31,6 +31,9 @@ dependencies:
 - myst-parser
 - sphinx-gallery
 # -- doxygen
-- libclang
+- libclang=21.*
+- clangdev
+- libllvm21
+- llvmdev
 - flex
 - bison

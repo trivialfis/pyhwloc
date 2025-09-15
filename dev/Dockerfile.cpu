@@ -19,21 +19,21 @@ RUN \
     apt-get install automake autoconf libtool -y
 
 RUN \
+    cd /ws && \
+    git clone https://github.com/doxygen/doxygen.git
+
+RUN \
     cd /ws/ && \
     git clone https://github.com/open-mpi/hwloc.git
+
+COPY install_doxygen.sh ws/install_doxygen.sh
 
 COPY install_hwloc.sh ws/install_hwloc.sh
 
 RUN \
     cd /ws/ && \
-    ./install_hwloc.sh
-
-RUN \
-    cd /ws && \
-    git clone https://github.com/doxygen/doxygen.git
-
-COPY install_doxygen.sh ws/install_doxygen.sh
+    ./install_doxygen.sh
 
 RUN \
     cd /ws/ && \
-    ./install_doxygen.sh
+    ./install_hwloc.sh
