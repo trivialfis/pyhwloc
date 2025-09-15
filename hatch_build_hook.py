@@ -96,25 +96,10 @@ class CMakeBuildHook(BuildHookInterface):
             list(lib_dir.glob("*pyhwloc.so")) or list(lib_dir.glob("*pyhwloc.dll"))
         ):
             print("Native libraries already exist, skipping CMake build")
-            self._copy_dependencies_to_wheel()
             return
 
         # Run CMake build directly
         run_cmake_build(source_dir=self.root)
-
-        # Copy dependency libraries to the wheel
-        self._copy_dependencies_to_wheel()
-
-    def _copy_dependencies_to_wheel(self) -> None:
-        """Copy dependency libraries from CMake output to wheel."""
-        deps_file = Path(self.root) / "build" / "hwloc_deps.txt"
-
-        lib_dir = Path(self.root) / "pyhwloc" / "_lib"
-        lib_dir.mkdir(exist_ok=True)
-
-        dest_path = lib_dir / "hwloc_deps.txt"
-        print(f"Copying dependency: {deps_file} -> {dest_path}")
-        shutil.copy2(deps_file, dest_path)
 
 
 if __name__ == "__main__":
