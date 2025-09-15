@@ -37,7 +37,6 @@ jobs:
         os: [ubuntu-latest]
     container:
       image: jiamingy/pyhwloc_dev:latest
-      options: --cap-add=CAP_SYS_NICE
     steps:
     - name: Build doxygen XML
       shell: bash -el {0}
