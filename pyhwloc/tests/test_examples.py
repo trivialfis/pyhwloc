@@ -66,6 +66,7 @@ def test_membind() -> None:
     assert results == 0
 
 
+@pytest.mark.skipif(condition=not has_gpu(), reason="GPU discovery tests.")
 def test_gds_hops() -> None:
     script = os.path.join(demo_dir, "gds_hops.py")
     results = subprocess.check_call(["python", script], stdout=subprocess.PIPE)

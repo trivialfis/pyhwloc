@@ -640,9 +640,7 @@ def test_obj_add_info() -> None:
     root_obj = get_root_obj(topo.hdl)
     assert root_obj is not None
 
-    # FIXME(jiamingy): Permission error, but the key is added.
-    with pytest.raises(HwLocError, match="Permission denied"):
-        obj_add_info(root_obj, "TestName", "TestValue")
+    obj_add_info(root_obj, "TestName", "TestValue")
 
     value = obj_get_info_by_name(root_obj, "TestName")
     assert value == "TestValue"

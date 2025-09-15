@@ -51,7 +51,7 @@ jobs:
         git clone https://github.com/open-mpi/hwloc.git
         cd hwloc                # pyhwloc/hwloc
         ./autogen.sh
-        ./configure --prefix=$CONDA_PREFIX --enable-tests --enable-doxygen
+        ./configure --prefix=$CONDA_PREFIX --enable-doxygen
         make -j$(nproc) install
 
     - name: Build doxygen XML
@@ -61,33 +61,23 @@ jobs:
         cd ./hwloc/doc          # pyhwloc/hwloc/doc
         HWLOC_DOXYGEN_GENERATE_XML=YES doxygen ./doxygen.cfg
 
+    - name: Install pyhwloc editable
+      shell: bash -el {0}
+      run: |
+        echo $(pwd)
+        pip install -e . --no-deps --no-build-isolation
+        git clean -xdf
+
+    - name: Install pyhwloc with wheel
+      shell: bash -el {0}
+      run: |
+        echo $(pwd)
+        pip wheel . --no-build-isolation
+        pip install pyhwloc-*.whl
+
     - name: Build document
       shell: bash -el {0}
       run: |
         echo $(pwd)
         cd docs
         PYHWLOC_XML_PATH=$(pwd)/../hwloc/doc/doxygen-doc/xml make html
-
-    - name: Install pyhwloc editable
-      shell: bash -el {0}
-      run: |
-        echo $(pwd)
-        mkdir build             # pyhwloc/build
-        cd build
-        cmake ..
-        make -j$(nproc)
-        cd ..                   # pyhwloc
-        pip install -e . --no-deps --no-build-isolation
-        rm -rf build
-
-    - name: Install pyhwloc with wheel
-      shell: bash -el {0}
-      run: |
-        echo $(pwd)
-        mkdir build             # pyhwloc/build
-        cd build
-        cmake ..
-        make -j$(nproc)
-        cd ..                   # pyhwloc
-        pip wheel . --no-build-isolation
-        pip install pyhwloc-*.whl

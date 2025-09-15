@@ -75,7 +75,7 @@ First build the c ext via CMake, then run
 
 .. code-block:: sh
 
-  pip wheel . --no-build-isolation
+  pip wheel -v . -w dist/ --no-build-isolation
 
 Use editable build:
 

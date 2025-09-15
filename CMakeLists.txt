@@ -36,3 +36,6 @@ function(set_output_directory target dir)
 endfunction()
 
 set_output_directory(pyhwloc ${pyhwloc_SOURCE_DIR}/pyhwloc/_lib/)
+
+# Write out dependency library paths for packaging
+file(WRITE "${CMAKE_BINARY_DIR}/hwloc_deps.txt" "${HWLOC_LIBRARY}\n")
