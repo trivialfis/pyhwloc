@@ -64,7 +64,7 @@ def run_cmake_build(
     result = subprocess.run(configure_cmd, check=False)
     if result.returncode != 0:
         error_msg = f"CMake configuration failed with code {result.returncode}"
-        sys.exit(error_msg)
+        raise RuntimeError(error_msg)
 
     # Build with CMake
     build_cmd = [
@@ -80,7 +80,7 @@ def run_cmake_build(
     result = subprocess.run(build_cmd, check=False)
     if result.returncode != 0:
         error_msg = f"CMake build failed with code {result.returncode}"
-        sys.exit(error_msg)
+        raise RuntimeError(error_msg)
 
 
 class CMakeBuildHook(BuildHookInterface):
