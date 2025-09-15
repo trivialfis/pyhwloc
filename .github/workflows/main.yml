@@ -75,6 +75,12 @@ jobs:
         pip wheel . --no-build-isolation
         pip install pyhwloc-*.whl
 
+    - name: Run tests
+      shell: bash -el {0}
+      run: |
+        echo $(pwd)
+        pytest -s -v -rxXs --durations=0 ./pyhwloc/tests
+
     - name: Build document
       shell: bash -el {0}
       run: |
