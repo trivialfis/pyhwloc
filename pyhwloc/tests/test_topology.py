@@ -27,7 +27,7 @@ def test_context_manager_current_system() -> None:
         assert topo.is_loaded
         assert isinstance(topo.depth, int)
         assert topo.depth > 0
-        assert topo.is_this_system
+        assert topo.is_this_system()
 
     # After context manager exits, topology should be destroyed
     assert not topo.is_loaded
@@ -57,7 +57,7 @@ def test_direct_usage_current_system() -> None:
         assert topo.is_loaded
         assert isinstance(topo.depth, int)
         assert topo.depth > 0
-        assert topo.is_this_system
+        assert topo.is_this_system()
 
     finally:
         topo.destroy()
@@ -77,7 +77,7 @@ def test_context_manager_synthetic() -> None:
         assert isinstance(topo.depth, int)
         assert topo.depth > 0
         # Synthetic topology should not be "this system"
-        assert not topo.is_this_system
+        assert not topo.is_this_system()
 
     # After context manager exits, topology should be destroyed
     assert not topo.is_loaded
@@ -98,7 +98,7 @@ def test_direct_usage_synthetic() -> None:
         assert isinstance(topo.depth, int)
         assert topo.depth > 0
         # Synthetic topology should not be "this system"
-        assert not topo.is_this_system
+        assert not topo.is_this_system()
 
     finally:
         topo.destroy()

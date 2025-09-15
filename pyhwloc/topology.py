@@ -341,7 +341,6 @@ class Topology:
         """Check if topology is loaded and ready for use."""
         return hasattr(self, "_hdl") and self._loaded
 
-    @property
     def is_this_system(self) -> bool:
         """Check if topology represents the current system."""
         if not self.is_loaded:
