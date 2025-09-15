@@ -31,6 +31,7 @@ from pyhwloc.hwloc.core import (
     ExportSyntheticFlags,
     ExportXmlFlags,
     ObjType,
+    TopologyComponentsFlag,
     TopologyFlags,
     TypeFilter,
     bridge_covers_pcibus,
@@ -63,7 +64,6 @@ from pyhwloc.hwloc.core import (
     hwloc_infos_s,
     hwloc_obj_attr_u,
     hwloc_obj_cache_type_t,
-    hwloc_topology_components_flag_e,
     is_same_obj,
     obj_add_info,
     obj_attr_snprintf,
@@ -767,7 +767,7 @@ def test_topology_set_components() -> None:
     topology_init(hdl)
     topology_set_components(
         hdl,
-        hwloc_topology_components_flag_e.HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST,
+        TopologyComponentsFlag.HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST,
         "synthetic",
     )
     topology_load(hdl)
