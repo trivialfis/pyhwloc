@@ -73,7 +73,7 @@ def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
     return _from_impl(lambda hdl: _core.topology_set_xmlbuffer(hdl, xml_buffer), load)
 
 
-def _to_bitmap(target: _Bitmap | set[int] | _Object) -> _Bitmap:
+def _to_bitmap(target: _BindTarget) -> _Bitmap:
     if isinstance(target, set):
         bitmap = _Bitmap.from_sched_set(target)
     elif isinstance(target, _Object):
@@ -95,6 +95,9 @@ TypeFilter: TypeAlias = _core.TypeFilter
 MemBindPolicy: TypeAlias = _core.MemBindPolicy
 MemBindFlags: TypeAlias = _core.MemBindFlags
 CpuBindFlags: TypeAlias = _core.CpuBindFlags
+
+# internal
+_BindTarget: TypeAlias = _Bitmap | set[int] | _Object
 
 
 class Topology:
@@ -709,7 +712,7 @@ class Topology:
     # Memory Binding Methods
     def set_membind(
         self,
-        target: _Bitmap | set[int] | _Object,
+        target: _BindTarget,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
     ) -> None:
@@ -756,7 +759,7 @@ class Topology:
     def set_proc_membind(
         self,
         pid: int,
-        target: _Bitmap | set[int] | _Object,
+        target: _BindTarget,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
     ) -> None:
@@ -817,7 +820,7 @@ class Topology:
     def set_area_membind(
         self,
         mem: memoryview,
-        target: _Bitmap | set[int] | _Object,
+        target: _BindTarget,
         policy: MemBindPolicy,
         flags: _Flags[MemBindFlags],
     ) -> None:
@@ -881,7 +884,9 @@ class Topology:
     # someone asks for it.
 
     # CPU Binding Methods
-    def set_cpu_bind(self, cpuset: _Bitmap, flags: _Flags[CpuBindFlags] = 0) -> None:
+    def set_cpu_bind(
+        self, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
+    ) -> None:
         """Bind current process to specified CPUs.
 
         Parameters
@@ -891,7 +896,8 @@ class Topology:
         flags
             Additional flags for CPU binding
         """
-        _core.set_cpubind(self.native_handle, cpuset.native_handle, _or_flags(flags))
+        bitmap = _to_bitmap(target)
+        _core.set_cpubind(self.native_handle, bitmap.native_handle, _or_flags(flags))
 
     def get_cpu_bind(self, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
         """Get current process CPU binding.
@@ -910,7 +916,7 @@ class Topology:
         return cpuset
 
     def set_proc_cpu_bind(
-        self, pid: int, cpuset: _Bitmap, flags: _Flags[CpuBindFlags] = 0
+        self, pid: int, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
     ) -> None:
         """Bind specific process to CPUs.
 
@@ -923,13 +929,14 @@ class Topology:
         flags
             Additional flags for CPU binding
         """
+        bitmap = _to_bitmap(target)
         hdl = None
         try:
             hdl = _core._open_proc_handle(pid)
             _core.set_proc_cpubind(
                 self.native_handle,
                 hdl,
-                cpuset.native_handle,
+                bitmap.native_handle,
                 _or_flags(flags),
             )
         finally:
@@ -966,7 +973,7 @@ class Topology:
                 _core._close_proc_handle(hdl)
 
     def set_thread_cpu_bind(
-        self, thread_id: int, cpuset: _Bitmap, flags: _Flags[CpuBindFlags] = 0
+        self, thread_id: int, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
     ) -> None:
         """Bind specific thread to CPUs.
 
@@ -979,13 +986,14 @@ class Topology:
         flags
             Additional flags for CPU binding
         """
+        bitmap = _to_bitmap(target)
         hdl = None
         try:
             hdl = _core._open_thread_handle(thread_id, read_only=False)
             _core.set_thread_cpubind(
                 self.native_handle,
                 hdl,
-                cpuset.native_handle,
+                bitmap.native_handle,
                 _or_flags(flags),
             )
         finally:
