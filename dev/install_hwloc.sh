@@ -3,5 +3,5 @@
 cd hwloc
 echo "Run autogen"
 ./autogen.sh
-./configure --prefix=$CONDA_PREFIX
+./configure --prefix=$CONDA_PREFIX --disable-nvml
 time make -j$(nproc) install
