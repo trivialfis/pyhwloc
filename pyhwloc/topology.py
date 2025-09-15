@@ -789,7 +789,7 @@ class Topology:
         bitmap = _to_bitmap(target, _not_nodeset(flags))
         hdl = None
         try:
-            hdl = _core._open_proc_handle(pid, False)
+            hdl = _core._open_proc_handle(pid, read_only=False)
             _core.set_proc_membind(
                 self.native_handle, hdl, bitmap.native_handle, policy, flags
             )
@@ -898,8 +898,10 @@ class Topology:
 
         Parameters
         ----------
-        cpuset
-            CPUs to bind current process to
+        target
+            CPUs to bind the current process to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
         flags
             Additional flags for CPU binding
         """
@@ -931,15 +933,17 @@ class Topology:
         ----------
         pid
             Process ID to bind
-        cpuset
-            CPUs to bind process to
+        target
+            CPUs to bind the current process to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
         flags
             Additional flags for CPU binding
         """
         bitmap = _to_bitmap(target, is_cpuset=True)
         hdl = None
         try:
-            hdl = _core._open_proc_handle(pid)
+            hdl = _core._open_proc_handle(pid, read_only=False)
             _core.set_proc_cpubind(
                 self.native_handle,
                 hdl,
@@ -988,8 +992,10 @@ class Topology:
         ----------
         thread_id
             Thread ID to bind
-        cpuset
-            CPUs to bind thread to
+        target
+            CPUs to bind the current process to. This can be an
+            :py:class:`~pyhwloc.hwobject.Object`, a :py:class:`~pyhwloc.bitmap.Bitmap`,
+            or a CPU set used by the `os.sched_*` routines (:py:class:`set` [int]).
         flags
             Additional flags for CPU binding
         """
@@ -1026,7 +1032,7 @@ class Topology:
         cpuset = _Bitmap()
         hdl = None
         try:
-            hdl = _core._open_thread_handle(thread_id, read_only=True)
+            hdl = _core._open_thread_handle(thread_id)
             _core.get_thread_cpubind(
                 self.native_handle,
                 hdl,
