@@ -115,36 +115,29 @@ class Object:
         return self.native_handle.contents.total_memory
 
     # - Begin accessors for attr
-    @property
     def is_numa_node(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_NUMANODE
 
-    @property
     def is_group(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_GROUP
 
-    @property
     def is_pci_device(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_PCI_DEVICE
 
-    @property
     def is_bridge(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_BRIDGE
 
-    @property
     def is_os_device(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_OS_DEVICE
 
-    @property
     def is_package(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_PACKAGE
 
-    @property
     def is_machine(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_MACHINE
 
     def is_osdev_type(self, typ: int) -> bool:
-        if not self.is_os_device:
+        if not self.is_os_device():
             return False
 
         attr = self.attr
@@ -153,41 +146,33 @@ class Object:
         osdev_types = attr.types
         return bool(osdev_types & typ)
 
-    @property
     def is_osdev_gpu(self) -> bool:
         return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_GPU)
 
-    @property
     def is_osdev_storage(self) -> bool:
         return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_STORAGE)
 
     # Kinds of object Type
-    @property
     @_reuse_doc(_core.obj_type_is_normal)
     def is_normal(self) -> bool:
         return _core.obj_type_is_normal(self.type)
 
-    @property
     @_reuse_doc(_core.obj_type_is_io)
     def is_io(self) -> bool:
         return _core.obj_type_is_io(self.type)
 
-    @property
     @_reuse_doc(_core.obj_type_is_memory)
     def is_memory(self) -> bool:
         return _core.obj_type_is_memory(self.type)
 
-    @property
     @_reuse_doc(_core.obj_type_is_cache)
     def is_cache(self) -> bool:
         return _core.obj_type_is_cache(self.type)
 
-    @property
     @_reuse_doc(_core.obj_type_is_dcache)
     def is_dcache(self) -> bool:
         return _core.obj_type_is_dcache(self.type)
 
-    @property
     @_reuse_doc(_core.obj_type_is_icache)
     def is_icache(self) -> bool:
         return _core.obj_type_is_icache(self.type)
@@ -210,7 +195,7 @@ class Object:
         # FIXME: Am I getting this right? I looked into the `hwloc_obj_attr_snprintf`
         # implementation, but it doesn't use the group. Also, if the bridge upstream is
         # HWLOC_OBJ_BRIDGE_PCI, this union can be converted to PCIe?
-        if self.is_cache:
+        if self.is_cache():
             return attr.contents.cache
 
         typ = self.type

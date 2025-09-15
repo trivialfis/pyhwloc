@@ -43,7 +43,7 @@ def cnt_hops(gpu: Object, nvme: Object) -> tuple[int, bool]:
     assert gpu_ancestors[i + 1] == nvme_ancestors[j + 1]
     # It might be better to check whether this is a PCI bridge instead of checking
     # whether this is a host device.
-    crossed = gpu_ancestors[i + 1].is_package or gpu_ancestors[i + 1].is_machine
+    crossed = gpu_ancestors[i + 1].is_package() or gpu_ancestors[i + 1].is_machine()
     return (-(i + 1) + -(j + 1)), crossed
 
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         gpus = []
         for obj in topo.iter_objects_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
             # Check if it's a GPU device
-            if obj.is_osdev_gpu:
+            if obj.is_osdev_gpu():
                 assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE
                 assert obj.name is not None
                 if obj.name.lower().startswith("cuda"):
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         # Look for NVME drives
         nvmes = []
         for obj in topo.iter_objects_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
-            if obj.is_osdev_storage:
+            if obj.is_osdev_storage():
                 assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE
                 assert obj.name is not None
                 if obj.name.lower().startswith("nvme"):
