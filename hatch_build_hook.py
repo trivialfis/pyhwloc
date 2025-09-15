@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -95,10 +96,35 @@ class CMakeBuildHook(BuildHookInterface):
             list(lib_dir.glob("*pyhwloc.so")) or list(lib_dir.glob("*pyhwloc.dll"))
         ):
             print("Native libraries already exist, skipping CMake build")
+            self._copy_dependencies_to_wheel()
             return
 
         # Run CMake build directly
         run_cmake_build(source_dir=self.root)
+
+        # Copy dependency libraries to the wheel
+        self._copy_dependencies_to_wheel()
+
+    def _copy_dependencies_to_wheel(self) -> None:
+        """Copy dependency libraries from CMake output to wheel."""
+        deps_file = Path(self.root) / "build" / "hwloc_deps.txt"
+
+        lib_dir = Path(self.root) / "pyhwloc" / "_lib"
+        lib_dir.mkdir(exist_ok=True)
+
+        # Read dependency paths and copy them
+        with open(deps_file, 'r') as f:
+            for line in f:
+                dep_path = Path(line.strip())
+                if dep_path.exists() and dep_path.is_file():
+                    dest_path = lib_dir / dep_path.name
+                    if not dest_path.exists():
+                        print(f"Copying dependency: {dep_path} -> {dest_path}")
+                        shutil.copy2(dep_path, dest_path)
+                    else:
+                        print(f"Dependency already exists: {dest_path}")
+                else:
+                    raise FileNotFoundError(f"Dependency not found: {dep_path}")
 
 
 if __name__ == "__main__":
