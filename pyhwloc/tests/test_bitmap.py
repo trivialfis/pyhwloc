@@ -120,8 +120,8 @@ def test_iter() -> None:
     bitmap = Bitmap.from_pyseq([1, 2, 3])
     for i, idx in enumerate(bitmap):
         assert i + 1 == idx
-    assert bitmap.first == 1
-    assert bitmap.last == 3
+    assert bitmap.first() == 1
+    assert bitmap.last() == 3
 
     assert bitmap[2] is True
     bitmap[2] = False

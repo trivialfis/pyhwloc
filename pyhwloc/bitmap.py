@@ -208,12 +208,10 @@ class Bitmap:
         """Number of set bits in the bitmap."""
         return _bitmap.bitmap_weight(self._hdl)
 
-    @property
     def first(self) -> int:
         """First set bit, or -1 if bitmap is empty."""
         return _bitmap.bitmap_first(self._hdl)
 
-    @property
     def last(self) -> int:
         """Last set bit, or -1 if bitmap is empty."""
         return _bitmap.bitmap_last(self._hdl)

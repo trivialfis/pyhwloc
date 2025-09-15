@@ -1040,7 +1040,7 @@ class Topology:
 
         Returns
         -------
-        Bitmap representing where process last ran
+        Bitmap representing the cpuset where the process last ran.
         """
         cpuset = _Bitmap()
         _core.get_last_cpu_location(
@@ -1048,7 +1048,7 @@ class Topology:
         )
         return cpuset
 
-    def get_process_last_cpu_location(
+    def get_proc_last_cpu_location(
         self, pid: int, flags: _Flags[CpuBindFlags] = 0
     ) -> _Bitmap:
         """Get where specific process last ran.
@@ -1056,13 +1056,15 @@ class Topology:
         Parameters
         ----------
         pid
-            Process ID to query
+            Process ID to query. On Linux, pid can also be a thread ID if the flag is
+            set to HWLOC_CPUBIND_THREAD.
         flags
             Flags for getting CPU location
 
         Returns
         -------
-        Bitmap representing where process last ran
+        Bitmap representing the cpuset where process last ran
+
         """
         cpuset = _Bitmap()
         hdl = None
