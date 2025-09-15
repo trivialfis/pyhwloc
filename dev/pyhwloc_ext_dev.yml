@@ -14,6 +14,7 @@ dependencies:
 - cuda-cudart-dev
 - cuda-nvml-dev
 - cuda-nvcc
+- cuda-python
 - cuda-version=12.8
 - nvidia-ml-py
 - make
