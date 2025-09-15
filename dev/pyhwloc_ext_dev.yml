@@ -37,3 +37,4 @@ dependencies:
 - llvmdev
 - flex
 - bison
+- libxml2

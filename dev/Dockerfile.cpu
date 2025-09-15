@@ -26,12 +26,15 @@ RUN \
     cd /ws/ && \
     git clone https://github.com/open-mpi/hwloc.git
 
+SHELL ["mamba", "run", "--no-capture-output", "-n", "base", "/bin/bash", "-c"]
+
 COPY install_doxygen.sh ws/install_doxygen.sh
 
 COPY install_hwloc.sh ws/install_hwloc.sh
 
 RUN \
     cd /ws/ && \
+    echo "con: CONDA_ENV ${CONDA_PREFIX}" && \
     ./install_doxygen.sh
 
 RUN \

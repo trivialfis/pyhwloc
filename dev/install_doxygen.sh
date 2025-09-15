@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "sh: CONDA_ENV ${CONDA_PREFIX}"
+
 cd /ws/doxygen
 mkdir build
 cd build
