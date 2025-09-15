@@ -762,7 +762,7 @@ def obj_add_info(obj: ObjPtr, name: str, value: str) -> None:
 
     name_bytes = name.encode("utf-8")
     value_bytes = value.encode("utf-8")
-    _checkc(_pyhwloc_lib.pyhwloc_obj_add_info(obj, name_bytes, value_bytes), expected=1)
+    _checkc(_pyhwloc_lib.pyhwloc_obj_add_info(obj, name_bytes, value_bytes))
 
 
 _LIB.hwloc_obj_set_subtype.argtypes = [topology_t, obj_t, ctypes.c_char_p]
