@@ -46,6 +46,10 @@ jobs:
         HWLOC_DOXYGEN_GENERATE_XML=YES doxygen ./doxygen.cfg
         cd /ws
 
+    - name: Trust git cloning project sources
+      run: |
+        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
     - uses: actions/checkout@v4
       with:
         submodules: 'fales'
