@@ -31,6 +31,7 @@ _file_path = normpath(__file__)
 
 _IS_WINDOWS = sys.platform == "win32"
 
+_IS_DOC_BUILD = bool(os.environ.get("PYHWLOC_SPHINX", False))
 
 _lib_path = normpath(
     os.path.join(

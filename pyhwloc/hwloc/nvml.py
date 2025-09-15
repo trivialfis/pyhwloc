@@ -23,7 +23,7 @@ import os
 import pynvml
 
 from .core import ObjPtr, _checkc, hwloc_cpuset_t, obj_t, topology_t
-from .lib import _c_prefix_fndoc, _lib_path
+from .lib import _IS_DOC_BUILD, _c_prefix_fndoc, _lib_path
 
 #####################################################
 # Interoperability with the NVIDIA Management Library
@@ -32,17 +32,17 @@ from .lib import _c_prefix_fndoc, _lib_path
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00179.php
 
-_pyhwloc_nvml_lib = ctypes.cdll.LoadLibrary(
-    os.path.join(_lib_path, "libpyhwloc_nvml.so")
-)
+if not _IS_DOC_BUILD:
+    _pyhwloc_nvml_lib = ctypes.cdll.LoadLibrary(
+        os.path.join(_lib_path, "libpyhwloc_nvml.so")
+    )
 
-
-_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_cpuset.argtypes = [
-    topology_t,
-    pynvml.c_nvmlDevice_t,
-    hwloc_cpuset_t,
-]
-_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_cpuset.restype = ctypes.c_int
+    _pyhwloc_nvml_lib.pyhwloc_nvml_get_device_cpuset.argtypes = [
+        topology_t,
+        pynvml.c_nvmlDevice_t,
+        hwloc_cpuset_t,
+    ]
+    _pyhwloc_nvml_lib.pyhwloc_nvml_get_device_cpuset.restype = ctypes.c_int
 
 
 @_c_prefix_fndoc("nvml")
@@ -52,11 +52,12 @@ def get_device_cpuset(
     _checkc(_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_cpuset(topology, device, cpuset))
 
 
-_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev_by_index.argtypes = [
-    topology_t,
-    ctypes.c_uint,
-]
-_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev_by_index.restype = obj_t
+if not _IS_DOC_BUILD:
+    _pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev_by_index.argtypes = [
+        topology_t,
+        ctypes.c_uint,
+    ]
+    _pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev_by_index.restype = obj_t
 
 
 @_c_prefix_fndoc("nvml")
@@ -67,11 +68,12 @@ def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr | None:
     return dev_obj
 
 
-_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev.argtypes = [
-    topology_t,
-    pynvml.c_nvmlDevice_t,
-]
-_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev.restype = obj_t
+if not _IS_DOC_BUILD:
+    _pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev.argtypes = [
+        topology_t,
+        pynvml.c_nvmlDevice_t,
+    ]
+    _pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev.restype = obj_t
 
 
 @_c_prefix_fndoc("nvml")
