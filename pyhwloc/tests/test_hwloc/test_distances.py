@@ -32,7 +32,7 @@ from pyhwloc.hwloc.core import (
     distances_release_remove,
     get_obj_by_type,
     hwloc_distances_add_flag_e,
-    hwloc_distances_kind_e,
+    DistancesKind,
     hwloc_distances_s,
     hwloc_obj,
     hwloc_uint64_t,
@@ -99,8 +99,8 @@ def test_distances_comprehensive() -> None:
 
     # Create distance handle
     kind = (
-        hwloc_distances_kind_e.HWLOC_DISTANCES_KIND_VALUE_LATENCY
-        | hwloc_distances_kind_e.HWLOC_DISTANCES_KIND_FROM_USER
+        DistancesKind.HWLOC_DISTANCES_KIND_VALUE_LATENCY
+        | DistancesKind.HWLOC_DISTANCES_KIND_FROM_USER
     )
     # no name
     handle = distances_add_create(topo, "", kind)

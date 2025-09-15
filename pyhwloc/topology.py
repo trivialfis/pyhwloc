@@ -49,6 +49,7 @@ __all__ = [
     "ExportXmlFlags",
     "ExportSyntheticFlags",
     "TypeFilter",
+    "DistancesKind",
     "MemBindPolicy",
     "MemBindFlags",
     "CpuBindFlags",
@@ -100,6 +101,7 @@ ObjPtr = _core.ObjPtr
 ExportXmlFlags: TypeAlias = _core.ExportXmlFlags
 ExportSyntheticFlags: TypeAlias = _core.ExportSyntheticFlags
 TypeFilter: TypeAlias = _core.TypeFilter
+DistancesKind: TypeAlias = _core.DistancesKind
 # Memory bind type aliases
 MemBindPolicy: TypeAlias = _core.MemBindPolicy
 MemBindFlags: TypeAlias = _core.MemBindFlags
@@ -677,7 +679,7 @@ class Topology:
 
     # Distance Methods
     @_reuse_doc(_core.distances_get)
-    def get_distances(self, kind: int = 0) -> list["Distances"]:
+    def get_distances(self, kind: _Flags[DistancesKind] = 0) -> list["Distances"]:
         from .distance import Distances
 
         # Get count first
@@ -688,7 +690,7 @@ class Topology:
             self.native_handle,
             ctypes.byref(nr),
             None,
-            int(kind),
+            _or_flags(kind),
         )
         distances_ptr_ptr = (ctypes.POINTER(_core.hwloc_distances_s) * nr.value)()
         if nr.value == 0:
@@ -698,7 +700,7 @@ class Topology:
             self.native_handle,
             ctypes.byref(nr),
             distances_ptr_ptr,
-            int(kind),
+            _or_flags(kind),
         )
 
         # Create Distance objects

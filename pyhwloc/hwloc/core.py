@@ -2670,7 +2670,7 @@ def topology_export_synthetic(
 
 
 @_cenumdoc("hwloc_distances_kind_e")
-class hwloc_distances_kind_e(IntEnum):
+class DistancesKind(IntEnum):
     HWLOC_DISTANCES_KIND_FROM_OS = 1 << 0
     HWLOC_DISTANCES_KIND_FROM_USER = 1 << 1
     HWLOC_DISTANCES_KIND_VALUE_LATENCY = 1 << 2
