@@ -23,6 +23,8 @@ import pytest
 
 from pyhwloc.hwloc.lib import normpath
 
+from .test_hwloc.utils import has_nice_cap
+
 tests_dir = Path(normpath(__file__)).parent
 demo_dir = tests_dir.parent.parent / "examples"
 
@@ -41,6 +43,9 @@ def has_gpu() -> bool:
     return True
 
 
+@pytest.mark.skipif(
+    condition=not has_nice_cap(), reason="Running in a sandboxed environment."
+)
 def test_intro_low_level() -> None:
     script = os.path.join(demo_dir, "intro_low_level.py")
     results = subprocess.check_call(["python", script], stdout=subprocess.PIPE)
@@ -60,6 +65,9 @@ def test_list_gpus() -> None:
     assert results == 0
 
 
+@pytest.mark.skipif(
+    condition=not has_nice_cap(), reason="Running in a sandboxed environment."
+)
 def test_membind() -> None:
     script = os.path.join(demo_dir, "membind.py")
     results = subprocess.check_call(["python", script], stdout=subprocess.PIPE)

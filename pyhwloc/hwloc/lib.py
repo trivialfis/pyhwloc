@@ -77,6 +77,8 @@ def _checkc(status: int, expected: int = 0) -> None:
     err = ctypes.get_errno()
     msg = cstrerror(err)
     match err:
+        case errno.EPERM:
+            raise PermissionError(msg)
         case errno.ENOSYS:
             raise NotImplementedError(msg)
         case errno.EINVAL:

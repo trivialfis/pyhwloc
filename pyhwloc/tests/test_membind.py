@@ -23,7 +23,7 @@ import pytest
 
 from pyhwloc import Topology
 from pyhwloc.bitmap import Bitmap
-from pyhwloc.tests.test_hwloc.test_membind import DFT_POLICY
+from pyhwloc.tests.test_hwloc.test_membind import DFT_POLICY, has_nice_cap
 from pyhwloc.topology import MemBindFlags, MemBindPolicy
 
 
@@ -56,9 +56,13 @@ def worker_1(exp: MemBindFlags) -> bool:
         return policy == exp
 
 
+@pytest.mark.skipif(
+    condition=not has_nice_cap(), reason="Running in a sandboxed environment."
+)
 def test_membind() -> None:
     with Topology.from_this_system() as topo:
         orig_cpuset, policy = topo.get_membind()
+
         assert policy in (DFT_POLICY, MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
         assert orig_cpuset.weight() == os.cpu_count()
 
@@ -151,6 +155,9 @@ def test_membind() -> None:
         reset(orig_cpuset, topo)
 
 
+@pytest.mark.skipif(
+    condition=not has_nice_cap(), reason="Running in a sandboxed environment."
+)
 def test_area_membind() -> None:
     kb = 64
     with Topology.from_this_system() as topo:

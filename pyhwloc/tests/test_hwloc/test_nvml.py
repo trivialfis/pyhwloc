@@ -26,7 +26,7 @@ from pyhwloc.hwloc.core import (
 )
 
 nm = pytest.importorskip("pynvml", exc_type=ImportError)
-_nm_module = pytest.importorskip("pyhwloc.hwloc.nvml", exc_type=OSError)
+_ = pytest.importorskip("pyhwloc.hwloc.nvml", exc_type=OSError)  # type: ignore
 
 from pyhwloc.hwloc.nvml import get_device_cpuset, get_device_osdev
 

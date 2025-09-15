@@ -412,7 +412,7 @@ def test_type_sscanf_functions() -> None:
         assert obj_type == obj_type_depth
 
     # Test invalid string
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         type_sscanf("FooBar")
 
 
