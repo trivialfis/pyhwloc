@@ -51,7 +51,7 @@ jobs:
         git clone https://github.com/open-mpi/hwloc.git
         cd hwloc                # pyhwloc/hwloc
         ./autogen.sh
-        ./configure --prefix=$CONDA_PREFIX --enable-tests --enable-doxygen
+        ./configure --prefix=$CONDA_PREFIX --enable-doxygen
         make -j$(nproc) install
 
     - name: Build doxygen XML
@@ -66,6 +66,7 @@ jobs:
       run: |
         echo $(pwd)
         pip install -e . --no-deps --no-build-isolation
+        python -c "import pyhwloc"
         git clean -xdf
 
     - name: Install pyhwloc with wheel
@@ -74,6 +75,11 @@ jobs:
         echo $(pwd)
         pip wheel . --no-build-isolation
         pip install pyhwloc-*.whl
+
+    - name: Run tests
+      shell: bash -el {0}
+      run: |
+        pytest -s -v ./pyhwloc/tests
 
     - name: Build document
       shell: bash -el {0}
