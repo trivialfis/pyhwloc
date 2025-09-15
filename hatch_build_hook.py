@@ -34,8 +34,7 @@ def run_cmake_build(
         Number of parallel jobs, defaults to cpu_count()
     cmake_args : list[str] | None
         Additional CMake arguments
-    skip_on_error : bool
-        Whether to continue on build errors
+
     """
     source_path = Path(source_dir).resolve()
     build_path = Path(build_dir).resolve()
@@ -60,7 +59,7 @@ def run_cmake_build(
         *cmake_args,
     ]
 
-    print(f"Configuring CMake: {' '.join(configure_cmd)}")
+    print(f"CMake config: {' '.join(configure_cmd)}")
     result = subprocess.run(configure_cmd, check=False)
     if result.returncode != 0:
         error_msg = f"CMake configuration failed with code {result.returncode}"
@@ -76,6 +75,7 @@ def run_cmake_build(
         "--parallel",
         str(parallel_jobs),
     ]
+    print(f"CMake build: {' '.join(build_cmd)}")
 
     result = subprocess.run(build_cmd, check=False)
     if result.returncode != 0:
@@ -112,7 +112,6 @@ class CMakeBuildHook(BuildHookInterface):
         lib_dir = Path(self.root) / "pyhwloc" / "_lib"
         lib_dir.mkdir(exist_ok=True)
 
-        # Read dependency paths and copy them
         dest_path = lib_dir / "hwloc_deps.txt"
         print(f"Copying dependency: {deps_file} -> {dest_path}")
         shutil.copy2(deps_file, dest_path)
