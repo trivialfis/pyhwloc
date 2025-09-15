@@ -22,7 +22,7 @@ import os
 
 import pynvml
 
-from .core import ObjPtr, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
+from .core import ObjPtr, _checkc, hwloc_cpuset_t, obj_t, topology_t
 from .lib import _c_prefix_fndoc, _lib_path
 
 #####################################################
@@ -37,48 +37,48 @@ _pyhwloc_nvml_lib = ctypes.cdll.LoadLibrary(
 )
 
 
-_pyhwloc_lib.pyhwloc_nvml_get_device_cpuset.argtypes = [
+_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_cpuset.argtypes = [
     topology_t,
     pynvml.c_nvmlDevice_t,
     hwloc_cpuset_t,
 ]
-_pyhwloc_lib.pyhwloc_nvml_get_device_cpuset.restype = ctypes.c_int
+_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_cpuset.restype = ctypes.c_int
 
 
 @_c_prefix_fndoc("nvml")
 def get_device_cpuset(
     topology: topology_t, device: pynvml.c_nvmlDevice_t, cpuset: hwloc_cpuset_t
 ) -> None:
-    _checkc(_pyhwloc_lib.pyhwloc_nvml_get_device_cpuset(topology, device, cpuset))
+    _checkc(_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_cpuset(topology, device, cpuset))
 
 
-_pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index.argtypes = [
+_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev_by_index.argtypes = [
     topology_t,
     ctypes.c_uint,
 ]
-_pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index.restype = obj_t
+_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev_by_index.restype = obj_t
 
 
 @_c_prefix_fndoc("nvml")
 def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr | None:
-    dev_obj = _pyhwloc_lib.pyhwloc_nvml_get_device_osdev_by_index(topology, idx)
+    dev_obj = _pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev_by_index(topology, idx)
     if not dev_obj:
         return None
     return dev_obj
 
 
-_pyhwloc_lib.pyhwloc_nvml_get_device_osdev.argtypes = [
+_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev.argtypes = [
     topology_t,
     pynvml.c_nvmlDevice_t,
 ]
-_pyhwloc_lib.pyhwloc_nvml_get_device_osdev.restype = obj_t
+_pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev.restype = obj_t
 
 
 @_c_prefix_fndoc("nvml")
 def get_device_osdev(
     topology: topology_t, device: pynvml.c_nvmlDevice_t
 ) -> ObjPtr | None:
-    dev_obj = _pyhwloc_lib.pyhwloc_nvml_get_device_osdev(topology, device)
+    dev_obj = _pyhwloc_nvml_lib.pyhwloc_nvml_get_device_osdev(topology, device)
     if not dev_obj:
         return None
     return dev_obj

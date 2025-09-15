@@ -22,7 +22,7 @@ import os
 
 import cuda.bindings.runtime as cudart
 
-from .core import ObjPtr, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
+from .core import ObjPtr, _checkc, hwloc_cpuset_t, obj_t, topology_t
 from .lib import _c_prefix_fndoc, _lib_path
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00178.php
@@ -40,14 +40,14 @@ def _check_cudart(status: cudart.cudaError_t) -> None:
         raise RuntimeError(msg)
 
 
-_pyhwloc_lib.pyhwloc_cudart_get_device_pci_ids.argtypes = [
+_pyhwloc_cudart_lib.pyhwloc_cudart_get_device_pci_ids.argtypes = [
     topology_t,
     ctypes.c_int,  # device index
     ctypes.POINTER(ctypes.c_int),  # domain
     ctypes.POINTER(ctypes.c_int),  # bus
     ctypes.POINTER(ctypes.c_int),  # dev
 ]
-_pyhwloc_lib.pyhwloc_cudart_get_device_pci_ids.restype = ctypes.c_int
+_pyhwloc_cudart_lib.pyhwloc_cudart_get_device_pci_ids.restype = ctypes.c_int
 
 
 @_c_prefix_fndoc("cudart")
@@ -57,7 +57,7 @@ def get_device_pci_ids(topology: topology_t, idx: int) -> tuple[int, int, int]:
     dev = ctypes.c_int()
 
     _checkc(
-        _pyhwloc_lib.pyhwloc_cudart_get_device_pci_ids(
+        _pyhwloc_cudart_lib.pyhwloc_cudart_get_device_pci_ids(
             topology, idx, ctypes.byref(domain), ctypes.byref(bus), ctypes.byref(dev)
         )
     )
@@ -65,40 +65,42 @@ def get_device_pci_ids(topology: topology_t, idx: int) -> tuple[int, int, int]:
     return domain.value, bus.value, dev.value
 
 
-_pyhwloc_lib.pyhwloc_cudart_get_device_cpuset.argtypes = [
+_pyhwloc_cudart_lib.pyhwloc_cudart_get_device_cpuset.argtypes = [
     topology_t,
     ctypes.c_int,  # device index
     hwloc_cpuset_t,
 ]
-_pyhwloc_lib.pyhwloc_cudart_get_device_cpuset.restype = ctypes.c_int
+_pyhwloc_cudart_lib.pyhwloc_cudart_get_device_cpuset.restype = ctypes.c_int
 
 
 @_c_prefix_fndoc("cudart")
 def get_device_cpuset(topology: topology_t, idx: int, cpuset: hwloc_cpuset_t) -> None:
-    _checkc(_pyhwloc_lib.pyhwloc_cudart_get_device_cpuset(topology, idx, cpuset))
+    _checkc(_pyhwloc_cudart_lib.pyhwloc_cudart_get_device_cpuset(topology, idx, cpuset))
 
 
-_pyhwloc_lib.pyhwloc_cudart_get_device_pcidev.argtypes = [
+_pyhwloc_cudart_lib.pyhwloc_cudart_get_device_pcidev.argtypes = [
     topology_t,
     ctypes.c_int,  # device index
 ]
-_pyhwloc_lib.pyhwloc_cudart_get_device_pcidev.restype = obj_t
+_pyhwloc_cudart_lib.pyhwloc_cudart_get_device_pcidev.restype = obj_t
 
 
 @_c_prefix_fndoc("cudart")
 def get_device_pcidev(topology: topology_t, idx: int) -> ObjPtr | None:
-    dev_obj = _pyhwloc_lib.pyhwloc_cudart_get_device_pcidev(topology, idx)
+    dev_obj = _pyhwloc_cudart_lib.pyhwloc_cudart_get_device_pcidev(topology, idx)
     if not dev_obj:
         return None
     return dev_obj
 
 
-_pyhwloc_lib.pyhwloc_cudart_get_device_osdev_by_index.restype = obj_t
+_pyhwloc_cudart_lib.pyhwloc_cudart_get_device_osdev_by_index.restype = obj_t
 
 
 @_c_prefix_fndoc("cudart")
 def get_device_osdev_by_index(topology: topology_t, idx: int) -> ObjPtr | None:
-    dev_obj = _pyhwloc_lib.pyhwloc_cudart_get_device_osdev_by_index(topology, idx)
+    dev_obj = _pyhwloc_cudart_lib.pyhwloc_cudart_get_device_osdev_by_index(
+        topology, idx
+    )
     if not dev_obj:
         return None
     return dev_obj
