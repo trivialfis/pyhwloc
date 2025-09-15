@@ -51,7 +51,7 @@ jobs:
         git clone https://github.com/open-mpi/hwloc.git
         cd hwloc                # pyhwloc/hwloc
         ./autogen.sh
-        ./configure --prefix=$CONDA_PREFIX --enable-doxygen
+        ./configure --prefix=$CONDA_PREFIX --enable-doxygen --disable-nvml
         make -j$(nproc) install
 
     - name: Build doxygen XML
