@@ -722,7 +722,7 @@ class Topology:
         self,
         target: _BindTarget,
         policy: MemBindPolicy,
-        flags: _Flags[MemBindFlags],
+        flags: _Flags[MemBindFlags] = 0,
     ) -> None:
         """Bind the current process memory to specified NUMA nodes. The current process
         is assumed to be single-threaded.
@@ -768,7 +768,7 @@ class Topology:
         pid: int,
         target: _BindTarget,
         policy: MemBindPolicy,
-        flags: _Flags[MemBindFlags],
+        flags: _Flags[MemBindFlags] = 0,
     ) -> None:
         """Bind specific process memory to NUMA nodes.
 
@@ -830,7 +830,7 @@ class Topology:
         mem: memoryview,
         target: _BindTarget,
         policy: MemBindPolicy,
-        flags: _Flags[MemBindFlags],
+        flags: _Flags[MemBindFlags] = 0,
     ) -> None:
         """Bind memory area to NUMA nodes.
 
