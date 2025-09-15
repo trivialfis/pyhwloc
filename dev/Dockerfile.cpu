@@ -11,7 +11,7 @@ RUN \
 
 RUN mkdir ws
 
-COPY pyhwloc_dev.yml ws/pyhwloc_dev.yml
+COPY pyhwloc_ext_dev.yml ws/pyhwloc_dev.yml
 
 RUN mamba env update -n base -f ws/pyhwloc_dev.yml -v && mamba clean --all --yes
 
@@ -27,3 +27,13 @@ COPY install_hwloc.sh ws/install_hwloc.sh
 RUN \
     cd /ws/ && \
     ./install_hwloc.sh
+
+RUN \
+    cd /ws && \
+    git clone https://github.com/doxygen/doxygen.git
+
+COPY install_doxygen.sh ws/install_doxygen.sh
+
+RUN \
+    cd /ws/ && \
+    ./install_doxygen.sh

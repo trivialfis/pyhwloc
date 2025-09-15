@@ -26,8 +26,11 @@ dependencies:
 - pytest
 - pytest-cov
 # -- document
-- doxygen
 - breathe
 - sphinx
 - myst-parser
 - sphinx-gallery
+# -- doxygen
+- libclang
+- flex
+- bison
