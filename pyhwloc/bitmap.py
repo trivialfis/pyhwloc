@@ -203,7 +203,6 @@ class Bitmap:
             yield bit
             bit = _bitmap.bitmap_next_unset(self._hdl, bit)
 
-    @property
     def weight(self) -> int:
         """Number of set bits in the bitmap."""
         return _bitmap.bitmap_weight(self._hdl)

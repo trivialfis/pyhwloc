@@ -883,7 +883,7 @@ class Topology:
     # someone asks for it.
 
     # CPU Binding Methods
-    def set_cpu_bind(
+    def set_cpubind(
         self, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
     ) -> None:
         """Bind current process to specified CPUs.
@@ -898,7 +898,7 @@ class Topology:
         bitmap = _to_bitmap(target)
         _core.set_cpubind(self.native_handle, bitmap.native_handle, _or_flags(flags))
 
-    def get_cpu_bind(self, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
+    def get_cpubind(self, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
         """Get current process CPU binding.
 
         Parameters
@@ -914,7 +914,7 @@ class Topology:
         _core.get_cpubind(self.native_handle, cpuset.native_handle, _or_flags(flags))
         return cpuset
 
-    def set_proc_cpu_bind(
+    def set_proc_cpubind(
         self, pid: int, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
     ) -> None:
         """Bind specific process to CPUs.
@@ -942,7 +942,7 @@ class Topology:
             if hdl:
                 _core._close_proc_handle(hdl)
 
-    def get_proc_cpu_bind(self, pid: int, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
+    def get_proc_cpubind(self, pid: int, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
         """Get process CPU binding.
 
         Parameters
@@ -971,7 +971,7 @@ class Topology:
             if hdl:
                 _core._close_proc_handle(hdl)
 
-    def set_thread_cpu_bind(
+    def set_thread_cpubind(
         self, thread_id: int, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
     ) -> None:
         """Bind specific thread to CPUs.
@@ -999,7 +999,7 @@ class Topology:
             if hdl:
                 _core._close_thread_handle(hdl)
 
-    def get_thread_cpu_bind(
+    def get_thread_cpubind(
         self, thread_id: int, flags: _Flags[CpuBindFlags] = 0
     ) -> _Bitmap:
         """Get thread CPU binding.
