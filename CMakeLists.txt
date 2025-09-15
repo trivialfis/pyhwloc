@@ -6,7 +6,6 @@ list(APPEND CMAKE_MODULE_PATH "${pyhwloc_SOURCE_DIR}/cmake/")
 
 find_package(hwloc REQUIRED)
 find_package(CUDAToolkit REQUIRED COMPONENTS nvml cuda_driver cudart_static)
-message(STATUS "NVML: ${CUDAToolkit_nvml_FOUND}")
 
 add_library(pyhwloc SHARED src/pyhwloc.c)
 target_link_libraries(pyhwloc PRIVATE ${HWLOC_LIBRARY})
