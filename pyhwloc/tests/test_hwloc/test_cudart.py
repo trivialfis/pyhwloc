@@ -20,7 +20,7 @@ _ = pytest.importorskip("pyhwloc.hwloc.cudart", exc_type=OSError)  # type: ignor
 from .utils import _skip_if_none, has_gpu
 
 if not has_gpu():
-    pytest.skip("GPU discovery tests.")
+    pytest.skip("GPU discovery tests.", allow_module_level=True)
 
 from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
