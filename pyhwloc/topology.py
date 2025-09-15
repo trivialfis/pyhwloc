@@ -1105,3 +1105,11 @@ def get_api_version() -> tuple[int, int, int]:
     minor = (v >> 8) & 0xFF
     rev = v & 0xFF
     return major, minor, rev
+
+
+_major, _minor, _rev = get_api_version()
+if not (_major == 3 and _minor == 0 and _rev == 0):
+    raise RuntimeError(
+        "Invalid API version. You have installed a different version of hwloc. "
+        f"Expecting API version: 3.0.0, got {_major}.{_minor}.{_rev}) ."
+    )
