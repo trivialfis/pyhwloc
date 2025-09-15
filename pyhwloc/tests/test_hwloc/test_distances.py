@@ -21,6 +21,7 @@ import ctypes
 from functools import partial
 
 from pyhwloc.hwloc.core import (
+    DistancesAddFlag,
     DistancesKind,
     ObjType,
     distances_add_commit,
@@ -32,7 +33,6 @@ from pyhwloc.hwloc.core import (
     distances_obj_pair_values,
     distances_release_remove,
     get_obj_by_type,
-    hwloc_distances_add_flag_e,
     hwloc_distances_s,
     hwloc_obj,
     hwloc_uint64_t,
@@ -115,9 +115,7 @@ def test_distances_comprehensive() -> None:
         values,
     )
     # Group the objects based on distance.
-    distances_add_commit(
-        topo, handle, hwloc_distances_add_flag_e.HWLOC_DISTANCES_ADD_FLAG_GROUP
-    )
+    distances_add_commit(topo, handle, DistancesAddFlag.HWLOC_DISTANCES_ADD_FLAG_GROUP)
     # Refresh topology
     topology_refresh(topo)
     # Check topology depth
