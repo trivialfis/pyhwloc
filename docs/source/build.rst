@@ -42,8 +42,6 @@ Building PyHwloc from source on Linux
 Create a Binary Wheel
 =====================
 
-First build the c ext via CMake, then run
-
 .. code-block:: sh
 
   pip wheel -v . -w dist/ --no-build-isolation
