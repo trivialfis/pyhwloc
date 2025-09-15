@@ -33,8 +33,8 @@ from .lib import (
     _cstructdoc,
     _cuniondoc,
     _hwloc_error,
-    _pyhwloc_lib,
     _PrintableStruct,
+    _pyhwloc_lib,
 )
 
 hwloc_uint64_t = ctypes.c_uint64

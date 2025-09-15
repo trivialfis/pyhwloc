@@ -135,6 +135,14 @@ class Object:
     def is_os_device(self) -> bool:
         return self.type == ObjType.HWLOC_OBJ_OS_DEVICE
 
+    @property
+    def is_package(self) -> bool:
+        return self.type == ObjType.HWLOC_OBJ_PACKAGE
+
+    @property
+    def is_machine(self) -> bool:
+        return self.type == ObjType.HWLOC_OBJ_MACHINE
+
     def is_osdev_type(self, typ: int) -> bool:
         if not self.is_os_device:
             return False
@@ -148,6 +156,10 @@ class Object:
     @property
     def is_osdev_gpu(self) -> bool:
         return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_GPU)
+
+    @property
+    def is_osdev_storage(self) -> bool:
+        return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_STORAGE)
 
     # Kinds of object Type
     @property

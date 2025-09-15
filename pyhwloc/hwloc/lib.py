@@ -92,7 +92,7 @@ def _checkc(status: int) -> None:
             raise ValueError(msg)
         case errno.ENOMEM:
             raise MemoryError(msg)
-        case  errno.ENOENT:
+        case errno.ENOENT:
             raise FileNotFoundError(msg)
         case 0:
             if _IS_WINDOWS:

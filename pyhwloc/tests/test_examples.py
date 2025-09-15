@@ -64,3 +64,9 @@ def test_membind() -> None:
     script = os.path.join(demo_dir, "membind.py")
     results = subprocess.check_call(["python", script], stdout=subprocess.PIPE)
     assert results == 0
+
+
+def test_gds_hops() -> None:
+    script = os.path.join(demo_dir, "gds_hops.py")
+    results = subprocess.check_call(["python", script], stdout=subprocess.PIPE)
+    assert results == 0
