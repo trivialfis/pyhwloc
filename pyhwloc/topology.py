@@ -36,6 +36,7 @@ from typing import (
 
 from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
+from .hwloc import lib as _lib
 from .hwobject import Object as _Object
 from .hwobject import ObjType as _ObjType
 from .utils import _Flags, _memview_to_mem, _or_flags, _reuse_doc
@@ -1107,9 +1108,10 @@ def get_api_version() -> tuple[int, int, int]:
     return major, minor, rev
 
 
-_major, _minor, _rev = get_api_version()
-if not (_major == 3 and _minor == 0 and _rev == 0):
-    raise RuntimeError(
-        "Invalid API version. You have installed a different version of hwloc. "
-        f"Expecting API version: 3.0.0, got {_major}.{_minor}.{_rev}) ."
-    )
+if not _lib._IS_DOC_BUILD:
+    _major, _minor, _rev = get_api_version()
+    if not (_major == 3 and _minor == 0 and _rev == 0):
+        raise RuntimeError(
+            "Invalid API version. You have installed a different version of hwloc. "
+            f"Expecting API version: 3.0.0, got {_major}.{_minor}.{_rev}) ."
+        )

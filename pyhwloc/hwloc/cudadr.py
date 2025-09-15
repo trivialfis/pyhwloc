@@ -25,9 +25,10 @@ import cuda.bindings.driver as cuda
 from .core import ObjPtr, _checkc, hwloc_cpuset_t, obj_t, topology_t
 from .lib import _IS_DOC_BUILD, _c_prefix_fndoc, _lib_path
 
-_pyhwloc_cuda_lib = ctypes.cdll.LoadLibrary(
-    os.path.join(_lib_path, "libpyhwloc_cuda.so")
-)
+if not _IS_DOC_BUILD:
+    _pyhwloc_cuda_lib = ctypes.cdll.LoadLibrary(
+        os.path.join(_lib_path, "libpyhwloc_cuda.so")
+    )
 
 
 def _check_cu(status: cuda.CUresult) -> None:
