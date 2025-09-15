@@ -34,6 +34,7 @@ from .lib import (
     _cuniondoc,
     _hwloc_error,
     _pyhwloc_lib,
+    _PrintableStruct,
 )
 
 hwloc_uint64_t = ctypes.c_uint64
@@ -153,7 +154,7 @@ def compare_types(type1: ObjType, type2: ObjType) -> int:
 
 
 @_cstructdoc()
-class hwloc_info_s(ctypes.Structure):
+class hwloc_info_s(_PrintableStruct):
     _fields_ = [
         ("name", ctypes.c_char_p),  # Info name
         ("value", ctypes.c_char_p),  # Info value
@@ -161,7 +162,7 @@ class hwloc_info_s(ctypes.Structure):
 
 
 @_cstructdoc()
-class hwloc_infos_s(ctypes.Structure):
+class hwloc_infos_s(_PrintableStruct):
     _fields_ = [
         ("array", ctypes.POINTER(hwloc_info_s)),
         ("count", ctypes.c_uint),
@@ -176,7 +177,7 @@ else:
 
 
 @_cstructdoc(parent="hwloc_obj_attr_u")
-class hwloc_memory_page_type_s(ctypes.Structure):
+class hwloc_memory_page_type_s(_PrintableStruct):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of pages
         ("count", hwloc_uint64_t),  # Number of pages of this size
@@ -184,9 +185,7 @@ class hwloc_memory_page_type_s(ctypes.Structure):
 
 
 @_cstructdoc(parent="hwloc_obj_attr_u")
-class hwloc_numanode_attr_s(ctypes.Structure):
-    """See :c:struct:`hwloc_obj_attr_u.hwloc_numanode_attr_s`"""
-
+class hwloc_numanode_attr_s(_PrintableStruct):
     _fields_ = [
         ("local_memory", hwloc_uint64_t),  # Local memory (in bytes)
         ("page_types_len", ctypes.c_uint),  # Size of array page_types
@@ -198,7 +197,7 @@ class hwloc_numanode_attr_s(ctypes.Structure):
 
 
 @_cstructdoc("hwloc_obj_attr_u")
-class hwloc_cache_attr_s(ctypes.Structure):
+class hwloc_cache_attr_s(_PrintableStruct):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of cache in bytes
         ("depth", ctypes.c_uint),  # Depth of cache (e.g., L1, L2, ...etc.)
@@ -212,7 +211,7 @@ class hwloc_cache_attr_s(ctypes.Structure):
 
 
 @_cstructdoc("hwloc_obj_attr_u")
-class hwloc_group_attr_s(ctypes.Structure):
+class hwloc_group_attr_s(_PrintableStruct):
     _fields_ = [
         ("depth", ctypes.c_uint),  # Depth of group object
         ("kind", ctypes.c_uint),  # Internally-used kind of group
@@ -228,7 +227,7 @@ class hwloc_group_attr_s(ctypes.Structure):
 
 
 @_cstructdoc("hwloc_obj_attr_u")
-class hwloc_pcidev_attr_s(ctypes.Structure):
+class hwloc_pcidev_attr_s(_PrintableStruct):
     _fields_ = [
         (
             "domain",
@@ -265,7 +264,7 @@ class hwloc_bridge_upstream_u(ctypes.Union):
 
 
 @_cstructdoc("hwloc_obj_attr_u.hwloc_bridge_downstream_u")
-class hwloc_bridge_downstream_pci_s(ctypes.Structure):
+class hwloc_bridge_downstream_pci_s(_PrintableStruct):
     _fields_ = [
         ("domain", ctypes.c_uint),  # Domain number the downstream PCI buses
         ("secondary_bus", ctypes.c_ubyte),  # First PCI bus number below the bridge
@@ -281,7 +280,7 @@ class hwloc_bridge_downstream_u(ctypes.Union):
 
 
 @_cstructdoc("hwloc_obj_attr_u")
-class hwloc_bridge_attr_s(ctypes.Structure):
+class hwloc_bridge_attr_s(_PrintableStruct):
     _fields_ = [
         ("upstream", hwloc_bridge_upstream_u),
         (
@@ -302,7 +301,7 @@ hwloc_obj_osdev_types_t = ctypes.c_ulong
 
 
 @_cstructdoc("hwloc_obj_attr_u")
-class hwloc_osdev_attr_s(ctypes.Structure):
+class hwloc_osdev_attr_s(_PrintableStruct):
     _fields_ = [
         (
             "types",
@@ -325,7 +324,7 @@ class hwloc_obj_attr_u(ctypes.Union):
 
 
 @_cstructdoc()
-class hwloc_obj(ctypes.Structure):
+class hwloc_obj(_PrintableStruct):
     pass
 
 
@@ -1293,7 +1292,7 @@ def topology_set_components(topology: topology_t, flags: int, name: str) -> None
 
 
 @_cstructdoc()
-class hwloc_topology_discovery_support(ctypes.Structure):
+class hwloc_topology_discovery_support(_PrintableStruct):
     _fields_ = [
         ("pu", ctypes.c_ubyte),
         ("numa", ctypes.c_ubyte),
@@ -1305,7 +1304,7 @@ class hwloc_topology_discovery_support(ctypes.Structure):
 
 
 @_cstructdoc()
-class hwloc_topology_cpubind_support(ctypes.Structure):
+class hwloc_topology_cpubind_support(_PrintableStruct):
     _fields_ = [
         ("set_thisproc_cpubind", ctypes.c_ubyte),
         ("get_thisproc_cpubind", ctypes.c_ubyte),
@@ -1322,7 +1321,7 @@ class hwloc_topology_cpubind_support(ctypes.Structure):
 
 
 @_cstructdoc()
-class hwloc_topology_membind_support(ctypes.Structure):
+class hwloc_topology_membind_support(_PrintableStruct):
     _fields_ = [
         ("set_thisproc_membind", ctypes.c_ubyte),
         ("get_thisproc_membind", ctypes.c_ubyte),
@@ -1344,14 +1343,14 @@ class hwloc_topology_membind_support(ctypes.Structure):
 
 
 @_cstructdoc()
-class hwloc_topology_misc_support(ctypes.Structure):
+class hwloc_topology_misc_support(_PrintableStruct):
     _fields_ = [
         ("imported_support", ctypes.c_ubyte),
     ]
 
 
 @_cstructdoc()
-class hwloc_topology_support(ctypes.Structure):
+class hwloc_topology_support(_PrintableStruct):
     _fields_ = [
         ("discovery", ctypes.POINTER(hwloc_topology_discovery_support)),
         ("cpubind", ctypes.POINTER(hwloc_topology_cpubind_support)),
@@ -2677,7 +2676,7 @@ class hwloc_distances_transform_e(IntEnum):
 
 
 @_cstructdoc()
-class hwloc_distances_s(ctypes.Structure):
+class hwloc_distances_s(_PrintableStruct):
     _fields_ = [
         ("nbobjs", ctypes.c_uint),
         ("objs", ctypes.POINTER(obj_t)),
@@ -3058,7 +3057,7 @@ class hwloc_location_u(ctypes.Union):
 
 
 @_cstructdoc()
-class hwloc_location(ctypes.Structure):
+class hwloc_location(_PrintableStruct):
     _fields_ = [
         ("type", ctypes.c_int),  # hwloc_location_type_e
         ("location", hwloc_location_u),

@@ -132,12 +132,12 @@ class Bitmap:
     def __deepcopy__(self, memo: dict) -> Bitmap:
         return self.__copy__()
 
+    @_reuse_doc(_bitmap.bitmap_set)
     def set(self, bit: int) -> None:
-        """Set a bit in the bitmap."""
         _bitmap.bitmap_set(self._hdl, bit)
 
+    @_reuse_doc(_bitmap.bitmap_clr)
     def clr(self, bit: int) -> None:
-        """Clear a bit in the bitmap."""
         _bitmap.bitmap_clr(self._hdl, bit)
 
     def set_range(self, begin: int, end: int) -> None:
@@ -148,28 +148,28 @@ class Bitmap:
         """Clear a range of bits [begin, end)."""
         _bitmap.bitmap_clr_range(self._hdl, begin, end)
 
+    @_reuse_doc(_bitmap.bitmap_zero)
     def zero(self) -> None:
-        """Clear all bits in the bitmap."""
         _bitmap.bitmap_zero(self._hdl)
 
+    @_reuse_doc(_bitmap.bitmap_fill)
     def fill(self) -> None:
-        """Set all bits in the bitmap."""
         _bitmap.bitmap_fill(self._hdl)
 
+    @_reuse_doc(_bitmap.bitmap_only)
     def only(self, bit: int) -> None:
-        """Clear all bits except the specified one."""
         _bitmap.bitmap_only(self._hdl, bit)
 
+    @_reuse_doc(_bitmap.bitmap_allbut)
     def allbut(self, bit: int) -> None:
-        """Set all bits except the specified one."""
         _bitmap.bitmap_allbut(self._hdl, bit)
 
+    @_reuse_doc(_bitmap.bitmap_singlify)
     def singlify(self) -> None:
-        """Keep only the lowest set bit."""
         _bitmap.bitmap_singlify(self._hdl)
 
+    @_reuse_doc(_bitmap.bitmap_andnot)
     def andnot(self, other: Bitmap) -> Bitmap:
-        """Compute the bitwise AND NOT of this bitmap and another."""
         result = Bitmap()
         _bitmap.bitmap_andnot(result._hdl, self._hdl, other._hdl)
         return result
@@ -203,34 +203,33 @@ class Bitmap:
             yield bit
             bit = _bitmap.bitmap_next_unset(self._hdl, bit)
 
+    @_reuse_doc(_bitmap.bitmap_weight)
     def weight(self) -> int:
         """Number of set bits in the bitmap."""
         return _bitmap.bitmap_weight(self._hdl)
 
+    @_reuse_doc(_bitmap.bitmap_first)
     def first(self) -> int:
-        """First set bit, or -1 if bitmap is empty."""
         return _bitmap.bitmap_first(self._hdl)
 
+    @_reuse_doc(_bitmap.bitmap_last)
     def last(self) -> int:
-        """Last set bit, or -1 if bitmap is empty."""
         return _bitmap.bitmap_last(self._hdl)
 
-    @property
+    @_reuse_doc(_bitmap.bitmap_iszero)
     def is_zero(self) -> bool:
-        """True if bitmap has no set bits."""
         return _bitmap.bitmap_iszero(self._hdl)
 
-    @property
+    @_reuse_doc(_bitmap.bitmap_isfull)
     def is_full(self) -> bool:
-        """True if bitmap has all bits set."""
         return _bitmap.bitmap_isfull(self._hdl)
 
+    @_reuse_doc(_bitmap.bitmap_intersects)
     def intersects(self, other: Bitmap) -> bool:
-        """True if this bitmap intersects with another."""
         return _bitmap.bitmap_intersects(self._hdl, other._hdl)
 
+    @_reuse_doc(_bitmap.bitmap_isincluded)
     def is_included(self, other: Bitmap) -> bool:
-        """True if this bitmap is included in another."""
         return _bitmap.bitmap_isincluded(self._hdl, other._hdl)
 
     def __contains__(self, bit: int) -> bool:
@@ -247,7 +246,7 @@ class Bitmap:
 
     def any(self) -> bool:
         """True if bitmap has any set bits."""
-        return not self.is_zero
+        return not self.is_zero()
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Bitmap):

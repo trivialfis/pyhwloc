@@ -23,15 +23,15 @@ from pyhwloc.bitmap import Bitmap
 
 def test_bitmap_constructor_empty() -> None:
     bitmap = Bitmap()
-    assert bitmap.is_zero
+    assert bitmap.is_zero()
     assert bitmap.weight() == 0
 
 
 def test_bitmap_full_ctor() -> None:
     """Test full bitmap constructor."""
     bitmap = Bitmap.full()
-    assert bitmap.is_full
-    assert not bitmap.is_zero
+    assert bitmap.is_full()
+    assert not bitmap.is_zero()
     # Check that many bits are set
     count = 0
     for bit in bitmap:

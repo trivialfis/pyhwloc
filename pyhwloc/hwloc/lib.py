@@ -166,3 +166,18 @@ def _cuniondoc(parent: str | None = None) -> Callable[[Type], Type]:
         return union
 
     return _decorator
+
+
+class _PrintableStruct(ctypes.Structure):
+    def __str__(self) -> str:
+        result = ""
+        names = [f[0] for f in self._fields_]
+        for i, k in enumerate(names):
+            result += f"{k}:{getattr(self, k)}"
+            if i != len(names) - 1:
+                result += ", "
+        return result
+
+    def __repr__(self) -> str:
+        name = type(self).__name__
+        return f"{name}({self.__str__()})"
