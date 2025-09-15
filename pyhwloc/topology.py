@@ -73,13 +73,22 @@ def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
     return _from_impl(lambda hdl: _core.topology_set_xmlbuffer(hdl, xml_buffer), load)
 
 
-def _to_bitmap(target: _BindTarget) -> _Bitmap:
+def _not_nodeset(flags: int) -> bool:
+    return not bool(flags & MemBindFlags.HWLOC_MEMBIND_BYNODESET)
+
+
+def _to_bitmap(target: _BindTarget, is_cpuset: bool) -> _Bitmap:
     if isinstance(target, set):
         bitmap = _Bitmap.from_sched_set(target)
     elif isinstance(target, _Object):
-        ns = target.nodeset
-        if ns is None:
-            raise ValueError("Object has no associated NUMA nodes")
+        if is_cpuset:
+            ns = target.cpuset
+            if ns is None:
+                raise ValueError("Object has no associated CPUs.")
+        else:
+            ns = target.nodeset
+            if ns is None:
+                raise ValueError("Object has no associated NUMA nodes")
         bitmap = ns
     else:
         bitmap = target
@@ -730,10 +739,9 @@ class Topology:
             Additional flags for memory binding.
 
         """
-        bitmap = _to_bitmap(target)
-        _core.set_membind(
-            self.native_handle, bitmap.native_handle, policy, _or_flags(flags)
-        )
+        flags = _or_flags(flags)
+        bitmap = _to_bitmap(target, _not_nodeset(flags))
+        _core.set_membind(self.native_handle, bitmap.native_handle, policy, flags)
 
     def get_membind(
         self, flags: _Flags[MemBindFlags] = 0
@@ -777,12 +785,13 @@ class Topology:
         flags
             Additional flags for memory binding
         """
-        bitmap = _to_bitmap(target)
+        flags = _or_flags(flags)
+        bitmap = _to_bitmap(target, _not_nodeset(flags))
         hdl = None
         try:
             hdl = _core._open_proc_handle(pid, False)
             _core.set_proc_membind(
-                self.native_handle, hdl, bitmap.native_handle, policy, _or_flags(flags)
+                self.native_handle, hdl, bitmap.native_handle, policy, flags
             )
         finally:
             if hdl:
@@ -839,7 +848,8 @@ class Topology:
         flags
             Additional flags for memory binding.
         """
-        bitmap = _to_bitmap(target)
+        flags = _or_flags(flags)
+        bitmap = _to_bitmap(target, _not_nodeset(flags))
         addr, size = _memview_to_mem(mem)
 
         _core.set_area_membind(
@@ -848,7 +858,7 @@ class Topology:
             size,
             bitmap.native_handle,
             policy,
-            _or_flags(flags),
+            flags,
         )
 
     def get_area_membind(
@@ -883,9 +893,7 @@ class Topology:
     # someone asks for it.
 
     # CPU Binding Methods
-    def set_cpubind(
-        self, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
-    ) -> None:
+    def set_cpubind(self, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0) -> None:
         """Bind current process to specified CPUs.
 
         Parameters
@@ -895,7 +903,7 @@ class Topology:
         flags
             Additional flags for CPU binding
         """
-        bitmap = _to_bitmap(target)
+        bitmap = _to_bitmap(target, is_cpuset=True)
         _core.set_cpubind(self.native_handle, bitmap.native_handle, _or_flags(flags))
 
     def get_cpubind(self, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
@@ -928,7 +936,7 @@ class Topology:
         flags
             Additional flags for CPU binding
         """
-        bitmap = _to_bitmap(target)
+        bitmap = _to_bitmap(target, is_cpuset=True)
         hdl = None
         try:
             hdl = _core._open_proc_handle(pid)
@@ -985,7 +993,7 @@ class Topology:
         flags
             Additional flags for CPU binding
         """
-        bitmap = _to_bitmap(target)
+        bitmap = _to_bitmap(target, is_cpuset=True)
         hdl = None
         try:
             hdl = _core._open_thread_handle(thread_id, read_only=False)
