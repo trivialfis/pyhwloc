@@ -2008,6 +2008,8 @@ _pyhwloc_lib.pyhwloc_get_common_ancestor_obj.restype = obj_t
 @_cfndoc
 def get_common_ancestor_obj(topology: topology_t, obj1: ObjPtr, obj2: ObjPtr) -> ObjPtr:
     # This function cannot return NULL.
+    if not obj1 or not obj2:
+        raise ValueError("null object.")
     return _pyhwloc_lib.pyhwloc_get_common_ancestor_obj(topology, obj1, obj2)
 
 

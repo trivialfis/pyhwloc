@@ -437,6 +437,8 @@ class Object:
     # Looking at Ancestor and Child Objects
 
     def common_ancestor_obj(self, other: Object) -> Object:
+        if self.depth < 0 or other.depth < 0:
+            raise ValueError("This function only works with objects in the main tree.")
         return Object(
             _core.get_common_ancestor_obj(
                 self._topo.native_handle, self.native_handle, other.native_handle

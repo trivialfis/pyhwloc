@@ -85,17 +85,23 @@ def _checkc(status: int) -> None:
 
     err = ctypes.get_errno()
     msg = cstrerror(err)
-    if err == errno.ENOSYS:
-        raise NotImplementedError(msg)
-    elif err == errno.EINVAL:
-        raise ValueError(msg)
-    elif err == errno.ENOMEM:
-        raise MemoryError(msg)
-    if err == 0 and _IS_WINDOWS:
-        werr = ctypes.get_last_error()  # type: ignore[attr-defined]
-        if werr != 0:
-            raise ctypes.WinError(werr)  # type: ignore[attr-defined]
-    raise HwLocError(status, err, msg)
+    match err:
+        case errno.ENOSYS:
+            raise NotImplementedError(msg)
+        case errno.EINVAL:
+            raise ValueError(msg)
+        case errno.ENOMEM:
+            raise MemoryError(msg)
+        case  errno.ENOENT:
+            raise FileNotFoundError(msg)
+        case 0:
+            if _IS_WINDOWS:
+                werr = ctypes.get_last_error()  # type: ignore[attr-defined]
+                if werr != 0:
+                    raise ctypes.WinError(werr)  # type: ignore[attr-defined]
+            raise HwLocError(status, err, msg)
+        case _:
+            raise HwLocError(status, err, msg)
 
 
 def _hwloc_error(name: str) -> HwLocError:
