@@ -15,6 +15,7 @@
 import pytest
 
 cuda = pytest.importorskip("cuda.bindings.driver", exc_type=ImportError)
+_ = pytest.importorskip("pyhwloc.hwloc.cudadr", exc_type=OSError)  # type: ignore
 
 from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,

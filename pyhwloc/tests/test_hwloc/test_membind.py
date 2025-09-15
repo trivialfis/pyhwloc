@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
+
 import os
 import platform
 
@@ -38,6 +40,7 @@ from pyhwloc.hwloc.libc import free as cfree
 from pyhwloc.hwloc.libc import malloc as cmalloc
 
 from .test_core import Topology
+from .utils import has_nice_cap
 
 DFT_POLICY = (
     MemBindPolicy.HWLOC_MEMBIND_FIRSTTOUCH
@@ -47,6 +50,9 @@ DFT_POLICY = (
 )
 
 
+@pytest.mark.skipif(
+    condition=not has_nice_cap(), reason="Running in a sandboxed environment."
+)
 def test_membind() -> None:
     """Test the set_membind function with different policies and flags."""
     topo = Topology()
@@ -122,10 +128,9 @@ def test_proc_membind() -> None:
     _close_proc_handle(phdl)
 
 
-@pytest.mark.xfail(
-    "Windows" == platform.system(),
-    reason="HwLoc not implemented.",
-    raises=NotImplementedError,
+@pytest.mark.skipif(
+    condition=not has_nice_cap() or "Windows" == platform.system(),
+    reason="Running in a sandboxed environment or on Windows.",
 )
 def test_area_membind() -> None:
     topo = Topology()

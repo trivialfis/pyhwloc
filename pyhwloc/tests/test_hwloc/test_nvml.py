@@ -14,8 +14,6 @@
 #
 import pytest
 
-nm = pytest.importorskip("pynvml", exc_type=ImportError)
-
 from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
@@ -26,6 +24,10 @@ from pyhwloc.hwloc.core import (
     ObjType,
     TypeFilter,
 )
+
+nm = pytest.importorskip("pynvml", exc_type=ImportError)
+_ = pytest.importorskip("pyhwloc.hwloc.nvml", exc_type=OSError)  # type: ignore
+
 from pyhwloc.hwloc.nvml import get_device_cpuset, get_device_osdev
 
 from .test_core import Topology

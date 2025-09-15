@@ -1,0 +1,29 @@
+FROM condaforge/miniforge3:25.3.1-0
+
+RUN set -x \
+    # basic dependencies
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub && \
+    apt-get update && apt-get upgrade -y
+
+RUN \
+    # mamba installation dependencies
+    apt-get install unzip bzip2 curl -y
+
+RUN mkdir ws
+
+COPY pyhwloc_dev.yml ws/pyhwloc_dev.yml
+
+RUN mamba env update -n base -f ws/pyhwloc_dev.yml -v && mamba clean --all --yes
+
+RUN \
+    apt-get install automake autoconf libtool -y
+
+RUN \
+    cd /ws/ && \
+    git clone https://github.com/open-mpi/hwloc.git
+
+COPY install_hwloc.sh ws/install_hwloc.sh
+
+RUN \
+    cd /ws/ && \
+    ./install_hwloc.sh
