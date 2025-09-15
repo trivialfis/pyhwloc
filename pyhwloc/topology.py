@@ -979,7 +979,7 @@ class Topology:
         flags
             Additional flags for CPU binding
         """
-
+        hdl = None
         try:
             hdl = _core._open_thread_handle(thread_id, read_only=False)
             _core.set_thread_cpubind(
@@ -989,7 +989,8 @@ class Topology:
                 _or_flags(flags),
             )
         finally:
-            _core._close_thread_handle(hdl)
+            if hdl:
+                _core._close_thread_handle(hdl)
 
     def get_thread_cpu_bind(
         self, thread_id: int, flags: _Flags[CpuBindFlags] = 0
@@ -1008,6 +1009,7 @@ class Topology:
         Bitmap representing thread CPU binding
         """
         cpuset = _Bitmap()
+        hdl = None
         try:
             hdl = _core._open_thread_handle(thread_id, read_only=True)
             _core.get_thread_cpubind(
@@ -1018,7 +1020,8 @@ class Topology:
             )
             return cpuset
         finally:
-            _core._close_thread_handle(hdl)
+            if hdl:
+                _core._close_thread_handle(hdl)
 
     def get_last_cpu_location(self, flags: _Flags[CpuBindFlags] = 0) -> _Bitmap:
         """Get where current process last ran.
