@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
@@ -17,7 +18,6 @@ def run_cmake_build(
     build_type: str = "Release",
     parallel_jobs: int | None = None,
     cmake_args: list[str] | None = None,
-    skip_on_error: bool = False,
 ) -> None:
     """Run CMake build process.
 
@@ -51,8 +51,10 @@ def run_cmake_build(
     # Configure CMake
     configure_cmd = [
         "cmake",
-        "-S", str(source_path),
-        "-B", str(build_path),
+        "-S",
+        str(source_path),
+        "-B",
+        str(build_path),
         f"-DCMAKE_BUILD_TYPE={build_type}",
         *cmake_args,
     ]
@@ -61,29 +63,23 @@ def run_cmake_build(
     result = subprocess.run(configure_cmd, check=False)
     if result.returncode != 0:
         error_msg = f"CMake configuration failed with code {result.returncode}"
-        if skip_on_error:
-            print(f"Warning: {error_msg} (continuing anyway)")
-            return
         sys.exit(error_msg)
 
     # Build with CMake
     build_cmd = [
         "cmake",
-        "--build", str(build_path),
-        "--config", build_type,
-        "--parallel", str(parallel_jobs),
+        "--build",
+        str(build_path),
+        "--config",
+        build_type,
+        "--parallel",
+        str(parallel_jobs),
     ]
 
-    print(f"Building with CMake: {' '.join(build_cmd)}")
     result = subprocess.run(build_cmd, check=False)
     if result.returncode != 0:
         error_msg = f"CMake build failed with code {result.returncode}"
-        if skip_on_error:
-            print(f"Warning: {error_msg} (continuing anyway)")
-            return
         sys.exit(error_msg)
-
-    print("CMake build completed successfully")
 
 
 class CMakeBuildHook(BuildHookInterface):
@@ -91,24 +87,18 @@ class CMakeBuildHook(BuildHookInterface):
 
     PLUGIN_NAME = "cmake"
 
-    def initialize(self, version: str, build_data):
+    def initialize(self, version: str, build_data: dict[str, Any]) -> None:
         """Run CMake build before packaging."""
-        print(build_data)
-        # print("Running CMake build hook...")
-
         # Check if native library already exists
         lib_dir = Path(self.root) / "pyhwloc" / "_lib"
-        if lib_dir.exists() and list(lib_dir.glob("*.so")):
+        if lib_dir.exists() and (
+            list(lib_dir.glob("*pyhwloc.so")) or list(lib_dir.glob("*pyhwloc.dll"))
+        ):
             print("Native libraries already exist, skipping CMake build")
             return
 
         # Run CMake build directly
-        try:
-            run_cmake_build(source_dir=self.root, skip_on_error=True)
-            print("CMake build completed successfully")
-        except Exception as e:
-            print(f"Exception during CMake build: {e}")
-            print("Continuing with package build anyway...")
+        run_cmake_build(source_dir=self.root)
 
 
 if __name__ == "__main__":

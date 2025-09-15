@@ -78,9 +78,9 @@ class HwLocError(RuntimeError):
         )
 
 
-def _checkc(status: int) -> None:
+def _checkc(status: int, expected: int = 0) -> None:
     """Raise errors for hwloc functions."""
-    if status == 0:
+    if status == expected:
         return
 
     err = ctypes.get_errno()
