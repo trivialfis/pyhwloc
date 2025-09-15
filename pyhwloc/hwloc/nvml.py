@@ -18,11 +18,12 @@ Interoperability with the NVIDIA Management Library
 """
 
 import ctypes
+import os
 
 import pynvml
 
 from .core import ObjPtr, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
-from .lib import _c_prefix_fndoc
+from .lib import _c_prefix_fndoc, _lib_path
 
 #####################################################
 # Interoperability with the NVIDIA Management Library
@@ -30,6 +31,10 @@ from .lib import _c_prefix_fndoc
 
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00179.php
+
+_pyhwloc_nvml_lib = ctypes.cdll.LoadLibrary(
+    os.path.join(_lib_path, "libpyhwloc_nvml.so")
+)
 
 
 _pyhwloc_lib.pyhwloc_nvml_get_device_cpuset.argtypes = [

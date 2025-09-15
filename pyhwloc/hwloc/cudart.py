@@ -18,13 +18,18 @@ Interoperability with the CUDA Runtime API
 """
 
 import ctypes
+import os
 
 import cuda.bindings.runtime as cudart
 
 from .core import ObjPtr, _checkc, _pyhwloc_lib, hwloc_cpuset_t, obj_t, topology_t
-from .lib import _c_prefix_fndoc
+from .lib import _c_prefix_fndoc, _lib_path
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00178.php
+
+_pyhwloc_cudart_lib = ctypes.cdll.LoadLibrary(
+    os.path.join(_lib_path, "libpyhwloc_cudart.so")
+)
 
 
 def _check_cudart(status: cudart.cudaError_t) -> None:
