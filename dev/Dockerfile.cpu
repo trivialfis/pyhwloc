@@ -11,7 +11,7 @@ RUN \
 
 RUN mkdir ws
 
-COPY pyhwloc_dev.yml ws/pyhwloc_dev.yml
+COPY pyhwloc_ext_dev.yml ws/pyhwloc_dev.yml
 
 RUN mamba env update -n base -f ws/pyhwloc_dev.yml -v && mamba clean --all --yes
 
@@ -19,10 +19,23 @@ RUN \
     apt-get install automake autoconf libtool -y
 
 RUN \
+    cd /ws && \
+    git clone https://github.com/doxygen/doxygen.git
+
+RUN \
     cd /ws/ && \
     git clone https://github.com/open-mpi/hwloc.git
 
+SHELL ["mamba", "run", "--no-capture-output", "-n", "base", "/bin/bash", "-c"]
+
+COPY install_doxygen.sh ws/install_doxygen.sh
+
 COPY install_hwloc.sh ws/install_hwloc.sh
+
+RUN \
+    cd /ws/ && \
+    echo "con: CONDA_ENV ${CONDA_PREFIX}" && \
+    ./install_doxygen.sh
 
 RUN \
     cd /ws/ && \

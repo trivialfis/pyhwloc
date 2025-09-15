@@ -35,31 +35,24 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
+    container:
+      image: jiamingy/pyhwloc_dev:latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'fales'
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        environment-file: dev/pyhwloc_dev.yml
-        miniforge-version: latest
-        activate-environment: pyhwloc_dev
-    - name: Install hwloc
-      shell: bash -l {0}
-      run: |
-        # -- Install the latest hwloc
-        git clone https://github.com/open-mpi/hwloc.git
-        cd hwloc                # pyhwloc/hwloc
-        ./autogen.sh
-        ./configure --prefix=$CONDA_PREFIX --enable-doxygen --disable-nvml
-        make -j$(nproc) install
-
     - name: Build doxygen XML
       shell: bash -el {0}
       run: |
         echo $(pwd)
-        cd ./hwloc/doc          # pyhwloc/hwloc/doc
+        cd /ws/hwloc/doc
         HWLOC_DOXYGEN_GENERATE_XML=YES doxygen ./doxygen.cfg
+        cd /ws
+
+    - name: Trust git cloning project sources
+      run: |
+        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'fales'
 
     - name: Install pyhwloc editable
       shell: bash -el {0}
@@ -86,4 +79,4 @@ jobs:
       run: |
         echo $(pwd)
         cd docs
-        PYHWLOC_XML_PATH=$(pwd)/../hwloc/doc/doxygen-doc/xml make html
+        PYHWLOC_XML_PATH=/ws/hwloc/doc/doxygen-doc/xml make html

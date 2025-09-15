@@ -14,6 +14,7 @@ dependencies:
 - cuda-cudart-dev
 - cuda-nvml-dev
 - cuda-nvcc
+- cuda-python
 - cuda-version=12.8
 - nvidia-ml-py
 - make
@@ -26,8 +27,15 @@ dependencies:
 - pytest
 - pytest-cov
 # -- document
-- doxygen
 - breathe
 - sphinx
 - myst-parser
 - sphinx-gallery
+# -- doxygen
+- libclang=21.*
+- clangdev
+- libllvm21
+- llvmdev
+- flex
+- bison
+- libxml2

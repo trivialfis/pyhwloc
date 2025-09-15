@@ -17,6 +17,11 @@ import pytest
 cuda = pytest.importorskip("cuda.bindings.driver", exc_type=ImportError)
 _ = pytest.importorskip("pyhwloc.hwloc.cudadr", exc_type=OSError)  # type: ignore
 
+from .utils import _skip_if_none, has_gpu
+
+if not has_gpu():
+    pytest.skip("GPU discovery tests.", allow_module_level=True)
+
 from pyhwloc.hwloc.bitmap import (
     bitmap_alloc,
     bitmap_free,
@@ -37,7 +42,6 @@ from pyhwloc.hwloc.cudadr import (
 )
 
 from .test_core import Topology
-from .utils import _skip_if_none
 
 
 def test_get_device_osdev() -> None:

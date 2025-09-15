@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import platform
+import subprocess
 from functools import cache as fcache
 from typing import TypeGuard
 
@@ -58,3 +59,17 @@ def has_nice_cap() -> bool:
         bitmap_free(nodeset)
         if hdl:
             topology_destroy(hdl)
+
+
+@fcache
+def has_gpu() -> bool:
+    try:
+        out = subprocess.run(["nvidia-smi", "-L"], stdout=subprocess.PIPE)
+        if out.returncode != 0:
+            return False
+    except FileNotFoundError:
+        return False
+    gpus = out.stdout.decode("utf-8").strip().splitlines()
+    if not gpus:
+        return False
+    return True
