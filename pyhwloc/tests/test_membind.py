@@ -34,8 +34,11 @@ def reset(orig_cpuset: Bitmap, topo: Topology) -> None:
 
 
 def with_tpool(worker: Callable, *args: Any) -> None:
+    cnt = os.cpu_count()
+    assert cnt is not None
+    n_workers = min(cnt, 8)
     futures = []
-    with ThreadPoolExecutor(max_workers=os.cpu_count()) as execu:
+    with ThreadPoolExecutor(max_workers=n_workers) as execu:
         n_cpus = os.cpu_count()
         assert n_cpus
         for i in range(n_cpus):
