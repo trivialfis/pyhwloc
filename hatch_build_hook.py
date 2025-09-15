@@ -113,18 +113,9 @@ class CMakeBuildHook(BuildHookInterface):
         lib_dir.mkdir(exist_ok=True)
 
         # Read dependency paths and copy them
-        with open(deps_file, 'r') as f:
-            for line in f:
-                dep_path = Path(line.strip())
-                if dep_path.exists() and dep_path.is_file():
-                    dest_path = lib_dir / dep_path.name
-                    if not dest_path.exists():
-                        print(f"Copying dependency: {dep_path} -> {dest_path}")
-                        shutil.copy2(dep_path, dest_path)
-                    else:
-                        print(f"Dependency already exists: {dest_path}")
-                else:
-                    raise FileNotFoundError(f"Dependency not found: {dep_path}")
+        dest_path = lib_dir / "hwloc_deps.txt"
+        print(f"Copying dependency: {deps_file} -> {dest_path}")
+        shutil.copy2(deps_file, dest_path)
 
 
 if __name__ == "__main__":
