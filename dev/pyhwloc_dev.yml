@@ -7,19 +7,20 @@ dependencies:
 - cxx-compiler
 - cmake
 - cuda-cudart-dev
-- cuda-nvml-dev
+# - cuda-nvml-dev
 - cuda-nvcc
 - cuda-version=12.8
 - nvidia-ml-py
 - make
+- ninja
 - sysroot_linux-64==2.28
-# python local
+# -- python local
 - python==3.12
 - hatchling
 - pip
 - pytest
 - pytest-cov
-# document
+# -- document
 - doxygen
 - breathe
 - sphinx
