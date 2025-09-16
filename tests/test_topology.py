@@ -288,7 +288,7 @@ def test_object_iteration() -> None:
         # Test iteration by depth
         depth_objects = []
         for depth in range(topo.depth):
-            objects = list(topo.iter_objects_by_depth(depth))
+            objects = list(topo.iter_objs_by_depth(depth))
             assert len(objects) == topo.get_nbobjs_by_depth(depth)
             depth_objects.extend(objects)
 

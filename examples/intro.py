@@ -32,7 +32,7 @@ Packages: {topology.n_packages}
         print("=== Objects by Depth ===")
         for depth in range(topology.depth):
             print(f"Depth {depth}:")
-            for obj in topology.iter_objects_by_depth(depth):
+            for obj in topology.iter_objs_by_depth(depth):
                 print(f"  {obj}")
             print()
 

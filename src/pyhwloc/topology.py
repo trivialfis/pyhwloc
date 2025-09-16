@@ -529,7 +529,7 @@ class Topology:
     def get_nbobjs_by_type(self, obj_type: _ObjType) -> int:
         return _core.get_nbobjs_by_type(self.native_handle, obj_type)
 
-    def iter_objects_by_depth(self, depth: int) -> Iterator[_Object]:
+    def iter_objs_by_depth(self, depth: int) -> Iterator[_Object]:
         """Iterate over all objects at specific depth.
 
         Parameters
@@ -561,7 +561,7 @@ class Topology:
         """
         return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_CORE)
 
-    def iter_objects_by_type(self, obj_type: _ObjType) -> Iterator[_Object]:
+    def iter_objs_by_type(self, obj_type: _ObjType) -> Iterator[_Object]:
         """Iterate over all objects of specific type.
 
         Parameters
@@ -590,7 +590,7 @@ class Topology:
         All object instances in breadth first order.
         """
         for depth in range(self.depth):
-            for obj in self.iter_objects_by_depth(depth):
+            for obj in self.iter_objs_by_depth(depth):
                 yield obj
 
     # We can implement pre/in/post-order traversal if needed.
@@ -616,7 +616,7 @@ class Topology:
         ------
         All PU (processing unit) object instances
         """
-        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_PU)
+        return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_PU)
 
     def iter_cores(self) -> Iterator[_Object]:
         """Iterate over all cores.
@@ -625,7 +625,7 @@ class Topology:
         ------
         All core object instances
         """
-        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_CORE)
+        return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_CORE)
 
     def iter_numa_nodes(self) -> Iterator[_Object]:
         """Iterate over all NUMA nodes.
@@ -634,7 +634,7 @@ class Topology:
         ------
         All NUMA node object instances
         """
-        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_NUMANODE)
+        return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_NUMANODE)
 
     def iter_packages(self) -> Iterator[_Object]:
         """Iterate over all packages (sockets).
@@ -643,7 +643,7 @@ class Topology:
         ------
         All package object instances
         """
-        return self.iter_objects_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
+        return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
 
     @property
     def n_cpus(self) -> int:

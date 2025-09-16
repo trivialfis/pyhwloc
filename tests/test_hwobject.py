@@ -161,7 +161,7 @@ def test_object_equality_and_hashing() -> None:
 
 def test_query_ancestor() -> None:
     with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
-        objs = list(topo.iter_objects_by_depth(topo.depth - 1))
+        objs = list(topo.iter_objs_by_depth(topo.depth - 1))
         assert len(objs) == 8
         ancestor = objs[0].common_ancestor_obj(objs[1])
         assert ancestor.is_normal()
