@@ -69,6 +69,11 @@ class Device:
         dev._topo_ref = topo
         return dev
 
+    @property
+    def index(self) -> int:
+        """Device ordinal."""
+        return self._idx
+
     @_reuse_doc(_cudart.get_device_pci_ids)
     def pci_ids(self) -> PciId:
         domain, bus, dev = _cudart.get_device_pci_ids(
@@ -103,5 +108,12 @@ class Device:
 
 
 def get_device(topology: Topology, idx: int) -> Device:
-    """Get the CUDA device from its ordinal idx."""
+    """Get the CUDA device from its ordinal idx.
+
+    Parameters
+    ----------
+    topology :
+        Hwloc topology, loaded with OS devices.
+
+    """
     return Device.from_idx(weakref.ref(topology), idx)
