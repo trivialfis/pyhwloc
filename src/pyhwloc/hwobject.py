@@ -164,6 +164,7 @@ class Object:
     def is_icache(self) -> bool:
         return _core.obj_type_is_icache(self.type)
 
+    # fixme: We might want to create a class hierarchy insetad
     @property
     def attr(self) -> ctypes.Structure | None:
         """Get attributes of this object. The return type depends on the type of this
