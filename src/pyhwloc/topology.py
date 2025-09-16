@@ -492,6 +492,35 @@ class Topology:
         ptr = _core.get_obj_by_type(self.native_handle, obj_type, idx)
         return _Object(ptr, weakref.ref(self)) if ptr else None
 
+    @_reuse_doc(_core.get_pu_obj_by_os_index)
+    def get_pu_obj_by_os_index(self, os_index: int) -> _Object | None:
+        ptr = _core.get_pu_obj_by_os_index(self.native_handle, os_index)
+        return _Object(ptr, weakref.ref(self)) if ptr else None
+
+    @_reuse_doc(_core.get_numanode_obj_by_os_index)
+    def get_numanode_obj_by_os_index(self, os_index: int) -> _Object | None:
+        ptr = _core.get_numanode_obj_by_os_index(self.native_handle, os_index)
+        return _Object(ptr, weakref.ref(self)) if ptr else None
+
+    @property
+    @_reuse_doc(_core.topology_get_topology_cpuset)
+    def cpuset(self) -> _Bitmap:
+        # Same as get_root_obj().cpuset
+        bitmap = _core.topology_get_topology_cpuset(self.native_handle)
+        return _Bitmap.from_native_handle(bitmap, own=False)
+
+    @property
+    @_reuse_doc(_core.topology_get_allowed_cpuset)
+    def allowed_cpuset(self) -> _Bitmap:
+        bitmap = _core.topology_get_allowed_cpuset(self.native_handle)
+        return _Bitmap.from_native_handle(bitmap, own=False)
+
+    @property
+    @_reuse_doc(_core.topology_get_allowed_nodeset)
+    def allowed_nodeset(self) -> _Bitmap:
+        bitmap = _core.topology_get_allowed_nodeset(self.native_handle)
+        return _Bitmap.from_native_handle(bitmap, own=False)
+
     @_reuse_doc(_core.get_nbobjs_by_depth)
     def get_nbobjs_by_depth(self, depth: int) -> int:
         return _core.get_nbobjs_by_depth(self.native_handle, depth)
