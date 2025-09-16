@@ -15,7 +15,7 @@ if __name__ == "__main__":
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
     ) as topo:
         # Look for OS devices (which include GPUs)
-        for obj in topo.iter_objects_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
+        for obj in topo.iter_objs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
             # Check if it's a GPU device
             if obj.is_osdev_gpu():
                 assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE

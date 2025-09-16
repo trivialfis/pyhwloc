@@ -69,7 +69,7 @@ if __name__ == "__main__":
     ) as topo:
         # Look for GPUs
         gpus = []
-        for obj in topo.iter_objects_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
+        for obj in topo.iter_objs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
             # Check if it's a GPU device
             if obj.is_osdev_gpu():
                 assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE
@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
         # Look for NVME drives
         nvmes = []
-        for obj in topo.iter_objects_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
+        for obj in topo.iter_objs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
             if obj.is_osdev_storage():
                 assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE
                 assert obj.name is not None
