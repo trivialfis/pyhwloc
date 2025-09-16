@@ -37,6 +37,8 @@ def test_get_device_osdev() -> None:
 
     with Nvml():
         nvhdl = nm.nvmlDeviceGetHandleByIndex(0)
+        idx = nm.nvmlDeviceGetIndex(nvhdl)
+        assert idx == 0
 
         dev_obj = get_device_osdev(topo.hdl, nvhdl)
         assert _skip_if_none(dev_obj)

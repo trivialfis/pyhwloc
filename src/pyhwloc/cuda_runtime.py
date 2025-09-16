@@ -7,26 +7,17 @@ Interoperability with the CUDA Runtime API
 from __future__ import annotations
 
 import weakref
-from dataclasses import dataclass
 
 from .bitmap import Bitmap
 from .hwloc import cudart as _cudart
 from .hwobject import Object
 from .topology import Topology
-from .utils import _reuse_doc
+from .utils import PciId, _reuse_doc
 
 __all__ = [
-    "PciId",
     "Device",
     "get_device",
 ]
-
-
-@dataclass
-class PciId:
-    domain: int  # domain id
-    bus: int  # bus id
-    dev: int  # device id
 
 
 class Device:
@@ -69,6 +60,11 @@ class Device:
         dev._topo_ref = topo
         return dev
 
+    @property
+    def index(self) -> int:
+        """Device ordinal."""
+        return self._idx
+
     @_reuse_doc(_cudart.get_device_pci_ids)
     def pci_ids(self) -> PciId:
         domain, bus, dev = _cudart.get_device_pci_ids(
@@ -102,6 +98,15 @@ class Device:
         return None
 
 
-def get_device(topology: Topology, idx: int) -> Device:
-    """Get the CUDA device from its ordinal idx."""
-    return Device.from_idx(weakref.ref(topology), idx)
+def get_device(topology: Topology, device: int) -> Device:
+    """Get the CUDA device from its ordinal.
+
+    Parameters
+    ----------
+    topology :
+        Hwloc topology, loaded with OS devices.
+    device :
+        Device ordinal.
+
+    """
+    return Device.from_idx(weakref.ref(topology), device)

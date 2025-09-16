@@ -1,8 +1,8 @@
 # Copyright (c) 2025, NVIDIA CORPORATION.
 # SPDX-License-Identifier: BSD-3-Clause
 """
-High-level Interface for the Distance
-=====================================
+Distance Matrix
+===============
 
 This module provides wrappers around hwloc distance matrices.
 
