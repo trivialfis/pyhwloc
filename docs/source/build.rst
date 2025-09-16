@@ -17,17 +17,17 @@ keyword. Then we can run the following to build both libraries:
 
 .. code-block:: powershell
 
-    cd hwloc\contrib\windows-cmake\
-    cmake -GNinja -DCMAKE_INSTALL_PREFIX=C:\${SOME_PATH}\pyhwloc_dev  -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DHWLOC_BUILD_SHARED_LIBS=ON ..
-    ninja
-    ninja install
+  cd hwloc\contrib\windows-cmake\
+  cmake -GNinja -DCMAKE_INSTALL_PREFIX=C:\${SOME_PATH}\pyhwloc_dev  -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DHWLOC_BUILD_SHARED_LIBS=ON ..
+  ninja
+  ninja install
 
 The default build includes tests. Afterward, we can build pyhwloc from source:
 
 .. code-block:: powershell
 
-    cmake -GNinja -DCMAKE_PREFIX_PATH=C:\${SOME_PATH}\pyhwloc_dev -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..\..\pyhwloc\
-    ninja
+  cmake -GNinja -DCMAKE_PREFIX_PATH=C:\${SOME_PATH}\pyhwloc_dev -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..\..\pyhwloc\
+  ninja
 
 Most of the tests are failing on Windows at the moment. Wheel is not yet tested.
 
@@ -51,6 +51,13 @@ Use editable build:
 .. code-block:: sh
 
   pip install -e . --no-build-isolation
+
+Create a Source Wheel
+=====================
+
+.. code-block:: sh
+
+  python -m build --sdist
 
 Building the Document
 =====================

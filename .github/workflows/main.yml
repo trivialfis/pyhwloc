@@ -59,6 +59,16 @@ jobs:
       run: |
         echo $(pwd)
         pip install -e . --no-deps --no-build-isolation
+        python -c "from pyhwloc import Topology"
+        git clean -xdf
+
+    - name: Install pyhwloc from sdist
+      shell: bash -el {0}
+      run: |
+        echo $(pwd)
+        python -m build .
+        pip install dist/pyhwloc-*.tar.gz --no-build-isolation
+        python -c "from pyhwloc import Topology"
         git clean -xdf
 
     - name: Install pyhwloc with wheel
@@ -67,6 +77,8 @@ jobs:
         echo $(pwd)
         pip wheel . --no-build-isolation
         pip install pyhwloc-*.whl
+        python -c "from pyhwloc import Topology"
+        git clean -xdf
 
     - name: Run tests
       shell: bash -el {0}
