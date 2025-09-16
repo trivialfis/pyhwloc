@@ -288,7 +288,7 @@ def test_object_iteration() -> None:
         # Test iteration by depth
         depth_objects = []
         for depth in range(topo.depth):
-            objects = list(topo.iter_objects_by_depth(depth))
+            objects = list(topo.iter_objs_by_depth(depth))
             assert len(objects) == topo.get_nbobjs_by_depth(depth)
             depth_objects.extend(objects)
 
@@ -305,3 +305,20 @@ def test_object_iteration() -> None:
         all_objects = list(topo.iter_all_breadth_first())
         assert len(all_objects) == total_objects
         assert len(all_objects) == len(depth_objects)
+
+
+def test_helpers() -> None:
+    desc = "node:2 core:2 pu:2"
+
+    with Topology.from_synthetic(desc) as topo:
+        assert topo.cpuset.weight() == 8
+        assert topo.allowed_cpuset.weight() == 8
+        assert topo.allowed_nodeset.weight() == 2
+
+        obj = topo.get_numanode_obj_by_os_index(0)
+        assert obj is not None
+        assert obj.is_numa_node()
+
+        obj = topo.get_pu_obj_by_os_index(0)
+        assert obj is not None
+        assert obj.is_normal()

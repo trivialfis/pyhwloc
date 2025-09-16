@@ -5,10 +5,50 @@ project(pyhwloc LANGUAGES C VERSION 0.0.0)
 
 list(APPEND CMAKE_MODULE_PATH "${pyhwloc_SOURCE_DIR}/cmake/")
 
+option(PYHWLOC_FETCH_HWLOC "Fetch hwloc from GitHub instead of using system version" OFF)
+
+add_library(pyhwloc SHARED src/ext/pyhwloc.c)
+
+set(PYHWLOC_OUTPUT_DIR ${pyhwloc_SOURCE_DIR}/src/pyhwloc/_lib/)
+
+if(PYHWLOC_FETCH_HWLOC)
+  set(PYHWLOC_CONFIG_HWLOC OFF CACHE BOOL "")
+
+  include(FetchContent)
+  FetchContent_Declare(
+    hwloc
+    GIT_REPOSITORY https://github.com/open-mpi/hwloc.git
+    GIT_TAG        master
+  )
+
+  # Configure hwloc build options
+  FetchContent_MakeAvailable(hwloc)
+  message(STATUS "src: ${hwloc_SOURCE_DIR}, dst: ${hwloc_BINARY_DIR}")
+  if(NOT PYHWLOC_CONFIG_HWLOC)
+    execute_process(
+      COMMAND ${hwloc_SOURCE_DIR}/autogen.sh WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
+    )
+    execute_process(
+      COMMAND ${hwloc_SOURCE_DIR}/configure --enable-plugins --prefix=${PYHWLOC_OUTPUT_DIR}
+      WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+    )
+    set(PYHWLOC_CONFIG_HWLOC ON CACHE BOOL "" FORCE)
+  endif()
+  include(ProcessorCount)
+  ProcessorCount(nproc)
+
+  add_custom_command(
+    OUTPUT ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so COMMAND make -j${nproc} install WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+  )
+  add_custom_target(build_hwloc DEPENDS ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so)
+  add_dependencies(pyhwloc build_hwloc)
+else()
+  find_package(hwloc REQUIRED)
+endif()
+
 find_package(hwloc REQUIRED)
 find_package(CUDAToolkit REQUIRED COMPONENTS nvml cuda_driver cudart_static)
 
-add_library(pyhwloc SHARED src/ext/pyhwloc.c)
 target_link_libraries(pyhwloc PRIVATE ${HWLOC_LIBRARY})
 target_include_directories(pyhwloc PRIVATE ${HWLOC_INCLUDE_DIR})
 list(APPEND PYHWLOC_LIBS pyhwloc)
