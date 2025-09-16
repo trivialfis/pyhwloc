@@ -24,7 +24,7 @@ from pyhwloc.hwloc.lib import normpath
 from pyhwloc.tests.test_hwloc.utils import has_gpu, has_nice_cap
 
 tests_dir = Path(normpath(__file__)).parent
-demo_dir = tests_dir.parent.parent / "examples"
+demo_dir = tests_dir.parent / "examples"
 
 
 @pytest.mark.skipif(
