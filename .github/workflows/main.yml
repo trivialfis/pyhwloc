@@ -62,10 +62,7 @@ jobs:
       run: |
         echo $(pwd)
         pip install -e . --no-deps --no-build-isolation
-        cd /tmp/
         python -c "from pyhwloc import Topology"
-        cd -
-        echo $(pwd)
         git clean -xdf
         pip uninstall pyhwloc -y
 
@@ -75,10 +72,7 @@ jobs:
         echo $(pwd)
         python -m build . --sdist
         pip install dist/pyhwloc-*.tar.gz --no-build-isolation
-        cd /tmp/
         python -c "from pyhwloc import Topology"
-        cd -
-        echo $(pwd)
         git clean -xdf
         pip uninstall pyhwloc -y
 
@@ -88,10 +82,7 @@ jobs:
         echo $(pwd)
         pip wheel . --no-build-isolation
         pip install pyhwloc-*.whl
-        cd /tmp/
         python -c "from pyhwloc import Topology"
-        cd -
-        echo $(pwd)
         git clean -xdf
         pip uninstall pyhwloc -y
 
