@@ -1,3 +1,4 @@
+# Copyright (c) 2025, NVIDIA CORPORATION.
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 project(pyhwloc LANGUAGES C VERSION 0.0.0)

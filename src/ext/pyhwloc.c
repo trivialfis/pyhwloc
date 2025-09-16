@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2025, NVIDIA CORPORATION.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include "pyhwloc_export.h"
 #include <hwloc.h>
 

@@ -1,3 +1,5 @@
+# Copyright (c) 2025, NVIDIA CORPORATION.
+# SPDX-License-Identifier: BSD-3-Clause
 """CMake build script and hatchling hook for pyhwloc."""
 
 from __future__ import annotations
