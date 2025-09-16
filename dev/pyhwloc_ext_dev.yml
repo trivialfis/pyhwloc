@@ -23,7 +23,7 @@ dependencies:
 # -- python local
 - python==3.12
 - hatchling
-- build
+- python-build
 - pip
 - pytest
 - pytest-cov

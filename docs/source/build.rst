@@ -122,3 +122,9 @@ during early development.
 .. code-block:: sh
 
   pytest ./pyhwloc/tests/ --cov=pyhwloc --cov-report=html
+
+The container image used for GitHub action is built from the `dev/Dockerfile.cpu`:
+
+.. code-block:: sh
+
+  docker build --progress=plain -f ./Dockerfile.cpu . -t pyhwloc:latest
