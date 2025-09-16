@@ -37,6 +37,9 @@ jobs:
         os: [ubuntu-latest]
     container:
       image: ghcr.io/trivialfis/pyhwloc:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - name: Build doxygen XML
       shell: bash -el {0}
