@@ -33,6 +33,20 @@ class Device:
     """Class to represent a CUDA runtime device. This class can be created using the
     :py:func:`get_device`.
 
+    .. code-block::
+
+        from pyhwloc.topology import Topology, TypeFilter
+        from pyhwloc.cuda_runtime import get_device
+
+        with Topology.from_this_system(load=False).set_io_types_filter(
+            TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
+        ) as topo:
+            ordinal = 0  # The first CUDA runtime device.
+            dev = get_device(topo, ordinal)
+            print(dev.cpuset)  # CPU affinity
+            # Get the hwloc object
+            osdev = dev.get_osdev()
+
     """
 
     def __init__(self) -> None:
@@ -89,4 +103,5 @@ class Device:
 
 
 def get_device(topology: Topology, idx: int) -> Device:
+    """Get the CUDA device from its ordinal idx."""
     return Device.from_idx(weakref.ref(topology), idx)
