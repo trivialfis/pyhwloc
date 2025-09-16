@@ -1,6 +1,6 @@
-####################
+#####################
 Getting Started Guide
-####################
+#####################
 
 .. contents::
     :backlinks: none
@@ -27,6 +27,10 @@ PyHwloc is designed with two layers:
 
 Most users should start with the high-level interface and only use the low-level API
 when specific functionality is missing.
+
+.. warning::
+
+   This project is still working in progress.
 
 Quick Start Example
 ===================
