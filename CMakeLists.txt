@@ -50,6 +50,6 @@ function(set_output_directory target dir)
 endfunction()
 
 foreach(lib IN LISTS PYHWLOC_LIBS)
-  set_output_directory(${lib} ${pyhwloc_SOURCE_DIR}/pyhwloc/pyhwloc/_lib/)
+  set_output_directory(${lib} ${pyhwloc_SOURCE_DIR}/pyhwloc/_lib/)
   target_include_directories(${lib} PRIVATE ${pyhwloc_BINARY_DIR})
 endforeach()
