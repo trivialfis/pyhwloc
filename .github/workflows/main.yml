@@ -84,7 +84,6 @@ jobs:
         pip install pyhwloc-*.whl
         python -c "from pyhwloc import Topology"
         git clean -xdf
-        pip uninstall pyhwloc -y
 
     - name: Run tests
       shell: bash -el {0}
