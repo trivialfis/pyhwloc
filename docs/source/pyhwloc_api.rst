@@ -26,5 +26,8 @@ This page provides the reference of the high-level interface.
 .. automodule:: pyhwloc.nvml
   :members:
 
+.. automodule:: pyhwloc.cuda_driver
+  :members:
+
 .. automodule:: pyhwloc.utils
   :members:

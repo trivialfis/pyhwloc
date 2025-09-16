@@ -9,7 +9,10 @@ from __future__ import annotations
 
 import ctypes
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Callable, ParamSpec, TypeVar, Union
+
+__all__ = ["PciId", "memoryview_from_memory"]
 
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
@@ -79,3 +82,10 @@ def _memview_to_mem(mem: memoryview) -> tuple[ctypes.c_void_p, int]:
     buf = Buffer.from_buffer(mem)
     addr = ctypes.cast(buf, ctypes.c_void_p)
     return addr, size
+
+
+@dataclass
+class PciId:
+    domain: int  # domain id
+    bus: int  # bus id
+    dev: int  # device id

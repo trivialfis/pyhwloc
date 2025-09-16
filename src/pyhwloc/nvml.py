@@ -85,11 +85,7 @@ class Device:
         import pynvml as nm
 
         hdl = nm.nvmlDeviceGetHandleByIndex(idx)
-
-        dev = cls.__new__(cls)
-        dev._nvml_hdl = hdl
-        dev._topo_ref = topo
-        return dev
+        return cls.from_native_handle(topo, hdl)
 
     @property
     def index(self) -> int:
@@ -123,7 +119,7 @@ class Device:
 
 
 def get_device(topology: Topology, device: int | ctypes._Pointer) -> Device:
-    """Get the NVML device from its handle and index.
+    """Get the NVML device from its handle or ordinal.
 
     Parameters
     ----------
