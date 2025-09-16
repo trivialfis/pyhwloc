@@ -3476,77 +3476,7 @@ def cpukinds_register(
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00185.php
 
-_LIB.hwloc_shmem_topology_get_length.argtypes = [
-    topology_t,
-    ctypes.POINTER(ctypes.c_size_t),
-    ctypes.c_ulong,
-]
-_LIB.hwloc_shmem_topology_get_length.restype = ctypes.c_int
-
-
-@_cfndoc
-def shmem_topology_get_length(
-    topology: topology_t,
-) -> int:
-    length = ctypes.c_size_t()
-    # flags must be 0 for now.
-    _checkc(_LIB.hwloc_shmem_topology_get_length(topology, ctypes.byref(length), 0))
-    return length.value
-
-
-_LIB.hwloc_shmem_topology_write.argtypes = [
-    topology_t,
-    ctypes.c_int,
-    hwloc_uint64_t,
-    ctypes.c_void_p,
-    ctypes.c_size_t,
-    ctypes.c_ulong,
-]
-_LIB.hwloc_shmem_topology_write.restype = ctypes.c_int
-
-
-@_cfndoc
-def shmem_topology_write(
-    topology: topology_t,
-    fd: int,
-    fileoffset: int,
-    mmap_address: ctypes.c_void_p,
-    length: int,
-) -> None:
-    # flags must be 0 for now.
-    _checkc(
-        _LIB.hwloc_shmem_topology_write(
-            topology, fd, fileoffset, mmap_address, length, 0
-        )
-    )
-
-
-_LIB.hwloc_shmem_topology_adopt.argtypes = [
-    ctypes.POINTER(topology_t),
-    ctypes.c_int,
-    hwloc_uint64_t,
-    ctypes.c_void_p,
-    ctypes.c_size_t,
-    ctypes.c_ulong,
-]
-_LIB.hwloc_shmem_topology_adopt.restype = ctypes.c_int
-
-
-@_cfndoc
-def shmem_topology_adopt(
-    topologyp: ctypes._Pointer,  # [topology_t]
-    fd: int,
-    fileoffset: int,
-    mmap_address: ctypes.c_void_p,
-    length: int,
-    flags: int,
-) -> None:
-    _checkc(
-        _LIB.hwloc_shmem_topology_adopt(
-            topologyp, fd, fileoffset, mmap_address, length, flags
-        )
-    )
-
+# Not implemented.
 
 ###########
 # Utilities

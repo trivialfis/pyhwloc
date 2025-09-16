@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
 """CMake build script and hatchling hook for pyhwloc."""
 
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -24,15 +21,15 @@ def run_cmake_build(
 
     Parameters
     ----------
-    source_dir : str | Path
+    source_dir :
         Source directory containing CMakeLists.txt
-    build_dir : str | Path
+    build_dir :
         Build directory for CMake
-    build_type : str
+    build_type :
         CMake build type (Release, Debug, etc.)
-    parallel_jobs : int | None
+    parallel_jobs :
         Number of parallel jobs, defaults to cpu_count()
-    cmake_args : list[str] | None
+    cmake_args :
         Additional CMake arguments
 
     """
@@ -100,7 +97,3 @@ class CMakeBuildHook(BuildHookInterface):
 
         # Run CMake build directly
         run_cmake_build(source_dir=self.root)
-
-
-if __name__ == "__main__":
-    run_cmake_build()
