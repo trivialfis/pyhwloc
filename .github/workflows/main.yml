@@ -89,7 +89,6 @@ jobs:
       shell: bash -el {0}
       run: |
         echo $(pwd)
-        cd pyhwloc              # pyhwloc/pyhwloc
         pytest -s -v -rxXs --durations=0 ./tests
 
     - name: Build document
