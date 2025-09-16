@@ -34,3 +34,8 @@ follow_imports = "silent"
 
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
