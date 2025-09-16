@@ -51,18 +51,21 @@ jobs:
 
     - name: Trust git cloning project sources
       run: |
-        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+        git config --global --add safe.directory '${GITHUB_WORKSPACE}'
 
     - uses: actions/checkout@v4
       with:
-        submodules: 'fales'
+        submodules: false
 
     - name: Install pyhwloc editable
       shell: bash -el {0}
       run: |
         echo $(pwd)
         pip install -e . --no-deps --no-build-isolation
+        cd /tmp/
         python -c "from pyhwloc import Topology"
+        cd -
+        echo $(pwd)
         git clean -xdf
         pip uninstall pyhwloc -y
 
@@ -70,9 +73,12 @@ jobs:
       shell: bash -el {0}
       run: |
         echo $(pwd)
-        python -m build .
+        python -m build . --sdist
         pip install dist/pyhwloc-*.tar.gz --no-build-isolation
+        cd /tmp/
         python -c "from pyhwloc import Topology"
+        cd -
+        echo $(pwd)
         git clean -xdf
         pip uninstall pyhwloc -y
 
@@ -82,7 +88,10 @@ jobs:
         echo $(pwd)
         pip wheel . --no-build-isolation
         pip install pyhwloc-*.whl
+        cd /tmp/
         python -c "from pyhwloc import Topology"
+        cd -
+        echo $(pwd)
         git clean -xdf
 
     - name: Run tests
