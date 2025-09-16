@@ -88,7 +88,7 @@ class CMakeBuildHook(BuildHookInterface):
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
         """Run CMake build before packaging."""
         # Check if native library already exists
-        lib_dir = Path(self.root) / "pyhwloc" / "_lib"
+        lib_dir = Path(self.root) / "src" / "pyhwloc" / "_lib"
         if lib_dir.exists() and (
             list(lib_dir.glob("*pyhwloc.so")) or list(lib_dir.glob("*pyhwloc.dll"))
         ):
