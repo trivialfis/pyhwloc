@@ -13,9 +13,9 @@ pyhwloc documentation
   :maxdepth: 2
   :titlesonly:
 
+  build
   intro
   examples/index
   pyhwloc_api
   low_level
   c
-  build

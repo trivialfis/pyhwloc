@@ -23,8 +23,9 @@ import pytest
 
 from pyhwloc import Topology
 from pyhwloc.bitmap import Bitmap
-from pyhwloc.tests.test_hwloc.test_membind import DFT_POLICY, has_nice_cap
 from pyhwloc.topology import MemBindFlags, MemBindPolicy
+
+from .test_hwloc.test_membind import DFT_POLICY, has_nice_cap
 
 
 def reset(orig_cpuset: Bitmap, topo: Topology) -> None:
