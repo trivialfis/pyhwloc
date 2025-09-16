@@ -20,5 +20,8 @@ This page provides the reference of the high-level interface.
 .. automodule:: pyhwloc.distance
   :members:
 
+.. automodule:: pyhwloc.cuda_runtime
+  :members:
+
 .. automodule:: pyhwloc.utils
   :members:
