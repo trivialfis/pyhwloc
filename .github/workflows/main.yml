@@ -93,6 +93,7 @@ jobs:
         cd -
         echo $(pwd)
         git clean -xdf
+        pip uninstall pyhwloc -y
 
     - name: Run tests
       shell: bash -el {0}
