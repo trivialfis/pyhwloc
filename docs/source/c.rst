@@ -3,7 +3,8 @@ Hwloc C API
 ###########
 
 This page provides the reference of the hwloc C interface. The Python package is built on
-top of this interface.
+top of this interface. We created this page for reference purposes only and don't aim to
+replace the original doxygen document.
 
 .. contents::
     :backlinks: none
