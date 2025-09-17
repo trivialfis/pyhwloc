@@ -44,13 +44,14 @@ Building PyHwloc from Source on Linux
 =====================================
 
 There are two ways to create and distribute a binary wheel for pyhwloc. The first one uses
-the system hwloc and the second one builds hwloc from source and bundles into the wheel.
+the system hwloc and the second one builds hwloc from source and bundles it into the
+wheel.
 
-To use a pre-built hwloc in the system or virtual environment:
+To use a pre-built hwloc in the system or a virtual environment (conda):
 
 - Create a conda environment that's similar to the CI build.
 - Build hwloc, install it into the conda environment (``CONDA_PREFIX``). We have example
-  scripts used in the CI.
+  scripts used in the CI. Then proceed to create the wheel:
 
   + Binary wheel
 
@@ -76,6 +77,10 @@ from source automatically during build:
 .. code-block:: sh
 
   pip wheel -v . --config-settings=fetch-hwloc=True --config-settings=build-dir=/path/to/build/dir
+
+The bundling approach is mostly for the PyPI package. We don't recommend the PyPI package
+for production deployment since bundling a custom hwloc might create symbol conflicts
+between different versions of hwloc in the environment.
 
 Building the Document
 =====================
