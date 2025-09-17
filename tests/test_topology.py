@@ -234,7 +234,7 @@ def test_get_nbobjs_by_type() -> None:
 
 def test_get_nbobjs_by_type_with_filter() -> None:
     # Create topology with I/O filter that removes all I/O objects
-    with Topology.from_this_system(load=False).set_io_types_filter(
+    with Topology.from_this_system().set_io_types_filter(
         type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE
     ) as topo:
         # I/O objects should be filtered out
@@ -245,12 +245,12 @@ def test_get_nbobjs_by_type_with_filter() -> None:
         assert topo.n_cpus > 0
         assert topo.n_cores >= 0
 
-    with Topology.from_this_system(load=False).set_io_types_filter(
+    with Topology.from_this_system().set_io_types_filter(
         type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
     ) as topo:
         assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
 
-    with Topology.from_this_system(load=False).set_all_types_filter(
+    with Topology.from_this_system().set_all_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
     ) as topo:
         assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0

@@ -149,13 +149,13 @@ class Topology:
 
     .. code-block::
 
-        with Topology.from_this_system(load=False).set_all_types_filter(
+        with Topology.from_this_system().set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         ) as topo:
             # auto load when using a context manager
             pass
 
-        topo = Topology.from_this_system(load=False).set_all_types_filter(
+        topo = Topology.from_this_system().set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         ).load() # Load the topology
 

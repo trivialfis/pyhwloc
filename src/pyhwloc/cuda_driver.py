@@ -34,7 +34,7 @@ class Device:
         from pyhwloc.cuda_driver import get_device
         import cuda.bindings.driver as cuda
 
-        with Topology.from_this_system(load=False).set_io_types_filter(
+        with Topology.from_this_system().set_io_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
         ) as topo:
             # Get the first CUDA device
