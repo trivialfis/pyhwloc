@@ -9,10 +9,10 @@ Getting Started Guide
 Overview
 ========
 
-``PyHwloc`` provides a Python interface to the Hardware Locality (hwloc) library,
-providing an easier and more interactive way to discover and interact with your system's
-hardware topology. For a comprehensive introduction to hardware topology concepts and
-background information, please refer to the official `hwloc documentation
+``PyHwloc`` exposes a Python interface to the Hardware Locality (hwloc) library, providing
+an easier and more interactive way to discover and control your system's hardware
+topology. For a comprehensive introduction to hardware topology concepts and background
+information, please refer to the official `hwloc documentation
 <https://www.open-mpi.org/projects/hwloc/>`__. This document primarily concerns the usage
 of the Python interface.
 
@@ -25,12 +25,17 @@ PyHwloc is designed with two layers:
 2. **Low-Level Interface**: Direct mapping of the C API through ``ctypes`` for advanced
    use cases when high-level features are insufficient.
 
-Most users should start with the high-level interface and only use the low-level API
-when specific functionality is missing.
+Most users should start with the high-level interface and only use the low-level API when
+specific functionality is missing. Two interfaces can interpolate through the use of the
+``native_handle`` property.
 
 .. warning::
 
    This project is still working in progress.
+
+.. warning::
+
+   This document site is temporary, we might migrate in the future.
 
 Quick Start Example
 ===================

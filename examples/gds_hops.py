@@ -64,7 +64,7 @@ def pprint(table: list[list]) -> None:
 
 
 if __name__ == "__main__":
-    with Topology.from_this_system(load=False).set_io_types_filter(
+    with Topology.from_this_system().set_io_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
     ) as topo:
         # Look for GPUs
