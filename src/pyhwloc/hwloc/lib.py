@@ -48,7 +48,7 @@ else:
 if _IS_WINDOWS:
     _LIB = ctypes.CDLL(_hwloc_lib_name, use_errno=True, use_last_error=True)
 else:
-    _LIB = ctypes.CDLL(_hwloc_lib_name, use_errno=True)
+    _LIB = ctypes.CDLL(_hwloc_lib_name, mode=ctypes.RTLD_GLOBAL, use_errno=True)
 
 
 if not _IS_WINDOWS:
