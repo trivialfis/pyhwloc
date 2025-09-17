@@ -1,14 +1,63 @@
 # Copyright (c) 2025, NVIDIA CORPORATION.
+# SPDX-License-Identifier: BSD-3-Clause
+set(CMAKE_POLICY_DEFAULT_CMP0144 NEW)
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 project(pyhwloc LANGUAGES C VERSION 0.0.0)
 
 list(APPEND CMAKE_MODULE_PATH "${pyhwloc_SOURCE_DIR}/cmake/")
 
-find_package(hwloc REQUIRED)
-find_package(CUDAToolkit REQUIRED COMPONENTS nvml cuda_driver cudart_static)
+option(PYHWLOC_FETCH_HWLOC "Fetch hwloc from GitHub instead of using system version" OFF)
 
 add_library(pyhwloc SHARED src/ext/pyhwloc.c)
+
+set(PYHWLOC_OUTPUT_DIR ${pyhwloc_SOURCE_DIR}/src/pyhwloc/_lib/)
+
+if(PYHWLOC_FETCH_HWLOC)
+  set(PYHWLOC_CONFIG_HWLOC OFF CACHE BOOL "")
+
+  include(FetchContent)
+  FetchContent_Declare(
+    hwloc
+    GIT_REPOSITORY https://github.com/open-mpi/hwloc.git
+    GIT_TAG        1098578d77d9cec7b8154479ecb7aa9f7d483950
+  )
+
+  # Configure hwloc build options
+  FetchContent_MakeAvailable(hwloc)
+  if(NOT PYHWLOC_CONFIG_HWLOC)
+    execute_process(
+      COMMAND ${hwloc_SOURCE_DIR}/autogen.sh WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
+    )
+    execute_process(
+      COMMAND ${hwloc_SOURCE_DIR}/configure --enable-plugins --prefix=${PYHWLOC_OUTPUT_DIR}
+      WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+    )
+    set(PYHWLOC_CONFIG_HWLOC ON CACHE BOOL "" FORCE)
+  endif()
+  include(ProcessorCount)
+  ProcessorCount(nproc)
+
+  # fixme; How to respect the --parallel option?
+  add_custom_command(
+    OUTPUT ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so COMMAND make -j${nproc} install WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+  )
+  add_custom_target(build_hwloc DEPENDS ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so)
+  add_dependencies(pyhwloc build_hwloc)
+  set(HWLOC_ROOT ${PYHWLOC_OUTPUT_DIR})
+  set_target_properties(pyhwloc PROPERTIES
+    # Do not add anything outside of the package
+    INSTALL_RPATH_USE_LINK_PATH OFF
+    # Do not add system toolchain path
+    INSTALL_REMOVE_ENVIRONMENT_RPATH ON
+    # Use relative path
+    BUILD_RPATH_USE_ORIGIN ON)
+endif()
+
+find_package(hwloc REQUIRED)
+message(STATUS "HWLOC_LIBRARY: ${HWLOC_LIBRARY}")
+find_package(CUDAToolkit REQUIRED COMPONENTS nvml cuda_driver cudart_static)
+
 target_link_libraries(pyhwloc PRIVATE ${HWLOC_LIBRARY})
 target_include_directories(pyhwloc PRIVATE ${HWLOC_INCLUDE_DIR})
 list(APPEND PYHWLOC_LIBS pyhwloc)
@@ -51,6 +100,19 @@ function(set_output_directory target dir)
 endfunction()
 
 foreach(lib IN LISTS PYHWLOC_LIBS)
-  set_output_directory(${lib} ${pyhwloc_SOURCE_DIR}/src/pyhwloc/_lib/)
   target_include_directories(${lib} PRIVATE ${pyhwloc_BINARY_DIR})
+  if(PYHWLOC_FETCH_HWLOC)
+    set_target_properties(${lib} PROPERTIES
+      INSTALL_RPATH "$ORIGIN/lib"
+      INSTALL_RPATH_USE_LINK_PATH OFF
+      BUILD_RPATH_USE_ORIGIN ON)
+  endif()
 endforeach()
+
+include(GNUInstallDirs)
+install(TARGETS ${PYHWLOC_LIBS}
+  ARCHIVE DESTINATION ${PYHWLOC_OUTPUT_DIR}
+  LIBRARY DESTINATION ${PYHWLOC_OUTPUT_DIR}
+  RUNTIME DESTINATION ${PYHWLOC_OUTPUT_DIR}
+  INCLUDES DESTINATION ${PYHWLOC_OUTPUT_DIR}
+)

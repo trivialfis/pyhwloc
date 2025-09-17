@@ -1,7 +1,11 @@
 [build-system]
-requires = ["hatchling>=1.13"]
-build-backend = "hatchling.build"
-
+requires = [
+    "hatchling>=1.13",
+    "packaging"
+]
+# build-backend = "hatchling.build"
+backend-path = ["."]
+build-backend="hatch_build.backend"
 [project]
 name = "pyhwloc"
 dynamic = ["version"]
@@ -41,7 +45,7 @@ path = "src/pyhwloc/hwloc/__init__.py"
 "src/pyhwloc/_lib" = "pyhwloc/_lib"
 
 [tool.hatch.build.targets.wheel.hooks.custom]
-path = "src/hatch_build_hook.py"
+path = "hatch_build/hook.py"
 
 [tool.mypy]
 ignore_missing_imports = true
