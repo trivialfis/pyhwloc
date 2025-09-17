@@ -104,6 +104,8 @@ class CMakeBuildHook(BuildHookInterface):
 
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
         """Run CMake build before packaging."""
+        print("build_data:", build_data)
+        print("self.config:", self.config)
         # Check if native library already exists
         lib_dir = Path(self.root) / "src" / "pyhwloc" / "_lib"
         if lib_dir.exists() and (
@@ -112,5 +114,23 @@ class CMakeBuildHook(BuildHookInterface):
             print("Native libraries already exist, skipping CMake build")
             return
 
+        # Check for custom installation options
+        cmake_args = []
+
+        # Allow fetching hwloc from GitHub via environment variable or config
+        fetch_hwloc = (
+            os.environ.get("PYHWLOC_FETCH_HWLOC", "").lower() in ("1", "true", "on", "yes") or
+            self.config.get("fetch-hwloc", False)
+        )
+
+        if fetch_hwloc:
+            cmake_args.append("-DPYHWLOC_FETCH_HWLOC=ON")
+            print("Building with fetched hwloc from GitHub")
+
+        # Allow additional cmake args from config
+        extra_cmake_args = self.config.get("cmake-args", [])
+        if extra_cmake_args:
+            cmake_args.extend(extra_cmake_args)
+
         # Run CMake build directly
-        run_cmake_build(source_dir=self.root)
+        run_cmake_build(source_dir=self.root, cmake_args=cmake_args)
