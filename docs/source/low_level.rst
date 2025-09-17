@@ -1,9 +1,10 @@
-###########################
-PyHwloc Low Level Interface
-###########################
+#####################
+PyHwloc Low Level API
+#####################
 
-This page provides the reference of the low level interface. This low level interface is a
-direct mapping from the :doc:`hwloc C API </c>` to the Python environment.
+This page provides the reference for the low level interface. This low level interface is
+a direct mapping from the :doc:`hwloc C API </c>` to the Python environment. Function and
+enum names in the Python binding omit the ``hwloc_`` prefix for brevity.
 
 .. contents::
     :backlinks: none

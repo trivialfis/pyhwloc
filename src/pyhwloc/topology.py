@@ -122,9 +122,6 @@ class Topology:
         with Topology.from_this_system() as topo:  # Current system
             print(f"Topology depth: {topo.depth}")
 
-        with Topology() as topo:  # Current system
-            print(f"Topology depth: {topo.depth}")
-
         # Synthetic topology
         with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
             print(f"Topology depth: {topo.depth}")
@@ -144,20 +141,28 @@ class Topology:
         # and doesn't propagate exceptions raised inside the destroy method.
         topo = Topology()
 
-    To use a filter, users need to call the :meth:`load` explicitly when not using the
-    context manager:
+    To use a filter or set a component, users need to call the :meth:`load` explicitly
+    when **not** using the context manager:
 
     .. code-block::
 
-        with Topology.from_this_system(load=False).set_all_types_filter(
+        with Topology.from_this_system().set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         ) as topo:
             # auto load when using a context manager
             pass
 
-        topo = Topology.from_this_system(load=False).set_all_types_filter(
+        topo = Topology.from_this_system().set_all_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
         ).load() # Load the topology
+
+    Lastly, there's a short hand for using the current system if you don't need to apply
+    filter or set component/flags:
+
+    .. code-block::
+
+        with Topology() as topo:
+            print(f"Topology depth: {topo.depth}")
 
     """
 
@@ -186,7 +191,7 @@ class Topology:
         return topo
 
     @classmethod
-    def from_this_system(cls, *, load: bool = True) -> Topology:
+    def from_this_system(cls, *, load: bool = False) -> Topology:
         """Create a topology from this system.
 
         Parameters
@@ -207,7 +212,7 @@ class Topology:
         return cls.from_native_handle(hdl, load)
 
     @classmethod
-    def from_pid(cls, pid: int, *, load: bool = True) -> Topology:
+    def from_pid(cls, pid: int, *, load: bool = False) -> Topology:
         """Create a topology from a specific process ID.
 
         Parameters
@@ -226,7 +231,7 @@ class Topology:
         return cls.from_native_handle(hdl, load)
 
     @classmethod
-    def from_synthetic(cls, description: str, *, load: bool = True) -> Topology:
+    def from_synthetic(cls, description: str, *, load: bool = False) -> Topology:
         """Create a topology from a synthetic description.
 
         Parameters
@@ -248,7 +253,7 @@ class Topology:
 
     @classmethod
     def from_xml_file(
-        cls, xml_path: os.PathLike | str, *, load: bool = True
+        cls, xml_path: os.PathLike | str, *, load: bool = False
     ) -> Topology:
         """Create a topology from a XML file.
 
@@ -269,7 +274,7 @@ class Topology:
         return cls.from_native_handle(hdl, load)
 
     @classmethod
-    def from_xml_buffer(cls, xml_buffer: str, *, load: bool = True) -> Topology:
+    def from_xml_buffer(cls, xml_buffer: str, *, load: bool = False) -> Topology:
         """Create a topology from a XML string.
 
         Parameters
@@ -291,7 +296,7 @@ class Topology:
     def check(self) -> None:
         _core.topology_check(self._hdl)
 
-    def load(self) -> "Topology":
+    def load(self) -> Topology:
         """Load the topology. No-op if it's already loaded"""
         if not self.is_loaded:
             _core.topology_load(self._hdl)
@@ -304,7 +309,10 @@ class Topology:
         if not hasattr(self, "_hdl"):
             raise RuntimeError("Topology has been destroyed")
         if not self.is_loaded:
-            raise RuntimeError("Topology is not loaded")
+            raise RuntimeError(
+                "Topology is not loaded, please call the `load` method or use "
+                "the context manager"
+            )
         return self._hdl
 
     @_reuse_doc(_core.topology_export_xmlbuffer)
@@ -437,7 +445,7 @@ class Topology:
         self._loaded = True
         self._cleanup = []
 
-    def _checked_apply(self, fn: Callable, values: int) -> "Topology":
+    def _checked_apply(self, fn: Callable, values: int) -> Topology:
         # If we don't raise here, hwloc returns EBUSY: Device or resource busy, which is
         # not really helpful.
         if self.is_loaded:
@@ -446,25 +454,43 @@ class Topology:
         fn(self._hdl, values)
         return self
 
-    def set_flags(self, flags: _Flags[TopologyFlags]) -> "Topology":
+    @_reuse_doc(_core.topology_set_flags)
+    def set_flags(self, flags: _Flags[TopologyFlags]) -> Topology:
         return self._checked_apply(_core.topology_set_flags, _or_flags(flags))
 
+    @_reuse_doc(_core.topology_get_flags)
     def get_flags(self) -> int:
         # fixme: Create a better way to return composite flags
         flags = _core.topology_get_flags(self.native_handle)
         return flags
 
-    def set_io_types_filter(self, type_filter: TypeFilter) -> "Topology":
+    @_reuse_doc(_core.topology_set_io_types_filter)
+    def set_io_types_filter(self, type_filter: TypeFilter) -> Topology:
         return self._checked_apply(_core.topology_set_io_types_filter, type_filter)
 
-    def set_all_types_filter(self, type_filter: TypeFilter) -> "Topology":
+    @_reuse_doc(_core.topology_set_all_types_filter)
+    def set_all_types_filter(self, type_filter: TypeFilter) -> Topology:
         return self._checked_apply(_core.topology_set_all_types_filter, type_filter)
 
-    def set_cache_types_filter(self, type_filter: TypeFilter) -> "Topology":
+    @_reuse_doc(_core.topology_set_cache_types_filter)
+    def set_cache_types_filter(self, type_filter: TypeFilter) -> Topology:
         return self._checked_apply(_core.topology_set_cache_types_filter, type_filter)
 
-    def set_icache_types_filter(self, type_filter: TypeFilter) -> "Topology":
+    @_reuse_doc(_core.topology_set_icache_types_filter)
+    def set_icache_types_filter(self, type_filter: TypeFilter) -> Topology:
         return self._checked_apply(_core.topology_set_icache_types_filter, type_filter)
+
+    @_reuse_doc(_core.topology_set_components)
+    def set_components(
+        self,
+        name: str,
+        flags: _Flags[
+            _core.TopologyComponentsFlag
+        ] = _core.TopologyComponentsFlag.HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST,
+    ) -> Topology:
+        # switched order between name and flags, as flags usually come at last.
+        _core.topology_set_components(self._hdl, _or_flags(flags), name)
+        return self
 
     def get_obj_by_depth(self, depth: int, idx: int) -> _Object | None:
         """Get object at specific depth and index.

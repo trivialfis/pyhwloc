@@ -25,7 +25,7 @@ def test_context_manager_current_system() -> None:
         _ = topo.depth
 
     with pytest.raises(RuntimeError, match="not loaded"):
-        topo = Topology.from_this_system(load=False)
+        topo = Topology.from_this_system()
         topo.depth
 
     topo = Topology()
@@ -38,6 +38,9 @@ def test_context_manager_current_system() -> None:
     # Properties should also raise RuntimeError
     with pytest.raises(RuntimeError, match="Topology has been destroyed"):
         _ = topo.n_cpus
+
+    with Topology.from_this_system().set_components("no_os") as topo:
+        assert topo.is_loaded
 
 
 def test_direct_usage_current_system() -> None:
@@ -81,7 +84,7 @@ def test_context_manager_synthetic() -> None:
 def test_direct_usage_synthetic() -> None:
     synthetic_desc = "node:2 core:2 pu:2"
 
-    topo = Topology.from_synthetic(synthetic_desc)
+    topo = Topology.from_synthetic(synthetic_desc).load()
     try:
         # Verify synthetic topology is loaded
         assert topo.is_loaded
@@ -138,7 +141,7 @@ def test_destroy_safety() -> None:
 def test_copy_export() -> None:
     desc = "node:2 core:2 pu:2"
     try:
-        topo = Topology.from_synthetic(desc)
+        topo = Topology.from_synthetic(desc).load()
         cp = copy.copy(topo)
         dcp = copy.deepcopy(topo)
         assert (
@@ -162,6 +165,7 @@ def test_copy_export() -> None:
 
 
 def run_pickling(original: Topology) -> None:
+    restored = None
     try:
         # Pickle the topology
         pickled_data = pickle.dumps(original)
@@ -173,7 +177,8 @@ def run_pickling(original: Topology) -> None:
         # Verify topologies have same structure by comparing exports
         assert restored.export_synthetic(0) == original.export_synthetic(0)
     finally:
-        restored.destroy()
+        if restored is not None:
+            restored.destroy()
 
 
 def test_pickle_current_system() -> None:
@@ -186,11 +191,17 @@ def test_pickle_current_system() -> None:
 
 def test_pickle_foreign() -> None:
     desc = "node:2 core:2 pu:2"
-    original = Topology.from_synthetic(desc)
+    original = Topology.from_synthetic(desc).load()
     try:
         run_pickling(original)
     finally:
         original.destroy()
+
+    with Topology.from_synthetic(desc) as topo:
+        try:
+            run_pickling(topo)
+        finally:
+            topo.destroy()
 
 
 def test_pickle_unloaded_topology() -> None:
@@ -234,7 +245,7 @@ def test_get_nbobjs_by_type() -> None:
 
 def test_get_nbobjs_by_type_with_filter() -> None:
     # Create topology with I/O filter that removes all I/O objects
-    with Topology.from_this_system(load=False).set_io_types_filter(
+    with Topology.from_this_system().set_io_types_filter(
         type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE
     ) as topo:
         # I/O objects should be filtered out
@@ -245,12 +256,12 @@ def test_get_nbobjs_by_type_with_filter() -> None:
         assert topo.n_cpus > 0
         assert topo.n_cores >= 0
 
-    with Topology.from_this_system(load=False).set_io_types_filter(
+    with Topology.from_this_system().set_io_types_filter(
         type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
     ) as topo:
         assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
 
-    with Topology.from_this_system(load=False).set_all_types_filter(
+    with Topology.from_this_system().set_all_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
     ) as topo:
         assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
