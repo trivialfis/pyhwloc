@@ -39,6 +39,12 @@ def test_context_manager_current_system() -> None:
     with pytest.raises(RuntimeError, match="Topology has been destroyed"):
         _ = topo.n_cpus
 
+    with Topology.from_this_system(load=False).set_components("cuda") as topo:
+        assert topo.is_loaded
+
+    with Topology.from_this_system(load=False).set_components("cuda") as topo:
+        assert topo.is_loaded
+
 
 def test_direct_usage_current_system() -> None:
     topo = Topology()
