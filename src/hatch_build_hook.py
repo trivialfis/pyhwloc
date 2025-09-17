@@ -67,7 +67,7 @@ def run_cmake_build(
     # Build with CMake
     build_cmd = [
         "cmake",
-        "--install",
+        "--build",
         str(build_path),
         "--config",
         build_type,
@@ -79,6 +79,21 @@ def run_cmake_build(
     result = subprocess.run(build_cmd, check=False)
     if result.returncode != 0:
         error_msg = f"CMake build failed with code {result.returncode}"
+        raise RuntimeError(error_msg)
+
+    install_cmd = [
+        "cmake",
+        "--install",
+        str(build_path),
+        "--config",
+        build_type,
+        "--parallel",
+        str(parallel_jobs),
+    ]
+    print(f"CMake install: {' '.join(install_cmd)}")
+    result = subprocess.run(install_cmd, check=True)
+    if result.returncode != 0:
+        error_msg = f"CMake install failed with code {result.returncode}"
         raise RuntimeError(error_msg)
 
 
