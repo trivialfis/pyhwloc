@@ -6,15 +6,18 @@ from __future__ import annotations
 
 import os
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
+# from .config import global_config
+
 
 def run_cmake_build(
-    source_dir: str | Path = ".",
-    build_dir: str | Path = "build",
+    source_dir: str | Path,
+    build_dir: str | Path,
     build_type: str = "Release",
     parallel_jobs: int | None = None,
     cmake_args: list[str] | None = None,
@@ -104,8 +107,10 @@ class CMakeBuildHook(BuildHookInterface):
 
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
         """Run CMake build before packaging."""
-        print("build_data:", build_data)
-        print("self.config:", self.config)
+        fetch_key = "PYHWLOC_FETCH_HWLOC"
+        bd_key = "PYHWLOC_BUILD_DIR"
+        print(fetch_key, ":", os.environ.get(fetch_key, None))
+        fetch_hwloc = os.environ.get("PYHWLOC_FETCH_HWLOC", None)
         # Check if native library already exists
         lib_dir = Path(self.root) / "src" / "pyhwloc" / "_lib"
         if lib_dir.exists() and (
@@ -116,21 +121,18 @@ class CMakeBuildHook(BuildHookInterface):
 
         # Check for custom installation options
         cmake_args = []
-
         # Allow fetching hwloc from GitHub via environment variable or config
-        fetch_hwloc = (
-            os.environ.get("PYHWLOC_FETCH_HWLOC", "").lower() in ("1", "true", "on", "yes") or
-            self.config.get("fetch-hwloc", False)
-        )
-
         if fetch_hwloc:
-            cmake_args.append("-DPYHWLOC_FETCH_HWLOC=ON")
+            cmake_args.append(f"-D{fetch_key}=ON")
             print("Building with fetched hwloc from GitHub")
-
-        # Allow additional cmake args from config
-        extra_cmake_args = self.config.get("cmake-args", [])
-        if extra_cmake_args:
-            cmake_args.extend(extra_cmake_args)
-
         # Run CMake build directly
-        run_cmake_build(source_dir=self.root, cmake_args=cmake_args)
+        if os.environ.get(bd_key, None) is not None:
+            build_dir = os.environ[bd_key]
+            run_cmake_build(
+                source_dir=self.root, build_dir=build_dir, cmake_args=cmake_args
+            )
+        else:
+            with tempfile.TemporaryDirectory() as build_dir:
+                run_cmake_build(
+                    source_dir=self.root, build_dir=build_dir, cmake_args=cmake_args
+                )

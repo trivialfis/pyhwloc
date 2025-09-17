@@ -1,4 +1,5 @@
 # Copyright (c) 2025, NVIDIA CORPORATION.
+# SPDX-License-Identifier: BSD-3-Clause
 set(CMAKE_POLICY_DEFAULT_CMP0144 NEW)
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 

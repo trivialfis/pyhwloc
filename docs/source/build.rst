@@ -44,31 +44,39 @@ Most of the tests are failing on Windows at the moment. Wheel is not yet tested.
 Building PyHwloc from Source on Linux
 =====================================
 
+There are two ways to create and distribute a binary wheel for pyhwloc. The first one uses
+the system hwloc and the second one builds hwloc from source and bundles into the wheel.
+
+To use a pre-built hwloc in the system or virtual environment:
+
 - Create a conda environment that's similar to the CI build.
 - Build hwloc, install it into the conda environment (``CONDA_PREFIX``). We have example
   scripts used in the CI.
-- Install the wheel as described in the next section.
 
-Create a Python Wheel
-=====================
+  + Binary wheel
 
-- Binary wheel
+    .. code-block:: sh
+
+      pip wheel -v . -w dist/ --no-build-isolation
+
+  + Use editable build:
+
+    .. code-block:: sh
+
+      pip install -e . --no-build-isolation
+
+  + Source Wheel
+
+    .. code-block:: sh
+
+      python -m build --sdist
+
+In addition to reusing the system hwloc installation, pyhwloc can fetch and build hwloc
+from source automatically during build:
 
 .. code-block:: sh
 
-  pip wheel -v . -w dist/ --no-build-isolation
-
-- Use editable build:
-
-.. code-block:: sh
-
-  pip install -e . --no-build-isolation
-
-- Source Wheel
-
-.. code-block:: sh
-
-  python -m build --sdist
+  pip wheel -v . --config-settings=fetch-hwloc=True --config-settings=build-dir=/path/to/build/dir
 
 Building the Document
 =====================
