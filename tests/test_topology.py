@@ -201,7 +201,7 @@ def test_pickle_foreign() -> None:
         try:
             run_pickling(topo)
         finally:
-            original.destroy()
+            topo.destroy()
 
 
 def test_pickle_unloaded_topology() -> None:
