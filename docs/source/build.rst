@@ -2,9 +2,8 @@
 Building from Source
 ####################
 
-At the moment, installing pyhwloc **requires** building from source as I haven't figured
-out how to build a redistributable binary wheel yet. In the future, it's more likely we
-will rely on conda instead of PyPI. Maybe the hwloc plugin system could help.
+At the moment, installing pyhwloc **requires** building from source as we haven't made any
+release yet.
 
 .. contents::
     :backlinks: none
