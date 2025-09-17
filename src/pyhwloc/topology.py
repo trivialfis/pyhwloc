@@ -186,7 +186,7 @@ class Topology:
         return topo
 
     @classmethod
-    def from_this_system(cls, *, load: bool = True) -> Topology:
+    def from_this_system(cls, *, load: bool = False) -> Topology:
         """Create a topology from this system.
 
         Parameters
