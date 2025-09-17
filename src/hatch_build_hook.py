@@ -67,7 +67,7 @@ def run_cmake_build(
     # Build with CMake
     build_cmd = [
         "cmake",
-        "--build",
+        "--install",
         str(build_path),
         "--config",
         build_type,
