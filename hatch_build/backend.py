@@ -23,7 +23,7 @@ def build_wheel(
         if "fetch-hwloc" in config_settings:
             v = config_settings["fetch-hwloc"]
             assert v in ("True", "False")
-            os.environ["PYHWLOC_FETCH_HWLOC"] = "1"
+            os.environ["PYHWLOC_FETCH_HWLOC"] = v
         if "build-dir" in config_settings:
             os.environ["PYHWLOC_BUILD_DIR"] = config_settings["build-dir"]
 

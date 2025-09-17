@@ -94,7 +94,7 @@ def run_cmake_build(
         str(parallel_jobs),
     ]
     print(f"CMake install: {' '.join(install_cmd)}")
-    result = subprocess.run(install_cmd, check=True)
+    result = subprocess.run(install_cmd, check=False)
     if result.returncode != 0:
         error_msg = f"CMake install failed with code {result.returncode}"
         raise RuntimeError(error_msg)
@@ -110,7 +110,7 @@ class CMakeBuildHook(BuildHookInterface):
         fetch_key = "PYHWLOC_FETCH_HWLOC"
         bd_key = "PYHWLOC_BUILD_DIR"
         print(fetch_key, ":", os.environ.get(fetch_key, None))
-        fetch_hwloc = os.environ.get("PYHWLOC_FETCH_HWLOC", None)
+        fetch_hwloc = os.environ.get(fetch_key, None)
         # Check if native library already exists
         lib_dir = Path(self.root) / "src" / "pyhwloc" / "_lib"
         if lib_dir.exists() and (
@@ -122,7 +122,8 @@ class CMakeBuildHook(BuildHookInterface):
         # Check for custom installation options
         cmake_args = []
         # Allow fetching hwloc from GitHub via environment variable or config
-        if fetch_hwloc:
+        assert fetch_hwloc in (None, "True", "False")
+        if fetch_hwloc == "True":
             cmake_args.append(f"-D{fetch_key}=ON")
             print("Building with fetched hwloc from GitHub")
         # Run CMake build directly
