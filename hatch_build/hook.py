@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+from packaging.tags import platform_tags
 
 # from .config import global_config
 
@@ -107,8 +108,13 @@ class CMakeBuildHook(BuildHookInterface):
 
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
         """Run CMake build before packaging."""
+        # Set platform-specific tag for the wheel
+        build_data["tag"] = f"py3-none-{next(platform_tags())}"
+        build_data["pure_python"] = False
+
         fetch_key = "PYHWLOC_FETCH_HWLOC"
         bd_key = "PYHWLOC_BUILD_DIR"
+
         print(fetch_key, ":", os.environ.get(fetch_key, None))
         fetch_hwloc = os.environ.get(fetch_key, None)
         # Check if native library already exists
