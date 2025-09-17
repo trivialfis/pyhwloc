@@ -6,8 +6,16 @@ endif()
 
 set(HWLOC_LIB_NAME hwloc)
 
-find_path(HWLOC_INCLUDE_DIR NAMES hwloc.h)
-find_library(HWLOC_LIBRARY NAMES ${HWLOC_LIB_NAME})
+find_path(
+  HWLOC_INCLUDE_DIR
+  NAMES hwloc.h
+  HINTS ${HWLOC_ROOT}/include
+)
+find_library(
+  HWLOC_LIBRARY
+  NAMES ${HWLOC_LIB_NAME}
+  HINTS ${HWLOC_ROOT}/lib
+)
 
 message(STATUS "Using hwloc library: ${HWLOC_LIBRARY}")
 
