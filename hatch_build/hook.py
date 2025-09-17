@@ -13,8 +13,6 @@ from typing import Any
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from packaging.tags import platform_tags
 
-# from .config import global_config
-
 
 def run_cmake_build(
     source_dir: str | Path,
@@ -127,7 +125,6 @@ class CMakeBuildHook(BuildHookInterface):
 
         # Check for custom installation options
         cmake_args = []
-        # Allow fetching hwloc from GitHub via environment variable or config
         assert fetch_hwloc in (None, "True", "False")
         if fetch_hwloc == "True":
             cmake_args.append(f"-D{fetch_key}=ON")
