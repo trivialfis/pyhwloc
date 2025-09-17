@@ -29,7 +29,7 @@ class Device:
         from pyhwloc.topology import Topology, TypeFilter
         from pyhwloc.cuda_runtime import get_device
 
-        with Topology.from_this_system(load=False).set_io_types_filter(
+        with Topology.from_this_system().set_io_types_filter(
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
         ) as topo:
             ordinal = 0  # The first CUDA runtime device.
