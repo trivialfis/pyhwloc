@@ -30,10 +30,20 @@ _lib_path = normpath(
     )
 )
 
-# Dynamically find hwloc library at runtime
-_hwloc_lib_name = find_library("hwloc")
-if _hwloc_lib_name is None:
-    raise ImportError("hwloc library not found.")
+if _IS_WINDOWS:
+    _search_name = os.path.join(_lib_path, "lib", "hwloc.dll")
+else:
+    _search_name = os.path.join(_lib_path, "lib", "libhwloc.so")
+
+if os.path.exists(_search_name):
+    _hwloc_lib_name = _search_name
+else:
+    # Dynamically find hwloc library at runtime
+    found = find_library("hwloc")
+    if found is None:
+        raise ImportError("hwloc library not found.")
+
+    _hwloc_lib_name = found
 
 if _IS_WINDOWS:
     _LIB = ctypes.CDLL(_hwloc_lib_name, use_errno=True, use_last_error=True)

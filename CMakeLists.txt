@@ -25,7 +25,6 @@ if(PYHWLOC_FETCH_HWLOC)
 
   # Configure hwloc build options
   FetchContent_MakeAvailable(hwloc)
-  message(STATUS "src: ${hwloc_SOURCE_DIR}, dst: ${hwloc_BINARY_DIR}")
   if(NOT PYHWLOC_CONFIG_HWLOC)
     execute_process(
       COMMAND ${hwloc_SOURCE_DIR}/autogen.sh WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
@@ -39,6 +38,7 @@ if(PYHWLOC_FETCH_HWLOC)
   include(ProcessorCount)
   ProcessorCount(nproc)
 
+  # fixme; How to respect the --parallel option?
   add_custom_command(
     OUTPUT ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so COMMAND make -j${nproc} install WORKING_DIRECTORY ${hwloc_BINARY_DIR}
   )
