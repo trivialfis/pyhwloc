@@ -457,6 +457,8 @@ class Topology:
 
     @_reuse_doc(_core.topology_set_flags)
     def set_flags(self, flags: _Flags[TopologyFlags]) -> Topology:
+        # This is not a property because we want continuous
+        # setters: Topology.set_flags(flags).set_io_types_filter(f) ...
         return self._checked_apply(_core.topology_set_flags, _or_flags(flags))
 
     @_reuse_doc(_core.topology_get_flags)
@@ -578,7 +580,6 @@ class Topology:
             yield obj
             prev = ptr
 
-    @property
     def n_cores(self) -> int:
         """Get the total number of cores.
 
@@ -672,7 +673,6 @@ class Topology:
         """
         return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
 
-    @property
     def n_cpus(self) -> int:
         """Get the total number of processing units (CPUs).
 
@@ -682,7 +682,6 @@ class Topology:
         """
         return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PU)
 
-    @property
     def n_numa_nodes(self) -> int:
         """Get the total number of NUMA nodes.
 
@@ -692,7 +691,6 @@ class Topology:
         """
         return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_NUMANODE)
 
-    @property
     def n_packages(self) -> int:
         """Get the total number of packages (sockets).
 
@@ -702,7 +700,6 @@ class Topology:
         """
         return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
 
-    @property
     def n_pci_devices(self) -> int:
         """Get the total number of PCI devices.
 
@@ -712,7 +709,6 @@ class Topology:
         """
         return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PCI_DEVICE)
 
-    @property
     def n_os_devices(self) -> int:
         """Get the total number of OS devices.
 

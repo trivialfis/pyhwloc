@@ -21,10 +21,10 @@ def main() -> int:
         print(
             f"""
 === System Overview ===
-CPUs: {topology.n_cpus}
-Cores: {topology.n_cores}
-NUMA nodes: {topology.n_numa_nodes}
-Packages: {topology.n_packages}
+CPUs: {topology.n_cpus()}
+Cores: {topology.n_cores()}
+NUMA nodes: {topology.n_numa_nodes()}
+Packages: {topology.n_packages()}
 """
         )
 
