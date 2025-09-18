@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING
 
 from .hwloc import core as _core
 from .hwobject import Object
-from .utils import _reuse_doc
+from .utils import _reuse_doc, _TopoRef
 
 if TYPE_CHECKING:
     from .topology import Topology
@@ -36,7 +36,7 @@ def _ravel(n_objs: int, i: int, j: int) -> int:
     return i * n_objs + j
 
 
-class Distances:
+class Distances(_TopoRef):
     """High-level interface for hwloc distance matrix. Users can index the Distances
     class like a matrix:
 
@@ -63,13 +63,6 @@ class Distances:
             raise RuntimeError("This distances object has been released.")
         assert self._hdl
         return self._hdl
-
-    @property
-    def _topo(self) -> "Topology":
-        ref = self._topo_ref()
-        if not ref or not ref.is_loaded:
-            raise RuntimeError("Topology is invalid")
-        return ref
 
     # Core Properties
     @property

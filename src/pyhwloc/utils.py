@@ -10,12 +10,18 @@ from __future__ import annotations
 import ctypes
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Callable, ParamSpec, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, ParamSpec, Protocol, TypeVar, Union
 
 __all__ = ["PciId", "memoryview_from_memory"]
 
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
+
+
+if TYPE_CHECKING:
+    import weakref
+
+    from .topology import Topology
 
 
 def _reuse_doc(orig: Callable) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
@@ -82,6 +88,23 @@ def _memview_to_mem(mem: memoryview) -> tuple[ctypes.c_void_p, int]:
     buf = Buffer.from_buffer(mem)
     addr = ctypes.cast(buf, ctypes.c_void_p)
     return addr, size
+
+
+class _HasTopoRef(Protocol):
+    @property
+    def _topo_ref(self) -> weakref.ReferenceType["Topology"]: ...
+
+
+class _TopoRef:
+    """A mixin class for accessing a reference to the topology."""
+
+    @property
+    def _topo(self: _HasTopoRef) -> "Topology":
+        if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
+            raise RuntimeError("Topology is invalid")
+        v = self._topo_ref()
+        assert v is not None
+        return v
 
 
 @dataclass

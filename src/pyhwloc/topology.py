@@ -24,6 +24,7 @@ from typing import (
 )
 
 from .bitmap import Bitmap as _Bitmap
+from .cpukinds import CpuKinds
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object as _Object
@@ -1176,6 +1177,10 @@ class Topology:
         finally:
             if hdl:
                 _core._close_proc_handle(hdl)
+
+    def get_cpukinds(self) -> CpuKinds:
+        """Get a proxy object for the CPU kinds."""
+        return CpuKinds(weakref.ref(self))
 
 
 @_reuse_doc(_core.get_api_version)

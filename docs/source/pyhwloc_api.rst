@@ -26,6 +26,9 @@ type. Users can use it to reach to the :doc:`low-level </low_level>` interface.
 .. automodule:: pyhwloc.distance
   :members:
 
+.. automodule:: pyhwloc.cpukinds
+  :members:
+
 .. automodule:: pyhwloc.cuda_runtime
   :members:
 

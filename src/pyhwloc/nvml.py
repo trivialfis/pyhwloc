@@ -13,7 +13,7 @@ from .bitmap import Bitmap
 from .hwloc import nvml as _nvml
 from .hwobject import Object
 from .topology import Topology
-from .utils import _reuse_doc
+from .utils import _reuse_doc, _TopoRef
 
 __all__ = [
     "Device",
@@ -21,7 +21,7 @@ __all__ = [
 ]
 
 
-class Device:
+class Device(_TopoRef):
     """Class to represent an NVML device. This class can be created using the
     :py:func:`get_device`.
 
@@ -52,14 +52,6 @@ class Device:
         raise RuntimeError("Use `get_device` instead.")
         self._nvml_hdl: ctypes._Pointer = None
         self._topo_ref: weakref.ReferenceType["Topology"]
-
-    @property
-    def _topo(self) -> Topology:
-        if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
-            raise RuntimeError("Topology is invalid")
-        v = self._topo_ref()
-        assert v is not None
-        return v
 
     @classmethod
     def from_native_handle(
