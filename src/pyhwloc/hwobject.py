@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Iterator, TypeAlias
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
-from .utils import PciId, _Flags, _or_flags, _reuse_doc
+from .utils import PciId, _Flags, _or_flags, _reuse_doc, _TopoRef
 
 if TYPE_CHECKING:
     from .topology import Topology
@@ -39,7 +39,7 @@ ObjSnprintfFlag: TypeAlias = _core.ObjSnprintfFlag
 GetTypeDepth: TypeAlias = _core.GetTypeDepth
 
 
-class Object:
+class Object(_TopoRef):
     """High-level interface for the hwloc object. Only the topology can return
     objects. User should not use the constructor.
 
@@ -63,14 +63,6 @@ class Object:
         if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
             raise RuntimeError("Topology is invalid")
         return self._hdl
-
-    @property
-    def _topo(self) -> "Topology":
-        if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
-            raise RuntimeError("Topology is invalid")
-        v = self._topo_ref()
-        assert v is not None
-        return v
 
     @property
     def type(self) -> ObjType:
