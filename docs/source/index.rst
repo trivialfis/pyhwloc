@@ -19,3 +19,4 @@ pyhwloc documentation
   pyhwloc_api
   low_level
   c
+  dev

@@ -37,7 +37,7 @@ def test_context_manager_current_system() -> None:
 
     # Properties should also raise RuntimeError
     with pytest.raises(RuntimeError, match="Topology has been destroyed"):
-        _ = topo.n_cpus
+        _ = topo.n_cpus()
 
     with Topology.from_this_system().set_components("no_os") as topo:
         assert topo.is_loaded
@@ -234,13 +234,13 @@ def test_get_nbobjs_by_type() -> None:
         assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU) == 8
 
         # Test convenience properties
-        assert topo.n_cpus == 8
-        assert topo.n_cores == 4
-        assert topo.n_numa_nodes == 2
-        assert topo.n_packages >= 0
+        assert topo.n_cpus() == 8
+        assert topo.n_cores() == 4
+        assert topo.n_numa_nodes() == 2
+        assert topo.n_packages() >= 0
         # OS devices and PCI devices should be 0 in synthetic topology
-        assert topo.n_os_devices == 0
-        assert topo.n_pci_devices == 0
+        assert topo.n_os_devices() == 0
+        assert topo.n_pci_devices() == 0
 
 
 def test_get_nbobjs_by_type_with_filter() -> None:
@@ -249,12 +249,12 @@ def test_get_nbobjs_by_type_with_filter() -> None:
         type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE
     ) as topo:
         # I/O objects should be filtered out
-        assert topo.n_os_devices == 0
-        assert topo.n_pci_devices == 0
+        assert topo.n_os_devices() == 0
+        assert topo.n_pci_devices() == 0
 
         # Non-I/O objects should be unaffected
-        assert topo.n_cpus > 0
-        assert topo.n_cores >= 0
+        assert topo.n_cpus() > 0
+        assert topo.n_cores() >= 0
 
     with Topology.from_this_system().set_io_types_filter(
         type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
@@ -273,9 +273,9 @@ def test_object_iteration() -> None:
     with Topology.from_synthetic(desc) as topo:
         # Test basic properties
         assert topo.depth > 0
-        assert topo.n_cpus == 8  # 2 nodes * 2 cores * 2 PUs
-        assert topo.n_cores == 4  # 2 nodes * 2 cores
-        assert topo.n_numa_nodes == 2  # 2 nodes
+        assert topo.n_cpus() == 8  # 2 nodes * 2 cores * 2 PUs
+        assert topo.n_cores() == 4  # 2 nodes * 2 cores
+        assert topo.n_numa_nodes() == 2  # 2 nodes
 
         # Test object counts by depth
         total_objects = 0
@@ -308,9 +308,9 @@ def test_object_iteration() -> None:
         core_objects = list(topo.iter_cores())
         numa_objects = list(topo.iter_numa_nodes())
 
-        assert len(cpu_objects) == topo.n_cpus
-        assert len(core_objects) == topo.n_cores
-        assert len(numa_objects) == topo.n_numa_nodes
+        assert len(cpu_objects) == topo.n_cpus()
+        assert len(core_objects) == topo.n_cores()
+        assert len(numa_objects) == topo.n_numa_nodes()
 
         # Test iteration of all objects
         all_objects = list(topo.iter_all_breadth_first())

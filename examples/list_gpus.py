@@ -5,13 +5,13 @@ Simple script for listing GPU devices
 =====================================
 """
 
-from pyhwloc import Topology
+from pyhwloc import from_this_system
 from pyhwloc.hwobject import GetTypeDepth, ObjType
 from pyhwloc.topology import TypeFilter
 
 if __name__ == "__main__":
     # GPU is categorized as IO device.
-    with Topology.from_this_system().set_io_types_filter(
+    with from_this_system().set_io_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
     ) as topo:
         # Look for OS devices (which include GPUs)
