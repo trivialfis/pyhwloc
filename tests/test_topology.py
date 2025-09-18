@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import copy
+import os
 import pickle
 
 import pytest
 
+from pyhwloc.hwloc.lib import normpath
 from pyhwloc.hwobject import ObjType
 from pyhwloc.topology import ExportXmlFlags, Topology, TypeFilter
 
@@ -316,6 +318,22 @@ def test_object_iteration() -> None:
         all_objects = list(topo.iter_all_breadth_first())
         assert len(all_objects) == total_objects
         assert len(all_objects) == len(depth_objects)
+
+
+def test_find_io_devices() -> None:
+    sample_osdev_path = os.path.join(
+        os.path.dirname(normpath(__file__)), "sample_osdev.xml"
+    )
+    with Topology.from_xml_file(sample_osdev_path).set_io_types_filter(
+        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
+    ) as topo:
+        for pci in topo.iter_pci_devices():
+            assert pci.pci_id.domain == pci.pci_id.dev == 0
+            assert pci.type == ObjType.HWLOC_OBJ_PCI_DEVICE
+        for bridge in topo.iter_bridges():
+            assert bridge.type == ObjType.HWLOC_OBJ_BRIDGE
+        for osdev in topo.iter_os_devices():
+            assert osdev.type == ObjType.HWLOC_OBJ_OS_DEVICE
 
 
 def test_helpers() -> None:

@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Iterator, TypeAlias
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
-from .utils import _Flags, _or_flags, _reuse_doc
+from .utils import PciId, _Flags, _or_flags, _reuse_doc
 
 if TYPE_CHECKING:
     from .topology import Topology
@@ -372,6 +372,16 @@ class Object:
     def gp_index(self) -> int:
         "Global persistent index."
         return int(self.native_handle.contents.gp_index)
+
+    @property
+    def pci_id(self) -> PciId:
+        if not self.is_pci_device():
+            raise ValueError(
+                f"Invalid object type. Expecting PCI device, got {self.type}"
+            )
+        attr = self.attr
+        assert attr is not None and isinstance(attr, _core.hwloc_pcidev_attr_s)
+        return PciId(attr.domain, attr.bus, attr.dev)
 
     def iter_children(self) -> Iterator[Object]:
         """Iterate over all children of this object."""

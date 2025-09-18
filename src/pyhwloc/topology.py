@@ -673,6 +673,45 @@ class Topology:
         """
         return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
 
+    # Finding I/O objects
+    def _iter_io_devices(
+        self, fn: Callable[[_core.topology_t, ObjPtr | None], ObjPtr | None]
+    ) -> Iterator[_Object]:
+        prev = None
+        while True:
+            ptr = fn(self.native_handle, prev)
+            if ptr is None:
+                break
+            yield _Object(ptr, weakref.ref(self))
+            prev = ptr
+
+    def iter_os_devices(self) -> Iterator[_Object]:
+        """Iterate over all OS devices.
+
+        Yields
+        ------
+        All OS devices instances.
+        """
+        return self._iter_io_devices(_core.get_next_osdev)
+
+    def iter_bridges(self) -> Iterator[_Object]:
+        """Iterate over all bridges.
+
+        Yields
+        ------
+        All bridge instances.
+        """
+        return self._iter_io_devices(_core.get_next_bridge)
+
+    def iter_pci_devices(self) -> Iterator[_Object]:
+        """Iterate over all PCI devices.
+
+        Yields
+        ------
+        All PCI device instances.
+        """
+        return self._iter_io_devices(_core.get_next_pcidev)
+
     def n_cpus(self) -> int:
         """Get the total number of processing units (CPUs).
 
