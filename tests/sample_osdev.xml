@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topology SYSTEM "hwloc2.dtd">
+<topology version="3.0">
+  <object type="Machine" os_index="0" cpuset="0x0000ffff,0xffffffff,0xffffffff" complete_cpuset="0x0000ffff,0xffffffff,0xffffffff" allowed_cpuset="0x0000ffff,0xffffffff,0xffffffff" nodeset="0x00000003" complete_nodeset="0x00000003" allowed_nodeset="0x00000003">
+    <object type="Package" os_index="0" cpuset="0x0fffff00,0x000fffff" complete_cpuset="0x0fffff00,0x000fffff" nodeset="0x00000001" complete_nodeset="0x00000001">
+      <object type="NUMANode" os_index="0" cpuset="0x0fffff00,0x000fffff" complete_cpuset="0x0fffff00,0x000fffff" nodeset="0x00000001" complete_nodeset="0x00000001">
+      </object>
+      <object type="Bridge">
+        <object type="Bridge">
+          <object type="PCIDev">
+            <object type="OSDev"/>
+          </object>
+          <object type="PCIDev">
+            <object type="OSDev"/>
+          </object>
+        </object>
+        <object type="Bridge"/>
+        <object type="PCIDev"/>
+        <object type="Bridge"/>
+        <object type="PCIDev"/>
+      </object>
+    </object>
+  </object>
+</topology>

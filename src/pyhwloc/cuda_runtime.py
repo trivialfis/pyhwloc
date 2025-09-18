@@ -65,8 +65,10 @@ class Device:
         """Device ordinal."""
         return self._idx
 
+    # Use property to be consistent with hwobject.pci_id
+    @property
     @_reuse_doc(_cudart.get_device_pci_ids)
-    def pci_ids(self) -> PciId:
+    def pci_id(self) -> PciId:
         domain, bus, dev = _cudart.get_device_pci_ids(
             self._topo.native_handle, self._idx
         )

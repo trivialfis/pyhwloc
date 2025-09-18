@@ -36,11 +36,11 @@ def test_cuda_driver() -> None:
 
         assert dev.cpuset.weight() >= 1
 
-        pci_ids = dev.pci_ids()
-        assert isinstance(pci_ids, hwloc_cudadr.PciId)
-        assert pci_ids.domain >= 0
-        assert pci_ids.bus >= 0
-        assert pci_ids.dev >= 0
+        pci_id = dev.pci_id
+        assert isinstance(pci_id, hwloc_cudadr.PciId)
+        assert pci_id.domain >= 0
+        assert pci_id.bus >= 0
+        assert pci_id.dev >= 0
 
         with pytest.raises(RuntimeError, match="get_device"):
             type(dev)()

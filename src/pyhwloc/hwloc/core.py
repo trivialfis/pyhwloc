@@ -2387,7 +2387,7 @@ _pyhwloc_lib.pyhwloc_get_next_pcidev.restype = ctypes.POINTER(hwloc_obj)
 
 
 @_cfndoc
-def get_next_pcidev(topology: topology_t, prev: ObjPtr) -> ObjPtr | None:
+def get_next_pcidev(topology: topology_t, prev: ObjPtr | None) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_next_pcidev(topology, prev)
     if not obj:
         return None
@@ -2433,7 +2433,7 @@ _pyhwloc_lib.pyhwloc_get_next_osdev.restype = ctypes.POINTER(hwloc_obj)
 
 
 @_cfndoc
-def get_next_osdev(topology: topology_t, prev: ObjPtr) -> ObjPtr | None:
+def get_next_osdev(topology: topology_t, prev: ObjPtr | None) -> ObjPtr | None:
     obj = _pyhwloc_lib.pyhwloc_get_next_osdev(topology, prev)
     if not obj:
         return None
