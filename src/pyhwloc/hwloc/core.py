@@ -8,6 +8,7 @@ Core API
 from __future__ import annotations
 
 import ctypes
+import errno
 import sys
 from enum import IntEnum
 from typing import TYPE_CHECKING, Callable
@@ -15,6 +16,7 @@ from typing import TYPE_CHECKING, Callable
 from .bitmap import bitmap_alloc, bitmap_t, const_bitmap_t
 from .lib import (
     _LIB,
+    HwLocError,
     _cenumdoc,
     _cfndoc,
     _checkc,
@@ -24,6 +26,7 @@ from .lib import (
     _PrintableStruct,
     _pyhwloc_lib,
 )
+from .libc import strerror as _strerror
 
 hwloc_uint64_t = ctypes.c_uint64
 HWLOC_UNKNOWN_INDEX = ctypes.c_uint(-1).value
@@ -3397,7 +3400,20 @@ def cpukinds_get_by_cpuset(topology: topology_t, cpuset: const_bitmap_t) -> int:
     # flags must be 0 for now.
     result = _LIB.hwloc_cpukinds_get_by_cpuset(topology, cpuset, 0)
     if result < 0:
-        _checkc(result)
+        err = ctypes.get_errno()
+        msg = _strerror(err)
+        if msg is None:
+            msg = ""
+        else:
+            msg += ". "
+        if err == errno.EXDEV:
+            msg += "The cpuset is only partially included in the some kind."
+            raise HwLocError(result, err, msg)
+        elif err == errno.ENOENT:
+            msg += "The cpuset is not included in any kind, even partially. "
+            raise HwLocError(result, err, msg)
+        else:
+            _checkc(result)
     return result
 
 

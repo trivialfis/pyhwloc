@@ -34,6 +34,7 @@ if _IS_WINDOWS:
     _search_name = os.path.join(_lib_path, "lib", "hwloc.dll")
 else:
     _search_name = os.path.join(_lib_path, "lib", "libhwloc.so")
+    # _search_name = "/home/jiamingy/ws/pyhwloc_dev/hwloc/build/hwloc/.libs/libhwloc.so"
 
 if os.path.exists(_search_name):
     _hwloc_lib_name = _search_name
