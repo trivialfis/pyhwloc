@@ -1,10 +1,10 @@
-FROM condaforge/miniforge3:25.3.1-0
+# Stage 1: Builder stage with doxygen and build dependencies
+FROM condaforge/miniforge3:25.3.1-0 AS builder
 
 RUN set -x \
     # basic dependencies
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/3bf863cc.pub && \
-    apt-get update && apt-get upgrade -y && \
-    apt-get install automake autoconf libtool -y
+    apt-get update && apt-get upgrade -y
 
 RUN mkdir ws
 
@@ -25,14 +25,34 @@ RUN \
 SHELL ["mamba", "run", "--no-capture-output", "-n", "base", "/bin/bash", "-c"]
 
 COPY install_doxygen.sh ws/install_doxygen.sh
-
 COPY install_hwloc.sh ws/install_hwloc.sh
 
+# Build and install doxygen (needed for hwloc documentation)
 RUN \
     cd /ws/ && \
     echo "con: CONDA_ENV ${CONDA_PREFIX}" && \
     ./install_doxygen.sh
 
+# Build and install hwloc with documentation
 RUN \
     cd /ws/ && \
     ./install_hwloc.sh
+
+# Stage 2: Final runtime stage without doxygen and build dependencies
+FROM condaforge/miniforge3:25.3.1-0
+
+RUN set -x \
+    # basic dependencies
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/3bf863cc.pub && \
+    apt-get update && apt-get upgrade -y
+
+RUN mkdir ws
+
+COPY pyhwloc_dev.yml ws/pyhwloc_dev.yml
+
+RUN mamba env update -n base -f ws/pyhwloc_dev.yml -v && mamba clean --all --yes
+
+SHELL ["mamba", "run", "--no-capture-output", "-n", "base", "/bin/bash", "-c"]
+
+# Copy the document from the builder stage
+COPY --from=builder /ws/xml /ws/xml

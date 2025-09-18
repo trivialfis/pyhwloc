@@ -3,12 +3,18 @@ channels:
 - conda-forge
 - nvidia
 dependencies:
+# -- hwloc
+- libtool
+- automake
+- autoconf
+# -- pyhwloc
 - c-compiler
 - cxx-compiler
 - cmake
 - cuda-cudart-dev
 - cuda-nvml-dev
 - cuda-nvcc
+- cuda-python
 - cuda-version=12.8
 - nvidia-ml-py
 - make
@@ -17,12 +23,13 @@ dependencies:
 # -- python local
 - python==3.12
 - hatchling
+- python-build
 - pip
 - pytest
 - pytest-cov
 # -- document
-- doxygen
 - breathe
 - sphinx
 - myst-parser
 - sphinx-gallery
+- doxygen

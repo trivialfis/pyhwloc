@@ -106,7 +106,8 @@ jobs:
       run: |
         echo $(pwd)
         cd docs
-        PYHWLOC_XML_PATH=/ws/hwloc/doc/doxygen-doc/xml make html
+        # Path is set by the install_hwloc.sh script.
+        PYHWLOC_XML_PATH=/ws/xml make html
 
     - name: Upload static files as artifact
       uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
