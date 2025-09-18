@@ -22,7 +22,13 @@ if TYPE_CHECKING:
 
 
 class CpuKinds(_TopoRef):
-    def __init__(self, topology: weakref.ReferenceType["Topology"]) -> None:
+    """Represents the CPU kinds in hwloc. Use the
+    :py:meth:`~pyhwloc.topology.Topology.get_cpukinds` to obtain an instance of this
+    class.
+
+    """
+
+    def __init__(self, topology: weakref.ReferenceType[Topology]) -> None:
         self._topo_ref = topology
 
     @_reuse_doc(_core.cpukinds_register)

@@ -144,6 +144,9 @@ def compare_types(type1: ObjType, type2: ObjType) -> int:
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00141.php
 
 
+# The info_s and infs_s are dictionary in Python.
+
+
 @_cstructdoc()
 class hwloc_info_s(_PrintableStruct):
     _fields_ = [

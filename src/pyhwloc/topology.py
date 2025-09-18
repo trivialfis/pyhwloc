@@ -1179,6 +1179,7 @@ class Topology:
                 _core._close_proc_handle(hdl)
 
     def get_cpukinds(self) -> CpuKinds:
+        """Get a proxy object for the CPU kinds."""
         return CpuKinds(weakref.ref(self))
 
 
