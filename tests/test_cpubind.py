@@ -50,12 +50,12 @@ def test_cpubind() -> None:
         orig = topo.get_cpubind()
         target = copy.copy(orig)
         idx = target.first()
-        topo.cpubind(set([idx]))
+        topo.set_cpubind(set([idx]))
         new = topo.get_cpubind()
         assert new[0] is True
         assert new.weight() == 1
 
-        topo.cpubind(orig)
+        topo.set_cpubind(orig)
         new = topo.get_cpubind()
         assert new == orig
         # proc cpubind
@@ -63,12 +63,12 @@ def test_cpubind() -> None:
         orig_proc = topo.get_proc_cpubind(pid)
         target_proc = copy.copy(orig_proc)
         idx = target_proc.first()
-        topo.cpubind_proc(pid, set([idx]))
+        topo.set_proc_cpubind(pid, set([idx]))
         new_proc = topo.get_proc_cpubind(pid)
         assert new_proc[0] is True
         assert new_proc.weight() == 1
 
-        topo.cpubind_proc(pid, orig_proc)
+        topo.set_proc_cpubind(pid, orig_proc)
         new_proc = topo.get_proc_cpubind(pid)
         assert new_proc == orig_proc
 
@@ -79,7 +79,7 @@ def test_cpubind() -> None:
             topo.get_proc_cpubind(invalid_pid)
 
         with pytest.raises(ValueError):
-            topo.cpubind_proc(invalid_pid, set([0]))
+            topo.set_proc_cpubind(invalid_pid, set([0]))
 
 
 def test_thread_cpubind() -> None:
@@ -91,12 +91,12 @@ def test_thread_cpubind() -> None:
 
         obj = topo.get_obj_by_type(ObjType.HWLOC_OBJ_PU, idx)
         assert obj is not None
-        topo.cpubind_thread(thread_id, obj)
+        topo.set_thread_cpubind(thread_id, obj)
 
         new = topo.get_thread_cpubind(thread_id)
         assert new[0] is True
         assert new.weight() == 1
 
-        topo.cpubind_thread(thread_id, orig)
+        topo.set_thread_cpubind(thread_id, orig)
         new = topo.get_thread_cpubind(thread_id)
         assert new == orig

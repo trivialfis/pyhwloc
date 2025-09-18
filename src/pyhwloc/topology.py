@@ -765,7 +765,7 @@ class Topology:
         return result
 
     # Memory Binding Methods
-    def membind(
+    def set_membind(
         self,
         target: _BindTarget,
         policy: MemBindPolicy,
@@ -872,7 +872,7 @@ class Topology:
             if hdl:
                 _core._close_proc_handle(hdl)
 
-    def membind_area(
+    def set_area_membind(
         self,
         mem: memoryview,
         target: _BindTarget,
@@ -940,7 +940,7 @@ class Topology:
     # someone asks for it.
 
     # CPU Binding Methods
-    def cpubind(self, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0) -> None:
+    def set_cpubind(self, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0) -> None:
         """Bind current process to specified CPUs.
 
         Parameters
@@ -971,7 +971,7 @@ class Topology:
         _core.get_cpubind(self.native_handle, cpuset.native_handle, _or_flags(flags))
         return cpuset
 
-    def cpubind_proc(
+    def set_proc_cpubind(
         self, pid: int, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
     ) -> None:
         """Bind specific process to CPUs.
@@ -1030,7 +1030,7 @@ class Topology:
             if hdl:
                 _core._close_proc_handle(hdl)
 
-    def cpubind_thread(
+    def set_thread_cpubind(
         self, thread_id: int, target: _BindTarget, flags: _Flags[CpuBindFlags] = 0
     ) -> None:
         """Bind specific thread to CPUs.
