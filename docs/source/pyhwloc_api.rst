@@ -10,6 +10,10 @@ type. Users can use it to reach to the :doc:`low-level </low_level>` interface.
     :backlinks: none
     :local:
 
+.. automodule:: pyhwloc
+  :members:
+  :exclude-members: Topology
+
 .. automodule:: pyhwloc.bitmap
   :members:
 

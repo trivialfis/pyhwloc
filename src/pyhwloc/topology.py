@@ -3,6 +3,7 @@
 """
 The Topology Interface
 ======================
+
 """
 
 from __future__ import annotations
@@ -1158,3 +1159,16 @@ if not _lib._IS_DOC_BUILD:
             "Invalid API version. You have installed a different version of hwloc. "
             f"Expecting API version: 3.0.0, got {_major}.{_minor}.{_rev}) ."
         )
+
+
+# Shorthands
+
+from_this_system = Topology.from_this_system
+
+from_pid = Topology.from_pid
+
+from_synthetic = Topology.from_synthetic
+
+from_xml_file = Topology.from_xml_file
+
+from_xml_buffer = Topology.from_xml_buffer
