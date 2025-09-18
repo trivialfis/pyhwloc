@@ -92,8 +92,10 @@ class Device:
     def native_handle(self) -> "CUDevice":
         return self._cu_device
 
+    # Use property to be consistent with hwobject.pci_id
+    @property
     @_reuse_doc(_cudadr.get_device_pci_ids)
-    def pci_ids(self) -> PciId:
+    def pci_id(self) -> PciId:
         import cuda.bindings.driver as cuda
 
         domain, bus, dev = _cudadr.get_device_pci_ids(
