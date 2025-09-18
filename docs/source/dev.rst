@@ -6,7 +6,8 @@ Some design decisions were made in the initial development phase. For instance, 
 something should be a Python attribute or a Python method. My choice at the time was
 simple, if it's part of a C struct, it's an attribute, otherwise, it's a function. If both
 are possible, like the ``cpuset``, we use property. This way, we can keep it simple and
-allow future extension for parameters.
+allow future extension for parameters. It's ok, Python stdlib does not use property very
+often: ``threading.get_ident()``, let's move on.
 
 Hwloc has lots of setters and getters, some Python users might frown upon this design
 pattern, but we keep it instead. Most of these setters and getters have parameters,
