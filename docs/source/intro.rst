@@ -95,7 +95,7 @@ ways to work with these:
 
     with Topology.from_this_system() as topo:
         # Method 1: Pass a list of flags (recommended)
-        topo.set_membind(
+        topo.membind(
             target_set,
             MemBindPolicy.HWLOC_MEMBIND_BIND,
             [MemBindFlags.HWLOC_MEMBIND_STRICT, MemBindFlags.HWLOC_MEMBIND_THREAD],
@@ -103,7 +103,7 @@ ways to work with these:
 
         # Method 2: Use bitwise OR manually
         combined_flags = MemBindFlags.HWLOC_MEMBIND_STRICT | MemBindFlags.HWLOC_MEMBIND_THREAD
-        topo.set_membind(
+        topo.membind(
             target_set,
             MemBindPolicy.HWLOC_MEMBIND_BIND,
             combined_flags,

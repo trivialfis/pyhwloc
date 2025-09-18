@@ -31,7 +31,7 @@ def bind_np_array() -> None:
 
         # Use to the first node.
         nodeset.only(0)
-        topo.set_area_membind(array.data, nodeset, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
+        topo.membind_area(array.data, nodeset, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
 
         nodeset, policy = topo.get_area_membind(
             array.data, MemBindFlags.HWLOC_MEMBIND_BYNODESET

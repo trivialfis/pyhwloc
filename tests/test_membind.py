@@ -17,7 +17,7 @@ from .test_hwloc.test_membind import DFT_POLICY, has_nice_cap
 
 
 def reset(orig_cpuset: Bitmap, topo: Topology) -> None:
-    topo.set_membind(orig_cpuset, MemBindPolicy.HWLOC_MEMBIND_DEFAULT, 0)
+    topo.membind(orig_cpuset, MemBindPolicy.HWLOC_MEMBIND_DEFAULT, 0)
     orig_cpuset, policy = topo.get_membind()
     assert policy in (DFT_POLICY, MemBindPolicy.HWLOC_MEMBIND_DEFAULT)
 
@@ -59,7 +59,7 @@ def test_membind() -> None:
         target_set.set(0)
         # neither HWLOC_MEMBIND_PROCESS or HWLOC_MEMBIND_THREAD is used, the current
         # process is assumed to be single-threaded
-        topo.set_membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
+        topo.membind(target_set, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
 
         cpuset_1, policy_1 = topo.get_membind()
         assert cpuset_1.weight() >= 1  # All CPUs in a socket.
@@ -89,7 +89,7 @@ def test_membind() -> None:
             target=worker_2,
             args=(fut, MemBindPolicy.HWLOC_MEMBIND_DEFAULT),
         )
-        topo.set_membind(
+        topo.membind(
             target_set,
             MemBindPolicy.HWLOC_MEMBIND_BIND,
             [MemBindFlags.HWLOC_MEMBIND_STRICT, MemBindFlags.HWLOC_MEMBIND_THREAD],
@@ -111,7 +111,7 @@ def test_membind() -> None:
                 target=worker_2,
                 args=(fut, MemBindPolicy.HWLOC_MEMBIND_DEFAULT),
             )
-            topo.set_membind(
+            topo.membind(
                 target_set,
                 MemBindPolicy.HWLOC_MEMBIND_BIND,
                 MemBindFlags.HWLOC_MEMBIND_PROCESS,
@@ -130,7 +130,7 @@ def test_membind() -> None:
                 target=worker_2,
                 args=(fut, MemBindPolicy.HWLOC_MEMBIND_BIND),
             )
-            topo.set_membind(
+            topo.membind(
                 target_set,
                 MemBindPolicy.HWLOC_MEMBIND_BIND,
                 [MemBindFlags.HWLOC_MEMBIND_STRICT, MemBindFlags.HWLOC_MEMBIND_MIGRATE],
@@ -162,7 +162,7 @@ def test_area_membind() -> None:
         target_set = Bitmap()
         target_set.set(0)
 
-        topo.set_area_membind(
+        topo.membind_area(
             mv,
             target_set,
             MemBindPolicy.HWLOC_MEMBIND_BIND,
