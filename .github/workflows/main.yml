@@ -41,17 +41,17 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GHCR_PYHWLOC }}
     steps:
-    - name: Build doxygen XML
-      shell: bash -el {0}
-      run: |
-        echo $(pwd)
-        cd /ws/hwloc/doc
-        HWLOC_DOXYGEN_GENERATE_XML=YES doxygen ./doxygen.cfg
-        cd /ws
-
     - name: Trust git cloning project sources
       run: |
         git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+    - name: Install hwloc
+      shell: bash -el {0}
+      run: |
+        echo $(pwd)
+        cd /ws/hwloc/
+        make install
+        cd /ws
 
     - uses: actions/checkout@v4
       with:

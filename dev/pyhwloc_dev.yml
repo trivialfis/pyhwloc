@@ -32,4 +32,3 @@ dependencies:
 - sphinx
 - myst-parser
 - sphinx-gallery
-- doxygen
