@@ -85,6 +85,7 @@ jobs:
     - name: Install pyhwloc with custom hwloc
       run: |
         echo $(pwd)
+        echo "conda: ${CONDA_PREFIX}"
         pip wheel -v . --config-settings=fetch-hwloc=True --wheel-dir dist/
         pip install dist/pyhwloc-*.whl
         python -c "from pyhwloc import Topology"
