@@ -81,10 +81,11 @@ target_include_directories(pyhwloc_nvml PRIVATE ${HWLOC_INCLUDE_DIR})
 list(APPEND PYHWLOC_LIBS pyhwloc_nvml)
 
 include(GenerateExportHeader)
-generate_export_header(pyhwloc)
 
 foreach(lib IN LISTS PYHWLOC_LIBS)
   target_include_directories(${lib} PRIVATE ${pyhwloc_BINARY_DIR})
+  # One header for each shared object as Windows distinguishes import and export.
+  generate_export_header(${lib})
   if(PYHWLOC_FETCH_HWLOC)
     set_target_properties(${lib} PROPERTIES
       INSTALL_RPATH "$ORIGIN/lib"

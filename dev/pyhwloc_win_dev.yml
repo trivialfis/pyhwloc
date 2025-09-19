@@ -1,0 +1,30 @@
+name: pyhwloc_dev
+channels:
+- conda-forge
+- nvidia
+dependencies:
+# -- hwloc
+# -- pyhwloc
+- c-compiler
+- cxx-compiler
+- cmake
+- cuda-cudart-dev
+- cuda-nvml-dev
+- cuda-nvcc
+- cuda-python
+- cuda-version=12.8
+- nvidia-ml-py
+- make
+- ninja
+# -- python local
+- python==3.12
+- hatchling
+- python-build
+- pip
+- pytest
+- pytest-cov
+# -- document
+- breathe
+- sphinx
+- myst-parser
+- sphinx-gallery

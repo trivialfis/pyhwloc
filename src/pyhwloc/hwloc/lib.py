@@ -30,10 +30,14 @@ _lib_path = normpath(
     )
 )
 
-if _IS_WINDOWS:
-    _search_name = os.path.join(_lib_path, "lib", "hwloc.dll")
-else:
-    _search_name = os.path.join(_lib_path, "lib", "libhwloc.so")
+
+def _get_libname(name: str):
+    if _IS_WINDOWS:
+        return f"{name}.dll"
+    return f"lib{name}.so"
+
+
+_search_name = os.path.join(_lib_path, "lib", _get_libname("hwloc"))
 
 if os.path.exists(_search_name):
     _hwloc_lib_name = _search_name
@@ -53,10 +57,7 @@ else:
     _LIB = ctypes.CDLL(_hwloc_lib_name, mode=ctypes.RTLD_GLOBAL, use_errno=True)
 
 
-if _IS_WINDOWS:
-    _pyhwloc_lib = ctypes.cdll.LoadLibrary(os.path.join(_lib_path, "pyhwloc.dll"))
-else:
-    _pyhwloc_lib = ctypes.cdll.LoadLibrary(os.path.join(_lib_path, "libpyhwloc.so"))
+_pyhwloc_lib = ctypes.cdll.LoadLibrary(os.path.join(_lib_path, _get_libname("pyhwloc")))
 
 
 class HwLocError(RuntimeError):
