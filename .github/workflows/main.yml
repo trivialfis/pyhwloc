@@ -41,17 +41,17 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GHCR_PYHWLOC }}
     steps:
-    - name: Build doxygen XML
-      shell: bash -el {0}
-      run: |
-        echo $(pwd)
-        cd /ws/hwloc/doc
-        HWLOC_DOXYGEN_GENERATE_XML=YES doxygen ./doxygen.cfg
-        cd /ws
-
     - name: Trust git cloning project sources
       run: |
         git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+    - name: Install hwloc
+      shell: bash -el {0}
+      run: |
+        echo $(pwd)
+        cd /ws/hwloc/
+        make install
+        cd /ws
 
     - uses: actions/checkout@v4
       with:
@@ -106,4 +106,10 @@ jobs:
       run: |
         echo $(pwd)
         cd docs
-        PYHWLOC_XML_PATH=/ws/hwloc/doc/doxygen-doc/xml make html
+        # Path is set by the install_hwloc.sh script.
+        PYHWLOC_XML_PATH=/ws/xml make html
+
+    - name: Upload static files as artifact
+      uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
+      with:
+        path: docs/build/html
