@@ -173,8 +173,8 @@ jobs:
         mkdir build
         cd build
         cmake .. "-GVisual Studio 17 2022" -DHWLOC_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$Env:CONDA_PREFIX"
-	cmake --build . --config Release --parallel "$((Get-WmiObject Win32_Processor).NumberOfLogicalProcessors)"
-	cmake --install . --config Release
+        cmake --build . --config Release --parallel "$((Get-WmiObject Win32_Processor).NumberOfLogicalProcessors)"
+        cmake --install . --config Release
     - name: Install pyhwloc
       shell: pwsh
       run: |
