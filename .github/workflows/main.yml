@@ -97,6 +97,14 @@ jobs:
 
         python dev/check_plugins.py
 
+    - name: Upload binary wheel
+      uses: actions/upload-artifact@v4
+      with:
+        name: Fat wheel
+        path: dist/pyhwloc-*.whl
+        if-no-files-found: error
+        retention-days: 7
+
     - name: Run tests
       shell: bash -el {0}
       run: |
