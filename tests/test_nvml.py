@@ -43,3 +43,17 @@ def test_nvml() -> None:
 
         with pytest.raises(RuntimeError, match="get_device"):
             type(dev)()
+
+
+def test_with_nvml_cpu_affinity() -> None:
+    try:
+        nm.nvmlInit()
+        aff = hwloc_nvml.get_cpu_affinity(0)
+        assert aff.weight() > 0
+        with Topology.from_this_system().set_io_types_filter(
+            TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
+        ) as topo:
+            dev = hwloc_nvml.get_device(topo, 0)
+            assert dev.cpuset == aff
+    finally:
+        nm.nvmlShutdown()

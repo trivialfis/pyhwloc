@@ -3,11 +3,15 @@
 """
 Interoperability with the NVIDIA Management Library (NVML)
 ==========================================================
+
 """
 from __future__ import annotations
 
 import ctypes
+import math
+import os
 import weakref
+from typing import Sequence
 
 from .bitmap import Bitmap
 from .hwloc import nvml as _nvml
@@ -18,6 +22,7 @@ from .utils import _reuse_doc, _TopoRef
 __all__ = [
     "Device",
     "get_device",
+    "get_cpu_affinity",
 ]
 
 
@@ -129,3 +134,91 @@ def get_device(topology: Topology, device: int | ctypes._Pointer) -> Device:
         raise TypeError(
             "Invalid nvml device type. Expecting a nvmlDevice or an integer index."
         )
+
+
+_MASK_SIZE = 64
+
+
+class _BitField64:
+    def __init__(self, mask: Sequence[ctypes.c_ulonglong]) -> None:
+        assert ctypes.sizeof(ctypes.c_ulonglong) * 8 == _MASK_SIZE
+        self.mask: list[ctypes.c_ulonglong] = []
+        for m in mask:
+            self.mask.append(m)
+
+    @staticmethod
+    def to_bit(i: int) -> tuple[int, int]:
+        int_pos, bit_pos = 0, 0
+        if i == 0:
+            return int_pos, bit_pos
+
+        int_pos = i // _MASK_SIZE
+        bit_pos = i % _MASK_SIZE
+        return int_pos, bit_pos
+
+    def check(self, i: int) -> bool:
+        ip, bp = self.to_bit(i)
+        value = self.mask[ip]
+        test_bit = 1 << bp
+        res = int(value) & test_bit
+        return bool(res)
+
+
+def _get_uuid(ordinal: int) -> str:
+    """Construct a string representation of UUID."""
+    from cuda.bindings import runtime as cudart
+
+    from .hwloc.cudart import _check_cudart
+
+    status, prop = cudart.cudaGetDeviceProperties(ordinal)
+    _check_cudart(status)
+
+    dash_pos = {0, 4, 6, 8, 10}
+    uuid = "GPU"
+
+    for i in range(16):
+        if i in dash_pos:
+            uuid += "-"
+        h = hex(0xFF & prop.uuid.bytes[i])
+        assert h[:2] == "0x"
+        h = h[2:]
+
+        while len(h) < 2:
+            h = "0" + h
+        uuid += h
+    return uuid
+
+
+def get_cpu_affinity(device: int | str) -> Bitmap:
+    """Get optimal affinity using nvml directly. This should produce the same result as
+    :py:meth:`pyhwloc.nvml.Device.cpuset`.
+
+    Parameters
+    ----------
+    device :
+        Either the UUID of the device or a CUDA runtime ordinal.
+
+    """
+    import pynvml as nm
+
+    cnt = os.cpu_count()
+    assert cnt is not None
+
+    if isinstance(device, int):
+        uuid = _get_uuid(device)
+    else:
+        uuid = device
+    hdl = nm.nvmlDeviceGetHandleByUUID(uuid)
+
+    affinity = nm.nvmlDeviceGetCpuAffinity(
+        hdl,
+        math.ceil(cnt / _MASK_SIZE),
+    )
+    cpumask = _BitField64(affinity)
+
+    cpuset = Bitmap()
+    for i in range(cnt):
+        if cpumask.check(i):
+            cpuset.set(i)
+
+    return cpuset

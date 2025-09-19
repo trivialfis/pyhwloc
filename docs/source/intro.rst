@@ -62,8 +62,11 @@ Here's a simple example to get started with ``pyhwloc``:
 We have some more examples in the :doc:`/examples/index`.
 
 
+Tips and Tricks
+===============
+
 Working with Enum Flags
-=======================
+-----------------------
 
 PyHwloc uses enums extensively for options and flags, following hwloc's C API design. We
 provide some syntax sugar to work with these flags in Python.
@@ -121,3 +124,22 @@ To check if a specific flag is present in a composite flag value:
 
     # Check if a flag is set
     is_strict = bool(flags & MemBindFlags.HWLOC_MEMBIND_STRICT)
+
+
+Using the Bitmap
+----------------
+
+The :py:class:`~pyhwloc.bitmap.Bitmap` is a core data structure used by hwloc. One can
+convert the bitmap into a Python set using the
+:py:meth:`~pyhwloc.bitmap.Bitmap.to_sched_set` for interpolation with the Python
+``os.sched_`` module. Similarly, one can construct a bitmap from a integer set:
+
+.. code-block::
+
+   import os
+
+   from pyhwloc.bitmap import Bitmap
+
+   affinity = os.sched_getaffinity(0)
+   cpuset = Bitmap.from_sched_set(affinity)
+   print(cpuset)
