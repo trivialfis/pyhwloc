@@ -5,6 +5,8 @@
 from __future__ import annotations
 
 import os
+import platform
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -12,6 +14,10 @@ from typing import Any
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from packaging.tags import platform_tags
+
+FETCH_KEY = "PYHWLOC_FETCH_HWLOC"
+BUILD_KEY = "PYHWLOC_BUILD_DIR"
+SRC_KEY = "PYHWLOC_HWLOC_SRC_DIR"
 
 
 def run_cmake_build(
@@ -48,6 +54,7 @@ def run_cmake_build(
 
     # Create build directory
     build_path.mkdir(exist_ok=True)
+    (build_path / "_deps" / "hwloc-build").mkdir(exist_ok=True, parents=True)
 
     # Configure CMake
     configure_cmd = [
@@ -110,11 +117,8 @@ class CMakeBuildHook(BuildHookInterface):
         build_data["tag"] = f"py3-none-{next(platform_tags())}"
         build_data["pure_python"] = False
 
-        fetch_key = "PYHWLOC_FETCH_HWLOC"
-        bd_key = "PYHWLOC_BUILD_DIR"
-
-        print(fetch_key, ":", os.environ.get(fetch_key, None))
-        fetch_hwloc = os.environ.get(fetch_key, None)
+        print(FETCH_KEY, ":", os.environ.get(FETCH_KEY, None))
+        fetch_hwloc = os.environ.get(FETCH_KEY, None)
         # Check if native library already exists
         lib_dir = Path(self.root) / "src" / "pyhwloc" / "_lib"
         if lib_dir.exists() and (
@@ -123,20 +127,54 @@ class CMakeBuildHook(BuildHookInterface):
             print("Native libraries already exist, skipping CMake build")
             return
 
-        # Check for custom installation options
+        if platform.system() == "Windows":
+            raise NotImplementedError()
+
+        # Fetch hwloc
         cmake_args = []
         assert fetch_hwloc in (None, "True", "False")
         if fetch_hwloc == "True":
-            cmake_args.append(f"-D{fetch_key}=ON")
+            cmake_args.append(f"-D{FETCH_KEY}=ON")
             print("Building with fetched hwloc from GitHub")
-        # Run CMake build directly
-        if os.environ.get(bd_key, None) is not None:
-            build_dir = os.environ[bd_key]
+
+        # Source path
+        if os.environ.get(SRC_KEY, None) is not None:
+            src_dir = os.environ[SRC_KEY]
+            if not os.path.exists(src_dir):
+                raise FileNotFoundError(src_dir)
+            cmake_args.append(f"-DFETCHCONTENT_SOURCE_DIR_HWLOC={src_dir}")
+            assert fetch_hwloc == "True"
+
+        # Build path
+        if os.environ.get(BUILD_KEY, None) is not None:
+            build_dir = os.environ[BUILD_KEY]
             run_cmake_build(
                 source_dir=self.root, build_dir=build_dir, cmake_args=cmake_args
             )
         else:
             with tempfile.TemporaryDirectory() as build_dir:
+                print("build-dir:", build_dir)
                 run_cmake_build(
                     source_dir=self.root, build_dir=build_dir, cmake_args=cmake_args
                 )
+
+        # Remove all the unneeded files. We don't use the embedded mode as it doesn't
+        # generate shared objects.
+        for dirname in ["bin", "include", "sbin", "share"]:
+            path = os.path.join(lib_dir, dirname)
+            if os.path.exists(path):
+                shutil.rmtree(path)
+
+        path = os.path.join(lib_dir, "lib", "pkgconfig")
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+        for dirpath, dirnames, filenames in os.walk(os.path.join(lib_dir, "lib")):
+            for f in filenames:
+                path = os.path.join(dirpath, f)
+                if os.path.islink(path):
+                    realpath = os.path.realpath(path)
+                    os.remove(path)
+                    shutil.copyfile(realpath, path, follow_symlinks=False)
+                if not path.endswith(".so") and not path.endswith(".dll"):
+                    os.remove(path)

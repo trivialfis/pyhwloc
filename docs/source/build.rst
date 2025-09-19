@@ -76,11 +76,16 @@ from source automatically during build:
 
 .. code-block:: sh
 
-  pip wheel -v . --config-settings=fetch-hwloc=True --config-settings=build-dir=/path/to/build/dir
+  pip wheel -v . --config-settings=fetch-hwloc=True --wheel-dir dist/
 
 The bundling approach is mostly for the PyPI package. We don't recommend the PyPI package
 for production deployment since bundling a custom hwloc might create symbol conflicts
 between different versions of hwloc in the environment.
+
+Other config setting options:
+
+- ``--config-settings=build-dir=/path/to/build/dir`` for specifying a build dir.
+- ``--config-settings=hwloc-src-dir=/path/to/hwloc`` for using a local checkout of hwloc.
 
 Building the Document
 =====================
