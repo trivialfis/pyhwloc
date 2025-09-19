@@ -46,6 +46,7 @@ jobs:
         git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
     - name: Install hwloc
+      shell: bash -el {0}
       run: |
         echo $(pwd)
         cd /ws/hwloc/
@@ -57,6 +58,7 @@ jobs:
         submodules: false
 
     - name: Install pyhwloc editable
+      shell: bash -el {0}
       run: |
         echo $(pwd)
         pip install -e . --no-deps --no-build-isolation
@@ -65,6 +67,7 @@ jobs:
         pip uninstall pyhwloc -y
 
     - name: Install pyhwloc from sdist
+      shell: bash -el {0}
       run: |
         echo $(pwd)
         python -m build . --sdist
@@ -74,6 +77,7 @@ jobs:
         pip uninstall pyhwloc -y
 
     - name: Install pyhwloc with wheel
+      shell: bash -el {0}
       run: |
         echo $(pwd)
         pip wheel -v . --no-build-isolation --wheel-dir dist/
@@ -83,6 +87,7 @@ jobs:
         pip uninstall pyhwloc -y
 
     - name: Install pyhwloc with custom hwloc
+      shell: bash -el {0}
       run: |
         echo $(pwd)
         echo "conda: ${CONDA_PREFIX}"
@@ -102,11 +107,13 @@ jobs:
         retention-days: 7
 
     - name: Run tests
+      shell: bash -el {0}
       run: |
         echo $(pwd)
         pytest -s -v -rxXs --durations=0 ./tests
 
     - name: Build document
+      shell: bash -el {0}
       run: |
         echo $(pwd)
         cd docs
