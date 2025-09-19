@@ -9,6 +9,8 @@ from typing import Any
 
 import hatchling.build
 
+from .hook import BUILD_KEY, FETCH_KEY, SRC_KEY
+
 
 def build_wheel(
     wheel_directory: str,
@@ -23,10 +25,11 @@ def build_wheel(
         if "fetch-hwloc" in config_settings:
             v = config_settings["fetch-hwloc"]
             assert v in ("True", "False")
-            os.environ["PYHWLOC_FETCH_HWLOC"] = v
+            os.environ[FETCH_KEY] = v
         if "build-dir" in config_settings:
-            os.environ["PYHWLOC_BUILD_DIR"] = config_settings["build-dir"]
-
+            os.environ[BUILD_KEY] = config_settings["build-dir"]
+        if "hwloc-src-dir" in config_settings:
+            os.environ[SRC_KEY] = config_settings["hwloc-src-dir"]
     try:
         wheel_name = hatchling.build.build_wheel(
             wheel_directory, config_settings, metadata_directory
