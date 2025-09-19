@@ -6,7 +6,6 @@ import copy
 import os
 import platform
 import threading
-from typing import Type
 
 import pytest
 
@@ -81,7 +80,7 @@ def test_cpubind() -> None:
         invalid_pid = 999999
 
         if platform.system() == "Windows":
-            Err: Type[Exception] = OSError
+            Err: type[Exception] = OSError
         else:
             Err = ValueError
 
