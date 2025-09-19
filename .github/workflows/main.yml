@@ -175,6 +175,15 @@ jobs:
         cmake .. "-GVisual Studio 17 2022" -DHWLOC_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$Env:CONDA_PREFIX"
         cmake --build . --config Release --parallel "$((Get-WmiObject Win32_Processor).NumberOfLogicalProcessors)"
         cmake --install . --config Release
+
+    - name: Install pyhwloc editable
+      shell: pwsh
+      run: |
+        pip install -e . --no-deps --no-build-isolation --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
+        python -c "from pyhwloc import Topology"
+        git clean -xdf
+        pip uninstall pyhwloc -y
+
     - name: Install pyhwloc
       shell: pwsh
       run: |
