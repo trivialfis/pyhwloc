@@ -46,7 +46,7 @@ jobs:
         git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
     - name: Install hwloc
-      shell: bash -el {0}
+      shell: bash -l {0}
       run: |
         source activate base
         echo "conda: ${CONDA_PREFIX}"
@@ -61,7 +61,7 @@ jobs:
         submodules: false
 
     - name: Install pyhwloc editable
-      shell: bash -el {0}
+      shell: bash -l {0}
       run: |
         source activate base
         echo "conda: ${CONDA_PREFIX}"
@@ -73,7 +73,7 @@ jobs:
         pip uninstall pyhwloc -y
 
     - name: Install pyhwloc from sdist
-      shell: bash -el {0}
+      shell: bash -l {0}
       run: |
         source activate base
         echo "conda: ${CONDA_PREFIX}"
@@ -125,7 +125,7 @@ jobs:
         git clean -xdf
 
     - name: Run tests
-      shell: bash -el {0}
+      shell: bash -l {0}
       run: |
         source activate base
         echo "conda: ${CONDA_PREFIX}"
@@ -134,14 +134,14 @@ jobs:
         pytest -s -v -rxXs --durations=0 ./tests
 
     - name: Build document
-      shell: bash -el {0}
+      shell: bash -l {0}
       run: |
         source activate base
         echo "conda: ${CONDA_PREFIX}"
         echo $(pwd)
 
         cd docs
-        # Path is set by the install_hwloc.sh script.
+        # Path is set by the build_doc_xml.sh script.
         PYHWLOC_XML_PATH=/ws/xml make html
 
     - name: Upload static files as artifact
