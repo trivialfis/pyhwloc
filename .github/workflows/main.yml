@@ -148,3 +148,36 @@ jobs:
       uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
       with:
         path: docs/build/html
+
+  Windows-Test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: false
+    - uses: dmlc/xgboost-devops/actions/miniforge-setup@main
+      with:
+        environment-name: pyhwloc_dev
+        environment-file: dev/pyhwloc_win_dev.yml
+    - name: Install hwloc
+      shell: pwsh
+      run: |
+        git clone https://github.com/trivialfis/hwloc.git
+	cd hwloc
+	git checkout win-shared-lib
+        cd contrib/windows-cmake
+	mkdir build
+	cd build
+	cmake .. -GNinja -DHWLOC_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$Env:CONDA_PREFIX"
+	time ninja
+	ninja install
+    - name: Install pyhwloc
+      shell: pwsh
+      run: |
+        pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
+	pip install --force-reinstall .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
+	python -c "from pyhwloc import Topology"
