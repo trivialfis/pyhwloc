@@ -48,7 +48,10 @@ jobs:
     - name: Install hwloc
       shell: bash -el {0}
       run: |
+        source activate base
+        echo "conda: ${CONDA_PREFIX}"
         echo $(pwd)
+
         cd /ws/hwloc/
         make install
         cd /ws
@@ -60,7 +63,10 @@ jobs:
     - name: Install pyhwloc editable
       shell: bash -el {0}
       run: |
+        source activate base
+        echo "conda: ${CONDA_PREFIX}"
         echo $(pwd)
+
         pip install -e . --no-deps --no-build-isolation
         python -c "from pyhwloc import Topology"
         git clean -xdf
@@ -69,7 +75,10 @@ jobs:
     - name: Install pyhwloc from sdist
       shell: bash -el {0}
       run: |
+        source activate base
+        echo "conda: ${CONDA_PREFIX}"
         echo $(pwd)
+
         python -m build . --sdist
         pip install dist/pyhwloc-*.tar.gz --no-build-isolation
         python -c "from pyhwloc import Topology"
@@ -79,8 +88,10 @@ jobs:
     - name: Install pyhwloc with wheel
       shell: bash -l {0}
       run: |
-        echo $(pwd)
+        source activate base
         echo "conda: ${CONDA_PREFIX}"
+        echo $(pwd)
+
         pip wheel -v . --no-build-isolation --wheel-dir dist/
         pip install dist/pyhwloc-*.whl
         python -c "from pyhwloc import Topology"
@@ -90,8 +101,10 @@ jobs:
     - name: Install pyhwloc with custom hwloc
       shell: bash -l {0}
       run: |
-        echo $(pwd)
+        source activate base
         echo "conda: ${CONDA_PREFIX}"
+        echo $(pwd)
+
         pip wheel -v . --config-settings=fetch-hwloc=True --wheel-dir dist/
         pip install dist/pyhwloc-*.whl
         python -c "from pyhwloc import Topology"
@@ -110,13 +123,19 @@ jobs:
     - name: Run tests
       shell: bash -el {0}
       run: |
+        source activate base
+        echo "conda: ${CONDA_PREFIX}"
         echo $(pwd)
+
         pytest -s -v -rxXs --durations=0 ./tests
 
     - name: Build document
       shell: bash -el {0}
       run: |
+        source activate base
+        echo "conda: ${CONDA_PREFIX}"
         echo $(pwd)
+
         cd docs
         # Path is set by the install_hwloc.sh script.
         PYHWLOC_XML_PATH=/ws/xml make html

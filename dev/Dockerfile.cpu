@@ -60,5 +60,3 @@ COPY --from=builder /ws/xml /ws/xml
 COPY --from=builder /ws/hwloc /ws/hwloc
 
 COPY install_hwloc.sh ws/install_hwloc.sh
-
-SHELL ["mamba", "run", "--no-capture-output", "-n", "base", "/bin/sh", "-c"]
