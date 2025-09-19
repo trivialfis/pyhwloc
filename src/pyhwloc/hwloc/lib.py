@@ -31,7 +31,7 @@ _lib_path = normpath(
 )
 
 
-def _get_libname(name: str):
+def _get_libname(name: str) -> str:
     if _IS_WINDOWS:
         return f"{name}.dll"
     return f"lib{name}.so"
