@@ -15,7 +15,7 @@ from pyhwloc.topology import TypeFilter
 def list_with_nvml() -> None:
     import pynvml
 
-    from pyhwloc.nvml import get_device
+    from pyhwloc.nvml import get_cpu_affinity, get_device
 
     try:
         pynvml.nvmlInit()
@@ -33,6 +33,7 @@ def list_with_nvml() -> None:
                 assert osdev is not None
                 print(osdev, ":", osdev.format_attr())
                 print("cpuset:", dev.cpuset.to_sched_set())
+                print("cpuset from nvml:", get_cpu_affinity(i).to_sched_set())
     finally:
         pynvml.nvmlShutdown()
 
