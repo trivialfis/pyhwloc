@@ -6,10 +6,11 @@ requires = [
 # build-backend = "hatchling.build"
 backend-path = ["."]
 build-backend="hatch_build.backend"
+
 [project]
 name = "pyhwloc"
 dynamic = ["version"]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 authors = [
     { name = "Jiaming Yuan", email = "jm.yuan@outlook.com" }
 ]
@@ -26,8 +27,6 @@ classifiers=[
   "Programming Language :: C",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
