@@ -7,9 +7,7 @@ import platform
 from ctypes.util import find_library
 
 if platform.system() == "Windows":
-    if int(platform.release()) < 10:
-        raise NotImplementedError("Requires Windows >= 10.")
-    # for older version, we need msvcrt.
+    # For older Windows versions, we need msvcrt.
     _libc = ctypes.CDLL(find_library("ucrtbase"))
 else:
     _libc = ctypes.CDLL(find_library("c"))

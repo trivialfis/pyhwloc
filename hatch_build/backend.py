@@ -5,22 +5,16 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from contextlib import contextmanager
+from typing import Any, Iterator
 
 import hatchling.build
 
 from .hook import BUILD_KEY, FETCH_KEY, ROOT_KEY, SRC_KEY
 
 
-def build_wheel(
-    wheel_directory: str,
-    config_settings: dict[str, Any] | None = None,
-    metadata_directory: str | None = None,
-) -> str:
-    print(
-        f"config-settings: {config_settings}",
-        f"metadata_directory: {metadata_directory}",
-    )
+@contextmanager
+def build_config(config_settings: dict[str, Any] | None) -> Iterator[None]:
     if config_settings is not None:
         if "fetch-hwloc" in config_settings:
             v = config_settings["fetch-hwloc"]
@@ -33,9 +27,7 @@ def build_wheel(
         if "hwloc-root-dir" in config_settings:
             os.environ[ROOT_KEY] = config_settings["hwloc-root-dir"]
     try:
-        wheel_name = hatchling.build.build_wheel(
-            wheel_directory, config_settings, metadata_directory
-        )
+        yield
     finally:
         if FETCH_KEY in os.environ:
             del os.environ[FETCH_KEY]
@@ -45,7 +37,22 @@ def build_wheel(
             del os.environ[SRC_KEY]
         if ROOT_KEY in os.environ:
             del os.environ[ROOT_KEY]
-    return wheel_name
+
+
+def build_wheel(
+    wheel_directory: str,
+    config_settings: dict[str, Any] | None = None,
+    metadata_directory: str | None = None,
+) -> str:
+    print(
+        f"config-settings: {config_settings}",
+        f"metadata_directory: {metadata_directory}",
+    )
+    with build_config(config_settings):
+        wheel_name = hatchling.build.build_wheel(
+            wheel_directory, config_settings, metadata_directory
+        )
+        return wheel_name
 
 
 def build_sdist(
@@ -61,8 +68,11 @@ def build_editable(
     config_settings: dict[str, Any] | None = None,
     metadata_directory: str | None = None,
 ) -> str:
-    if config_settings:
-        raise NotImplementedError()
-    return hatchling.build.build_editable(
-        wheel_directory, config_settings, metadata_directory
+    print(
+        f"config-settings: {config_settings}",
+        f"metadata_directory: {metadata_directory}",
     )
+    with build_config(config_settings):
+        return hatchling.build.build_editable(
+            wheel_directory, config_settings, metadata_directory
+        )
