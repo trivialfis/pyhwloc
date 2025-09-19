@@ -167,17 +167,17 @@ jobs:
       shell: pwsh
       run: |
         git clone https://github.com/trivialfis/hwloc.git
-	cd hwloc
-	git checkout win-shared-lib
+        cd hwloc
+        git checkout win-shared-lib
         cd contrib/windows-cmake
-	mkdir build
-	cd build
-	cmake .. -GNinja -DHWLOC_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$Env:CONDA_PREFIX"
-	time ninja
-	ninja install
+        mkdir build
+        cd build
+        cmake .. -GNinja -DHWLOC_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$Env:CONDA_PREFIX"
+        time ninja
+        ninja install
     - name: Install pyhwloc
       shell: pwsh
       run: |
         pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
-	pip install --force-reinstall .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
-	python -c "from pyhwloc import Topology"
+        pip install --force-reinstall .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
+        python -c "from pyhwloc import Topology"
