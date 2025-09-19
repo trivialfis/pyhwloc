@@ -95,6 +95,8 @@ jobs:
         python -c "from pyhwloc import Topology"
         git clean -xdf
 
+        python dev/check_plugins.py
+
     - name: Run tests
       shell: bash -el {0}
       run: |
