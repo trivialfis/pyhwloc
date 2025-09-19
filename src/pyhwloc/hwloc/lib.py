@@ -195,5 +195,10 @@ class _PrintableStruct(ctypes.Structure):
 
 
 def libinfo() -> dict[str, Any]:
-    info = {"hwloc": _hwloc_lib_name}
+    """Internal debug use."""
+    info: dict[str, Any] = {"hwloc": _hwloc_lib_name}
+    plugins_path = os.path.join(os.path.dirname(_hwloc_lib_name), "hwloc")
+    if os.path.exists(plugins_path):
+        plugins = os.listdir(plugins_path)
+        info["plugins"] = plugins
     return info
