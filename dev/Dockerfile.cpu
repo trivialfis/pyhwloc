@@ -4,7 +4,8 @@ FROM condaforge/miniforge3:25.3.1-0 AS builder
 RUN set -x \
     # basic dependencies
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/3bf863cc.pub && \
-    apt-get update && apt-get upgrade -y
+    apt-get update && apt-get upgrade -y && \
+    apt install pkg-config -y
 
 RUN mkdir ws
 
@@ -45,7 +46,8 @@ FROM condaforge/miniforge3:25.3.1-0
 
 RUN set -x \
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/3bf863cc.pub && \
-    apt-get update && apt-get upgrade -y
+    apt-get update && apt-get upgrade -y && \
+    apt install pkg-config -y
 
 RUN mkdir ws
 

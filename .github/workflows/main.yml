@@ -73,25 +73,25 @@ jobs:
         python -m build . --sdist
         pip install dist/pyhwloc-*.tar.gz --no-build-isolation
         python -c "from pyhwloc import Topology"
-        git clean -xdf
+        rm -rf ./dist && git clean -xdf
         pip uninstall pyhwloc -y
 
     - name: Install pyhwloc with wheel
       shell: bash -el {0}
       run: |
         echo $(pwd)
-        pip wheel . --no-build-isolation
-        pip install pyhwloc-*.whl
+        pip wheel -v . --no-build-isolation --wheel-dir dist/
+        pip install dist/pyhwloc-*.whl
         python -c "from pyhwloc import Topology"
-        git clean -xdf
+        rm -rf ./dist && git clean -xdf
         pip uninstall pyhwloc -y
 
     - name: Install pyhwloc with custom hwloc
       shell: bash -el {0}
       run: |
         echo $(pwd)
-        pip wheel . --config-settings=fetch-hwloc=True
-        pip install pyhwloc-*.whl
+        pip wheel -v . --config-settings=fetch-hwloc=True --wheel-dir dist/
+        pip install dist/pyhwloc-*.whl
         python -c "from pyhwloc import Topology"
         git clean -xdf
 
