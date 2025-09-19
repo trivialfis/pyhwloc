@@ -77,9 +77,10 @@ jobs:
         pip uninstall pyhwloc -y
 
     - name: Install pyhwloc with wheel
-      shell: bash -el {0}
+      shell: bash -l {0}
       run: |
         echo $(pwd)
+        echo "conda: ${CONDA_PREFIX}"
         pip wheel -v . --no-build-isolation --wheel-dir dist/
         pip install dist/pyhwloc-*.whl
         python -c "from pyhwloc import Topology"
@@ -87,7 +88,7 @@ jobs:
         pip uninstall pyhwloc -y
 
     - name: Install pyhwloc with custom hwloc
-      shell: bash -el {0}
+      shell: bash -l {0}
       run: |
         echo $(pwd)
         echo "conda: ${CONDA_PREFIX}"
