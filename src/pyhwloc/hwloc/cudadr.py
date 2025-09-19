@@ -13,11 +13,11 @@ import os
 import cuda.bindings.driver as cuda
 
 from .core import ObjPtr, _checkc, hwloc_cpuset_t, obj_t, topology_t
-from .lib import _IS_DOC_BUILD, _c_prefix_fndoc, _lib_path
+from .lib import _IS_DOC_BUILD, _c_prefix_fndoc, _get_libname, _lib_path
 
 if not _IS_DOC_BUILD:
     _pyhwloc_cuda_lib = ctypes.cdll.LoadLibrary(
-        os.path.join(_lib_path, "libpyhwloc_cuda.so")
+        os.path.join(_lib_path, _get_libname("pyhwloc_cuda"))
     )
 
 

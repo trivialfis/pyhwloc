@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import ctypes
+import platform
 
 import pytest
 
@@ -11,6 +12,10 @@ from .test_hwloc.utils import has_gpu
 
 if not has_gpu():
     pytest.skip("GPU discovery tests.", allow_module_level=True)
+
+if platform.system() == "Windows":
+    pytest.skip("Linux-only tests.", allow_module_level=True)
+
 pytest.importorskip("pynvml")
 
 import pynvml as nm

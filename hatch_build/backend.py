@@ -9,7 +9,7 @@ from typing import Any
 
 import hatchling.build
 
-from .hook import BUILD_KEY, FETCH_KEY, SRC_KEY
+from .hook import BUILD_KEY, FETCH_KEY, ROOT_KEY, SRC_KEY
 
 
 def build_wheel(
@@ -30,15 +30,21 @@ def build_wheel(
             os.environ[BUILD_KEY] = config_settings["build-dir"]
         if "hwloc-src-dir" in config_settings:
             os.environ[SRC_KEY] = config_settings["hwloc-src-dir"]
+        if "hwloc-root-dir" in config_settings:
+            os.environ[ROOT_KEY] = config_settings["hwloc-root-dir"]
     try:
         wheel_name = hatchling.build.build_wheel(
             wheel_directory, config_settings, metadata_directory
         )
     finally:
-        if "PYHWLOC_FETCH_HWLOC" in os.environ:
-            del os.environ["PYHWLOC_FETCH_HWLOC"]
-        if "PYHWLOC_BUILD_DIR" in os.environ:
-            del os.environ["PYHWLOC_BUILD_DIR"]
+        if FETCH_KEY in os.environ:
+            del os.environ[FETCH_KEY]
+        if BUILD_KEY in os.environ:
+            del os.environ[BUILD_KEY]
+        if SRC_KEY in os.environ:
+            del os.environ[SRC_KEY]
+        if ROOT_KEY in os.environ:
+            del os.environ[ROOT_KEY]
     return wheel_name
 
 

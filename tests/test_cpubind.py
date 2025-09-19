@@ -15,6 +15,10 @@ from pyhwloc.hwobject import ObjType
 from pyhwloc.topology import CpuBindFlags
 
 
+@pytest.mark.skipif(
+    "Windows" == platform.system(),
+    reason="HwLoc not implemented.",
+)
 def test_get_proc_last_cpu_loc() -> None:
     def run(topo: Topology, flags: int) -> None:
         pid = os.getpid()
@@ -75,10 +79,15 @@ def test_cpubind() -> None:
         # Err
         invalid_pid = 999999
 
-        with pytest.raises(ValueError):
+        if platform.system() == "Windows":
+            Err: type[Exception] = OSError
+        else:
+            Err = ValueError
+
+        with pytest.raises(Err):
             topo.get_proc_cpubind(invalid_pid)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(Err):
             topo.set_proc_cpubind(invalid_pid, set([0]))
 
 

@@ -12,13 +12,13 @@ import os
 import cuda.bindings.runtime as cudart
 
 from .core import ObjPtr, _checkc, hwloc_cpuset_t, obj_t, topology_t
-from .lib import _IS_DOC_BUILD, _c_prefix_fndoc, _lib_path
+from .lib import _IS_DOC_BUILD, _c_prefix_fndoc, _get_libname, _lib_path
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.1/a00178.php
 
 if not _IS_DOC_BUILD:
     _pyhwloc_cudart_lib = ctypes.cdll.LoadLibrary(
-        os.path.join(_lib_path, "libpyhwloc_cudart.so")
+        os.path.join(_lib_path, _get_libname("pyhwloc_cudart"))
     )
 
 

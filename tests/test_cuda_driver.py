@@ -21,6 +21,7 @@ def test_cuda_driver() -> None:
     with Topology.from_this_system().set_io_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
     ) as topo:
+        cuda.cuInit(0)
         status, cu_device = cuda.cuDeviceGet(0)
         _check_cu(status)
 

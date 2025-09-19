@@ -17,6 +17,7 @@ from packaging.tags import platform_tags
 
 FETCH_KEY = "PYHWLOC_FETCH_HWLOC"
 BUILD_KEY = "PYHWLOC_BUILD_DIR"
+ROOT_KEY = "PYHWLOC_HWLOC_ROOT_DIR"
 SRC_KEY = "PYHWLOC_HWLOC_SRC_DIR"
 
 
@@ -127,7 +128,7 @@ class CMakeBuildHook(BuildHookInterface):
             print("Native libraries already exist, skipping CMake build")
             return
 
-        if platform.system() == "Windows":
+        if platform.system() == "Windows" and fetch_hwloc:
             raise NotImplementedError()
 
         # Fetch hwloc
@@ -136,6 +137,13 @@ class CMakeBuildHook(BuildHookInterface):
         if fetch_hwloc == "True":
             cmake_args.append(f"-D{FETCH_KEY}=ON")
             print("Building with fetched hwloc from GitHub")
+
+        # Existing hwloc installation root
+        if os.environ.get(ROOT_KEY, None) is not None:
+            root_dir = os.environ[ROOT_KEY]
+            if not os.path.exists(root_dir):
+                raise FileNotFoundError(root_dir)
+            cmake_args.append(f"-DHWLOC_ROOT={root_dir}")
 
         # Source path
         if os.environ.get(SRC_KEY, None) is not None:

@@ -31,14 +31,22 @@ keyword. Then we can run the following to build both libraries:
   ninja
   ninja install
 
-The default build includes tests. Afterward, we can build pyhwloc from source:
-
-.. code-block:: powershell
-
-  cmake -GNinja -DCMAKE_PREFIX_PATH=C:\${SOME_PATH}\pyhwloc_dev -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..\..\pyhwloc\
-  ninja
-
 Most of the tests are failing on Windows at the moment. Wheel is not yet tested.
+
+It's necessary to specify the hwloc root for Windows as CMake can't find its installation.
+
+- Binary wheel
+
+  .. code-block:: sh
+
+  pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
+
+- Editable installation:
+
+  .. code-block:: sh
+
+  pip install -e . --no-deps --no-build-isolation --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
+
 
 Building PyHwloc from Source on Linux
 =====================================
