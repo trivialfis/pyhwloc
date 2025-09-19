@@ -108,7 +108,6 @@ jobs:
         pip wheel -v . --config-settings=fetch-hwloc=True --wheel-dir dist/
         pip install dist/pyhwloc-*.whl
         python -c "from pyhwloc import Topology"
-        git clean -xdf
 
         python dev/check_plugins.py
 
@@ -119,6 +118,11 @@ jobs:
         path: dist/pyhwloc-*.whl
         if-no-files-found: error
         retention-days: 7
+
+    - name: Cleanup
+      shell: bash -l {0}
+      run: |
+        git clean -xdf
 
     - name: Run tests
       shell: bash -el {0}
