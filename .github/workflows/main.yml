@@ -169,13 +169,14 @@ jobs:
       run: |
         git clone https://github.com/trivialfis/hwloc.git
         cd hwloc
-        git checkout win-shared-lib
+        git checkout win-shared-lib-update
         cd ..
 
         pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=fetch-hwloc=True --config-settings=hwloc-src-dir="$(PWD)\hwloc"
         pip install .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
 
         python -c "from pyhwloc import Topology"
+        pytest -s -v .\tests
 
     - name: Upload binary wheel
       uses: actions/upload-artifact@v4
@@ -196,7 +197,8 @@ jobs:
       run: |
         git clone https://github.com/trivialfis/hwloc.git
         cd hwloc
-        git checkout win-shared-lib
+        git checkout win-shared-lib-update
+
         cd contrib/windows-cmake
         mkdir build
         cd build
