@@ -104,7 +104,6 @@ if(PYHWLOC_FETCH_HWLOC)
     INSTALL_REMOVE_ENVIRONMENT_RPATH ON
     # Use relative path
     BUILD_RPATH_USE_ORIGIN ON)
-  add_dependencies(pyhwloc install_hwloc)
 else()
   find_package(hwloc REQUIRED)
 endif()
@@ -142,12 +141,9 @@ foreach(lib IN LISTS PYHWLOC_LIBS)
       INSTALL_RPATH "$ORIGIN/lib"
       INSTALL_RPATH_USE_LINK_PATH OFF
       BUILD_RPATH_USE_ORIGIN ON)
+    add_dependencies(${lib} install_hwloc)
   endif()
 endforeach()
-
-add_dependencies(pyhwloc_nvml pyhwloc)
-add_dependencies(pyhwloc_cuda pyhwloc)
-add_dependencies(pyhwloc_cudart pyhwloc)
 
 include(GNUInstallDirs)
 install(TARGETS ${PYHWLOC_LIBS}
