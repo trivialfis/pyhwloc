@@ -68,13 +68,10 @@ def list_with_osdev() -> None:
             if obj.is_osdev_gpu():
                 assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE
                 print(obj, ":", obj.format_attr())
-                # This is None, one must use the interpolation interface of
-                # cudart/driver/nvml for now.
-                print("cpuset:", obj.cpuset)
 
 
 if __name__ == "__main__":
-    print("List by OS device\n")
+    print("List by hwloc OS device\n")
     list_with_osdev()
     print("\nList by CUDA\n")
     list_with_cudart()

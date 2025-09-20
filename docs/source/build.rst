@@ -15,8 +15,15 @@ Requirements
 We only support the latest (> 2.12) hwloc. In addition to the basic hwloc, we have
 integration with CUDA-related hwloc features and hence, the CTK is required.
 
-Building PyHwloc from Source on Windows
-=======================================
+Building PyHwloc from Source
+============================
+
+There are two ways to create and distribute a binary wheel for pyhwloc. The first one uses
+the system hwloc and the second one builds hwloc from source and bundles it into the
+wheel. The following sections go through them.
+
+Windows
+-------
 
 Following are some notes about the working-in-progress support for building pyhwloc and
 hwloc from source on Windows using CMake. Firstly, hwloc doesn't support building the
@@ -27,33 +34,26 @@ keyword. Then we can run the following to build both libraries:
 .. code-block:: powershell
 
   cd hwloc\contrib\windows-cmake\
-  cmake -GNinja -DCMAKE_INSTALL_PREFIX=C:\${SOME_PATH}\pyhwloc_dev  -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DHWLOC_BUILD_SHARED_LIBS=ON ..
+  cmake -GNinja -DCMAKE_INSTALL_PREFIX=$Env:CONDA_PREFIX  -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DHWLOC_BUILD_SHARED_LIBS=ON ..
   ninja
   ninja install
-
-Most of the tests are failing on Windows at the moment. Wheel is not yet tested.
 
 It's necessary to specify the hwloc root for Windows as CMake can't find its installation.
 
 - Binary wheel
 
-  .. code-block:: sh
+  .. code-block:: powershell
 
   pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
 
 - Editable installation:
 
-  .. code-block:: sh
+  .. code-block:: powershell
 
   pip install -e . --no-deps --no-build-isolation --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
 
-
-Building PyHwloc from Source on Linux
-=====================================
-
-There are two ways to create and distribute a binary wheel for pyhwloc. The first one uses
-the system hwloc and the second one builds hwloc from source and bundles it into the
-wheel.
+Linux
+-----
 
 To use a pre-built hwloc in the system or a virtual environment (conda):
 
@@ -79,6 +79,10 @@ To use a pre-built hwloc in the system or a virtual environment (conda):
 
       python -m build --sdist
 
+
+Fat Wheel
+---------
+
 In addition to reusing the system hwloc installation, pyhwloc can fetch and build hwloc
 from source automatically during build:
 
@@ -86,14 +90,20 @@ from source automatically during build:
 
   pip wheel -v . --config-settings=fetch-hwloc=True --wheel-dir dist/
 
-The bundling approach is mostly for the PyPI package. We don't recommend the PyPI package
-for production deployment since bundling a custom hwloc might create symbol conflicts
-between different versions of hwloc in the environment.
+The bundling approach is mainly for the PyPI package. We don't recommend the PyPI package
+for complex use cases aside from exploratory usage, since bundling a custom hwloc might
+create symbol conflicts between different versions of hwloc in the environment.
 
-Other config setting options:
+A complete list of options available with the ``--config-settings=``:
 
-- ``--config-settings=build-dir=/path/to/build/dir`` for specifying a build dir.
-- ``--config-settings=hwloc-src-dir=/path/to/hwloc`` for using a local checkout of hwloc.
+- ``build-dir=/path/to/build/dir`` for specifying a build dir.
+- ``hwloc-src-dir=/path/to/hwloc-src`` for using a local checkout of hwloc. This assumes
+  the src directory is the git repo, which is not the same as the release tarball.
+- ``hwloc-root-dir=/path/to/hwloc`` to specify the path of an existing hwloc installation.
+- ``fetch-hwloc=True`` to build the fat wheel.
+
+The binary wheel for Linux uses plugins by default. However, plugins for Windows is not
+yet supported.
 
 Building the Document
 =====================
