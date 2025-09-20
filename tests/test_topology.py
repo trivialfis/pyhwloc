@@ -12,7 +12,6 @@ from pyhwloc.hwloc.lib import normpath
 from pyhwloc.hwobject import ObjType
 from pyhwloc.topology import ExportXmlFlags, Topology, TypeFilter
 
-
 sample_osdev_path = os.path.join(
     os.path.dirname(normpath(__file__)), "sample_osdev.xml"
 )
