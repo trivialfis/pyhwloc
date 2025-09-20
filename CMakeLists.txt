@@ -27,25 +27,53 @@ if(PYHWLOC_FETCH_HWLOC)
   # Configure hwloc build options
   FetchContent_MakeAvailable(hwloc)
   if(NOT PYHWLOC_CONFIG_HWLOC)
-    execute_process(
-      COMMAND ${hwloc_SOURCE_DIR}/autogen.sh WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
-    )
-    execute_process(
-      COMMAND ${hwloc_SOURCE_DIR}/configure --enable-plugins --prefix=${PYHWLOC_OUTPUT_DIR}
-      WORKING_DIRECTORY ${hwloc_BINARY_DIR}
-    )
+    if(PYHWLOC_BUILD_HWLOC_CMAKE)
+      execute_process(
+	COMMAND
+	  cmake
+	    -S ${hwloc_SOURCE_DIR}/contrib/windows-cmake
+	    -B ${hwloc_BINARY_DIR}
+	    -DCMAKE_INSTALL_PREFIX=${PYHWLOC_OUTPUT_DIR}
+	WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
+      )
+    else()
+      execute_process(
+	COMMAND ${hwloc_SOURCE_DIR}/autogen.sh WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
+      )
+      execute_process(
+	COMMAND ${hwloc_SOURCE_DIR}/configure --enable-plugins --prefix=${PYHWLOC_OUTPUT_DIR}
+	WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+      )
+    endif()
     set(PYHWLOC_CONFIG_HWLOC ON CACHE BOOL "" FORCE)
   endif()
+
   include(ProcessorCount)
   ProcessorCount(nproc)
 
   # fixme; How to respect the --parallel option?
-  add_custom_command(
-    OUTPUT ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so COMMAND make -j${nproc} install WORKING_DIRECTORY ${hwloc_BINARY_DIR}
-  )
-  add_custom_target(build_hwloc DEPENDS ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so)
-  set(HWLOC_LIBRARY ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so)
-  set(HWLOC_INCLUDE_DIR ${PYHWLOC_OUTPUT_DIR}/include/)
+  if(PYHWLOC_BUILD_HWLOC_CMAKE)
+    add_custom_command(
+      OUTPUT ${hwloc_BINARY_DIR}/hwloc.dll
+      COMMAND cmake --build -S ${hwloc_SOURCE_DIR}/contrib/windows-cmake -B ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
+      WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+    )
+    add_custom_target(build_hwloc DEPENDS  ${hwloc_BINARY_DIR}/hwloc.dll)
+    add_custom_command(
+      OUTPUT ${PYHWLOC_OUTPUT_DIR}/lib/hwloc.dll
+      COMMAND cmake --install ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
+      WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+    )
+    add_custom_target(install_hwloc DEPENDS ${PYHWLOC_OUTPUT_DIR}/lib/hwloc.dll)
+    add_dependencies(install_hwloc build_hwloc)
+  else()
+    add_custom_command(
+      OUTPUT ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so COMMAND make -j${nproc} install WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+    )
+    add_custom_target(install_hwloc DEPENDS ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so)
+    set(HWLOC_LIBRARY ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so)
+    set(HWLOC_INCLUDE_DIR ${PYHWLOC_OUTPUT_DIR}/include/)
+  endif()
 
   set(HWLOC_ROOT ${PYHWLOC_OUTPUT_DIR})
   set_target_properties(pyhwloc PROPERTIES
@@ -92,7 +120,7 @@ foreach(lib IN LISTS PYHWLOC_LIBS)
       INSTALL_RPATH "$ORIGIN/lib"
       INSTALL_RPATH_USE_LINK_PATH OFF
       BUILD_RPATH_USE_ORIGIN ON)
-    add_dependencies(${lib} build_hwloc)
+    add_dependencies(${lib} install_hwloc)
   endif()
 endforeach()
 
