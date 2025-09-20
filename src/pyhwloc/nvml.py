@@ -45,7 +45,7 @@ class Device(_TopoRef):
                 # Get the first NVML device
                 nvml_hdl = pynvml.nvmlDeviceGetHandleByIndex(0)
                 dev = get_device(topo, nvml_hdl)
-                print(dev.cpuset)  # CPU affinity
+                print(dev.get_affinity())  # CPU affinity
                 # Get the hwloc object
                 osdev = dev.get_osdev()
             finally:
@@ -96,11 +96,8 @@ class Device(_TopoRef):
     def native_handle(self) -> ctypes._Pointer:
         return self._nvml_hdl
 
-    # Defined as a property to align with Object. Normally we should use a method when
-    # it's implemented as a function in hwloc.
-    @property
     @_reuse_doc(_nvml.get_device_cpuset)
-    def cpuset(self) -> Bitmap:
+    def get_affinity(self) -> Bitmap:
         bitmap = Bitmap()
         _nvml.get_device_cpuset(
             self._topo.native_handle, self.native_handle, bitmap.native_handle

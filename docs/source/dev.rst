@@ -21,3 +21,7 @@ It might be more ergonomic this way, but also feels like an un-intuitive way to 
 code. In addition, the setter and getters don't have exact match. For instance, setting
 the ``DEFAULT`` policy with the membind setter might get you a ``FIRST_TOUCH`` policy in
 the getter.
+
+For interpolation modules, hwloc supports getting the CPU affinity of GPUs with functions
+like ``nvml_get_device_cpuset``. We rename the function in the high-level interface as
+``get_affinity`` to avoid confusion.

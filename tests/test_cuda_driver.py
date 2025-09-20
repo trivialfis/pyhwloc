@@ -35,7 +35,7 @@ def test_cuda_driver() -> None:
         assert pcidev is not None
         assert pcidev.is_pci_device()
 
-        assert dev.cpuset.weight() >= 1
+        assert dev.get_affinity().weight() >= 1
 
         pci_id = dev.pci_id
         assert isinstance(pci_id, hwloc_cudadr.PciId)

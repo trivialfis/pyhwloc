@@ -37,7 +37,10 @@ def _get_libname(name: str) -> str:
     return f"lib{name}.so"
 
 
-_search_name = os.path.join(_lib_path, "lib", _get_libname("hwloc"))
+if _IS_WINDOWS:
+    _search_name = os.path.join(_lib_path, "bin", _get_libname("hwloc"))
+else:
+    _search_name = os.path.join(_lib_path, "lib", _get_libname("hwloc"))
 
 if os.path.exists(_search_name):
     _hwloc_lib_name = _search_name

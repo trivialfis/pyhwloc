@@ -42,7 +42,7 @@ def test_nvml() -> None:
         assert osdev is not None
         assert osdev.is_osdev_gpu()
 
-        assert dev.cpuset.weight() >= 1
+        assert dev.get_affinity().weight() >= 1
 
         nm.nvmlShutdown()
 
@@ -59,6 +59,6 @@ def test_with_nvml_cpu_affinity() -> None:
             TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
         ) as topo:
             dev = hwloc_nvml.get_device(topo, 0)
-            assert dev.cpuset == aff
+            assert dev.get_affinity() == aff
     finally:
         nm.nvmlShutdown()

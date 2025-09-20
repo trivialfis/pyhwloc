@@ -114,7 +114,7 @@ jobs:
     - name: Upload binary wheel
       uses: actions/upload-artifact@v4
       with:
-        name: Fat wheel
+        name: Linux-Fat-wheel
         path: dist/pyhwloc-*.whl
         if-no-files-found: error
         retention-days: 7
@@ -163,6 +163,34 @@ jobs:
       with:
         environment-name: pyhwloc_dev
         environment-file: dev/pyhwloc_win_dev.yml
+
+    - name: Install pyhwloc with custom hwloc
+      shell: pwsh
+      run: |
+        git clone https://github.com/trivialfis/hwloc.git
+        cd hwloc
+        git checkout win-shared-lib
+        cd ..
+
+        pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=fetch-hwloc=True --config-settings=hwloc-src-dir="$(PWD)\hwloc"
+        pip install .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
+
+        python -c "from pyhwloc import Topology"
+
+    - name: Upload binary wheel
+      uses: actions/upload-artifact@v4
+      with:
+        name: Windows-Fat-wheel
+        path: dist/pyhwloc-*.whl
+        if-no-files-found: error
+        retention-days: 7
+
+    - name: Cleanup
+      shell: pwsh
+      run: |
+        pip uninstall pyhwloc -y
+        git clean -xdf
+
     - name: Install hwloc
       shell: pwsh
       run: |
@@ -179,14 +207,16 @@ jobs:
     - name: Install pyhwloc editable
       shell: pwsh
       run: |
-        pip install -e . --no-deps --no-build-isolation --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
+        pip install -e . --no-build-isolation --no-deps --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
         python -c "from pyhwloc import Topology"
         git clean -xdf
         pip uninstall pyhwloc -y
 
-    - name: Install pyhwloc
+    - name: Install pyhwloc with wheel
       shell: pwsh
       run: |
         pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
         pip install .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
         python -c "from pyhwloc import Topology"
+        git clean -xdf
+        pip uninstall pyhwloc -y
