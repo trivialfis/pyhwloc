@@ -164,6 +164,21 @@ jobs:
         environment-name: pyhwloc_dev
         environment-file: dev/pyhwloc_win_dev.yml
 
+    - name: Install pyhwloc with custom hwloc
+      shell: pwsh
+      run: |
+        pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=fetch-hwloc=True
+        pip install .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
+        python -c "from pyhwloc import Topology"
+
+    - name: Upload binary wheel
+      uses: actions/upload-artifact@v4
+      with:
+        name: Windows-Fat-wheel
+        path: dist/pyhwloc-*.whl
+        if-no-files-found: error
+        retention-days: 7
+
     - name: Install hwloc
       shell: pwsh
       run: |
@@ -193,18 +208,3 @@ jobs:
         python -c "from pyhwloc import Topology"
         git clean -xdf
         pip uninstall pyhwloc -y
-
-    - name: Install pyhwloc with custom hwloc
-      shell: pwsh
-      run: |
-        pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=fetch-hwloc=True
-        pip install .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
-        python -c "from pyhwloc import Topology"
-
-    - name: Upload binary wheel
-      uses: actions/upload-artifact@v4
-      with:
-        name: Windows-Fat-wheel
-        path: dist/pyhwloc-*.whl
-        if-no-files-found: error
-        retention-days: 7
