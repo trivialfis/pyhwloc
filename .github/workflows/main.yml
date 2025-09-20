@@ -194,7 +194,7 @@ jobs:
         pip uninstall pyhwloc -y
 
     - name: Install pyhwloc with custom hwloc
-      shell: bash -l {0}
+      shell: pwsh
       run: |
         pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist/ --config-settings=fetch-hwloc=True
         pip install .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
