@@ -8,6 +8,7 @@ project(pyhwloc LANGUAGES C VERSION 0.0.0)
 list(APPEND CMAKE_MODULE_PATH "${pyhwloc_SOURCE_DIR}/cmake/")
 
 option(PYHWLOC_FETCH_HWLOC "Fetch hwloc from GitHub instead of using system version" OFF)
+option(PYHWLOC_BUILD_HWLOC_CMAKE "Fetch hwloc from GitHub instead of using system version" OFF)
 
 add_library(pyhwloc SHARED src/ext/pyhwloc.c)
 

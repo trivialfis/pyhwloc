@@ -32,7 +32,7 @@ def list_with_nvml() -> None:
                 osdev = dev.get_osdev()
                 assert osdev is not None
                 print(osdev, ":", osdev.format_attr())
-                print("cpuset:", dev.cpuset.to_sched_set())
+                print("cpuset:", dev.get_affinity().to_sched_set())
                 print("cpuset from nvml:", get_cpu_affinity(i).to_sched_set())
     finally:
         pynvml.nvmlShutdown()
@@ -53,7 +53,7 @@ def list_with_cudart() -> None:
             osdev = dev.get_osdev()
             assert osdev is not None
             print(osdev, ":", osdev.format_attr())
-            print("cpuset:", dev.cpuset.to_sched_set())
+            print("cpuset:", dev.get_affinity().to_sched_set())
 
 
 def list_with_osdev() -> None:

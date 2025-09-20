@@ -34,7 +34,7 @@ class Device(_TopoRef):
         ) as topo:
             ordinal = 0  # The first CUDA runtime device.
             dev = get_device(topo, ordinal)
-            print(dev.cpuset)  # CPU affinity
+            print(dev.get_affinity())  # CPU affinity
             # Get the hwloc object
             osdev = dev.get_osdev()
 
@@ -66,11 +66,8 @@ class Device(_TopoRef):
         )
         return PciId(domain, bus, dev)
 
-    # Defined as a property to align with Object. Normally we should use a method when
-    # it's implemented as a function in hwloc.
-    @property
     @_reuse_doc(_cudart.get_device_cpuset)
-    def cpuset(self) -> Bitmap:
+    def get_affinity(self) -> Bitmap:
         bitmap = Bitmap()
         _cudart.get_device_cpuset(
             self._topo.native_handle, self._idx, bitmap.native_handle

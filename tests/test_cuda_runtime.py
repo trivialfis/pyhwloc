@@ -28,7 +28,7 @@ def test_cudart() -> None:
         assert pcidev is not None
         assert pcidev.is_pci_device()
 
-        assert dev.cpuset.weight() >= 1
+        assert dev.get_affinity().weight() >= 1
         dev.pci_id
 
         with pytest.raises(RuntimeError, match="get_device"):

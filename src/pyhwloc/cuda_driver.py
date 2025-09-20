@@ -40,7 +40,7 @@ class Device(_TopoRef):
             # Get the first CUDA device
             status, cu_device = cuda.cuDeviceGet(0)
             dev = get_device(topo, cu_device)
-            print(dev.cpuset)  # CPU affinity
+            print(dev.get_affinity())  # CPU affinity
             print(dev.pci_ids())  # PCI information
             # Get the hwloc objects
             pcidev = dev.get_pcidev()
@@ -95,11 +95,8 @@ class Device(_TopoRef):
         )
         return PciId(domain, bus, dev)
 
-    # Defined as a property to align with Object. Normally we should use a method when
-    # it's implemented as a function in hwloc.
-    @property
     @_reuse_doc(_cudadr.get_device_cpuset)
-    def cpuset(self) -> Bitmap:
+    def get_affinity(self) -> Bitmap:
         import cuda.bindings.driver as cuda
 
         bitmap = Bitmap()
