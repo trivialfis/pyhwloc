@@ -60,30 +60,12 @@ if(PYHWLOC_FETCH_HWLOC)
 
   # fixme; How to respect the --parallel option?
   if(PYHWLOC_BUILD_HWLOC_CMAKE)
-    # The output location is different when a multi-configuration generator is used.
-    if (CMAKE_CONFIGURATION_TYPES)
-      add_custom_command(
-        OUTPUT ${hwloc_BINARY_DIR}/Release/hwloc.dll
-        COMMAND cmake --build ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
-        WORKING_DIRECTORY ${hwloc_BINARY_DIR}
-      )
-      add_custom_target(build_hwloc DEPENDS  ${hwloc_BINARY_DIR}/Release/hwloc.dll)
-    else()
-      add_custom_command(
-        OUTPUT ${hwloc_BINARY_DIR}/hwloc.dll
-        COMMAND cmake --build ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
-        WORKING_DIRECTORY ${hwloc_BINARY_DIR}
-      )
-      add_custom_target(build_hwloc DEPENDS  ${hwloc_BINARY_DIR}/hwloc.dll)
-    endif()
-
     add_custom_command(
       OUTPUT ${PYHWLOC_OUTPUT_DIR}/bin/hwloc.dll
-      COMMAND cmake --install ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
+      COMMAND cmake --build ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc} --target=install
       WORKING_DIRECTORY ${hwloc_BINARY_DIR}
     )
     add_custom_target(install_hwloc DEPENDS ${PYHWLOC_OUTPUT_DIR}/bin/hwloc.dll)
-    add_dependencies(install_hwloc build_hwloc)
 
     set(HWLOC_LIBRARY ${PYHWLOC_OUTPUT_DIR}/lib/hwloc.lib)
     set(HWLOC_INCLUDE_DIR ${PYHWLOC_OUTPUT_DIR}/include/)
