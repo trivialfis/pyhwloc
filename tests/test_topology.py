@@ -12,10 +12,6 @@ from pyhwloc.hwloc.lib import normpath
 from pyhwloc.hwobject import ObjType
 from pyhwloc.topology import ExportXmlFlags, Topology, TypeFilter
 
-sample_osdev_path = os.path.join(
-    os.path.dirname(normpath(__file__)), "sample_osdev.xml"
-)
-
 
 def test_context_manager_current_system() -> None:
     with Topology() as topo:
@@ -251,12 +247,16 @@ def test_get_nbobjs_by_type() -> None:
 
 def test_get_nbobjs_by_type_with_filter() -> None:
     # Create topology with I/O filter that removes all I/O objects
-    with Topology.from_xml_file(sample_osdev_path).set_io_types_filter(
+    with Topology.from_this_system().set_io_types_filter(
         type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE
     ) as topo:
         # I/O objects should be filtered out
         assert topo.n_os_devices() == 0
         assert topo.n_pci_devices() == 0
+
+        # Non-I/O objects should be unaffected
+        assert topo.n_cpus() > 0
+        assert topo.n_cores() >= 0
 
     with Topology.from_this_system().set_io_types_filter(
         type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
@@ -321,6 +321,9 @@ def test_object_iteration() -> None:
 
 
 def test_find_io_devices() -> None:
+    sample_osdev_path = os.path.join(
+        os.path.dirname(normpath(__file__)), "sample_osdev.xml"
+    )
     with Topology.from_xml_file(sample_osdev_path).set_io_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
     ) as topo:
