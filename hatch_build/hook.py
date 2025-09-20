@@ -182,6 +182,7 @@ class CMakeBuildHook(BuildHookInterface):
         if os.path.exists(path):
             shutil.rmtree(path)
 
+        # Handle symlinks
         libdir_name = "bin" if platform.system() == "Windows" else "lib"
         for dirpath, dirnames, filenames in os.walk(os.path.join(lib_dir, libdir_name)):
             for f in filenames:
@@ -190,5 +191,11 @@ class CMakeBuildHook(BuildHookInterface):
                     realpath = os.path.realpath(path)
                     os.remove(path)
                     shutil.copyfile(realpath, path, follow_symlinks=False)
+
+        # Remove remaining files. Defined as a second scan to avoid deleting the real
+        # library.
+        for dirpath, dirnames, filenames in os.walk(os.path.join(lib_dir, libdir_name)):
+            for f in filenames:
+                path = os.path.join(dirpath, f)
                 if not path.endswith(".so") and not path.endswith(".dll"):
                     os.remove(path)
