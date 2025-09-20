@@ -70,7 +70,8 @@ jobs:
         pip install -e . --no-deps --no-build-isolation
         python -c "from pyhwloc import Topology"
         git clean -xdf
-        pip uninstall pyhwloc -y
+        # fixme: we need the dll
+        # pip uninstall pyhwloc -y
 
     - name: Install pyhwloc from sdist
       shell: bash -l {0}
