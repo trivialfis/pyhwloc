@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import os
 import pickle
+import platform
 
 import pytest
 
@@ -257,6 +258,9 @@ def test_get_nbobjs_by_type_with_filter() -> None:
         # Non-I/O objects should be unaffected
         assert topo.n_cpus() > 0
         assert topo.n_cores() >= 0
+
+    if platform.system() == "Windows":
+        pytest.skip("Skipping OS device test on Windows.")
 
     with Topology.from_this_system().set_io_types_filter(
         type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
