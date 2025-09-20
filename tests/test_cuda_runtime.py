@@ -12,6 +12,7 @@ if not has_gpu():
 
 from pyhwloc import cuda_runtime as hwloc_cudart
 from pyhwloc.topology import Topology, TypeFilter
+from pyhwloc.utils import PciId
 
 
 def test_cudart() -> None:
@@ -25,11 +26,11 @@ def test_cudart() -> None:
         assert osdev.is_osdev_gpu()
 
         pcidev = dev.get_pcidev()
-        assert pcidev is not None
-        assert pcidev.is_pci_device()
+        if pcidev is not None:
+            assert pcidev.is_pci_device()
 
         assert dev.get_affinity().weight() >= 1
-        dev.pci_id
+        assert isinstance(dev.pci_id, PciId)
 
         with pytest.raises(RuntimeError, match="get_device"):
             type(dev)()

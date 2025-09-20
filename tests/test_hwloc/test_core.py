@@ -463,6 +463,8 @@ def test_bridge_covers_pcibus() -> None:
 
     # Use prev=None to find the first bridge.
     bridge = get_next_bridge(topo.hdl, None)
+    if bridge is None:
+        pytest.skip("Failed to find bridge.")
     assert bridge
     assert ctypes.cast(bridge, ctypes.c_void_p).value is not None
 

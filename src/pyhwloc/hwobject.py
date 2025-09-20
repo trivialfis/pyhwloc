@@ -128,6 +128,9 @@ class Object(_TopoRef):
     def is_osdev_gpu(self) -> bool:
         return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_GPU)
 
+    def is_osdev_coproc(self) -> bool:
+        return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_COPROC)
+
     def is_osdev_storage(self) -> bool:
         return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_STORAGE)
 
