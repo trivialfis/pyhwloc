@@ -34,22 +34,22 @@ if(PYHWLOC_FETCH_HWLOC)
   if(NOT PYHWLOC_CONFIG_HWLOC)
     if(PYHWLOC_BUILD_HWLOC_CMAKE)
       execute_process(
-	COMMAND
-	cmake
-	-S ${hwloc_SOURCE_DIR}/contrib/windows-cmake
-	-B ${hwloc_BINARY_DIR}
-	-G ${CMAKE_GENERATOR}
-	-DCMAKE_INSTALL_PREFIX=${PYHWLOC_OUTPUT_DIR}
-	-DHWLOC_BUILD_SHARED_LIBS=ON
-	WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
+        COMMAND
+        cmake
+        -S ${hwloc_SOURCE_DIR}/contrib/windows-cmake
+        -B ${hwloc_BINARY_DIR}
+        -G ${CMAKE_GENERATOR}
+        -DCMAKE_INSTALL_PREFIX=${PYHWLOC_OUTPUT_DIR}
+        -DHWLOC_BUILD_SHARED_LIBS=ON
+        WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
       )
     else()
       execute_process(
-	COMMAND ${hwloc_SOURCE_DIR}/autogen.sh WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
+        COMMAND ${hwloc_SOURCE_DIR}/autogen.sh WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
       )
       execute_process(
-	COMMAND ${hwloc_SOURCE_DIR}/configure --enable-plugins --prefix=${PYHWLOC_OUTPUT_DIR}
-	WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+        COMMAND ${hwloc_SOURCE_DIR}/configure --enable-plugins --prefix=${PYHWLOC_OUTPUT_DIR}
+        WORKING_DIRECTORY ${hwloc_BINARY_DIR}
       )
     endif()
     set(PYHWLOC_CONFIG_HWLOC ON CACHE BOOL "" FORCE)
@@ -63,16 +63,16 @@ if(PYHWLOC_FETCH_HWLOC)
     # The output location is different when a multi-configuration generator is used.
     if (CMAKE_CONFIGURATION_TYPES)
       add_custom_command(
-	OUTPUT ${hwloc_BINARY_DIR}/Release/hwloc.dll
-	COMMAND cmake --build ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
-	WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+        OUTPUT ${hwloc_BINARY_DIR}/Release/hwloc.dll
+        COMMAND cmake --build ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
+        WORKING_DIRECTORY ${hwloc_BINARY_DIR}
       )
       add_custom_target(build_hwloc DEPENDS  ${hwloc_BINARY_DIR}/Release/hwloc.dll)
     else()
       add_custom_command(
-	OUTPUT ${hwloc_BINARY_DIR}/hwloc.dll
-	COMMAND cmake --build ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
-	WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+        OUTPUT ${hwloc_BINARY_DIR}/hwloc.dll
+        COMMAND cmake --build ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
+        WORKING_DIRECTORY ${hwloc_BINARY_DIR}
       )
       add_custom_target(build_hwloc DEPENDS  ${hwloc_BINARY_DIR}/hwloc.dll)
     endif()
@@ -104,6 +104,7 @@ if(PYHWLOC_FETCH_HWLOC)
     INSTALL_REMOVE_ENVIRONMENT_RPATH ON
     # Use relative path
     BUILD_RPATH_USE_ORIGIN ON)
+  add_dependencies(pyhwloc install_hwloc)
 else()
   find_package(hwloc REQUIRED)
 endif()
@@ -141,9 +142,12 @@ foreach(lib IN LISTS PYHWLOC_LIBS)
       INSTALL_RPATH "$ORIGIN/lib"
       INSTALL_RPATH_USE_LINK_PATH OFF
       BUILD_RPATH_USE_ORIGIN ON)
-    add_dependencies(${lib} install_hwloc)
   endif()
 endforeach()
+
+add_dependencies(pyhwloc_nvml pyhwloc)
+add_dependencies(pyhwloc_cuda pyhwloc)
+add_dependencies(pyhwloc_cudart pyhwloc)
 
 include(GNUInstallDirs)
 install(TARGETS ${PYHWLOC_LIBS}
