@@ -163,6 +163,7 @@ jobs:
       with:
         environment-name: pyhwloc_dev
         environment-file: dev/pyhwloc_win_dev.yml
+
     - name: Install hwloc
       shell: pwsh
       run: |
@@ -179,7 +180,7 @@ jobs:
     - name: Install pyhwloc editable
       shell: pwsh
       run: |
-        pip install -e . --no-deps --no-build-isolation --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
+        pip install -e . --no-build-isolation --no-deps --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
         python -c "from pyhwloc import Topology"
         git clean -xdf
         pip uninstall pyhwloc -y
@@ -196,7 +197,7 @@ jobs:
     - name: Install pyhwloc with custom hwloc
       shell: pwsh
       run: |
-        pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist/ --config-settings=fetch-hwloc=True
+        pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=fetch-hwloc=True
         pip install .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
         python -c "from pyhwloc import Topology"
 
