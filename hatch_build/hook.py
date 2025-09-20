@@ -70,7 +70,7 @@ def run_cmake_build(
         # I don't want cmake to pick up mingw somehow.
         configure_cmd.append("-GVisual Studio 17 2022")
     else:
-        f"-DCMAKE_BUILD_TYPE={build_type}",
+        configure_cmd.append(f"-DCMAKE_BUILD_TYPE={build_type}")
 
     print(f"CMake config: {' '.join(configure_cmd)}")
     result = subprocess.run(configure_cmd, check=False)
