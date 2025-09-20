@@ -188,7 +188,6 @@ jobs:
     - name: Cleanup
       shell: pwsh
       run: |
-        Remove-Item .\hwloc -Recurse
         pip uninstall pyhwloc -y
         git clean -xdf
 
