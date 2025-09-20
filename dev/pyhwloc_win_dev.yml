@@ -5,12 +5,9 @@ channels:
 dependencies:
 # -- hwloc
 # -- pyhwloc
-- c-compiler
-- cxx-compiler
 - cmake
 - cuda-cudart-dev
 - cuda-nvml-dev
-- cuda-nvcc
 - cuda-python
 - cuda-version=12.8
 - nvidia-ml-py
@@ -23,8 +20,3 @@ dependencies:
 - pip
 - pytest
 - pytest-cov
-# -- document
-- breathe
-- sphinx
-- myst-parser
-- sphinx-gallery
