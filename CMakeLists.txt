@@ -8,7 +8,12 @@ project(pyhwloc LANGUAGES C VERSION 0.0.0)
 list(APPEND CMAKE_MODULE_PATH "${pyhwloc_SOURCE_DIR}/cmake/")
 
 option(PYHWLOC_FETCH_HWLOC "Fetch hwloc from GitHub instead of using system version" OFF)
-option(PYHWLOC_BUILD_HWLOC_CMAKE "Fetch hwloc from GitHub instead of using system version" OFF)
+
+set(PYHWLOC_BUILD_HWLOC_CMAKE OFF)
+if(WIN32)
+  set(PYHWLOC_BUILD_HWLOC_CMAKE ON)
+endif()
+message(STATUS "PYHWLOC_BUILD_HWLOC_CMAKE: ${PYHWLOC_BUILD_HWLOC_CMAKE}")
 
 add_library(pyhwloc SHARED src/ext/pyhwloc.c)
 
@@ -30,10 +35,12 @@ if(PYHWLOC_FETCH_HWLOC)
     if(PYHWLOC_BUILD_HWLOC_CMAKE)
       execute_process(
 	COMMAND
-	  cmake
-	    -S ${hwloc_SOURCE_DIR}/contrib/windows-cmake
-	    -B ${hwloc_BINARY_DIR}
-	    -DCMAKE_INSTALL_PREFIX=${PYHWLOC_OUTPUT_DIR}
+	cmake
+	-S ${hwloc_SOURCE_DIR}/contrib/windows-cmake
+	-B ${hwloc_BINARY_DIR}
+	-G ${CMAKE_GENERATOR}
+	-DCMAKE_INSTALL_PREFIX=${PYHWLOC_OUTPUT_DIR}
+	-DHWLOC_BUILD_SHARED_LIBS=ON
 	WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
       )
     else()
@@ -53,19 +60,33 @@ if(PYHWLOC_FETCH_HWLOC)
 
   # fixme; How to respect the --parallel option?
   if(PYHWLOC_BUILD_HWLOC_CMAKE)
+    # The output location is different when a multi-configuration generator is used.
+    if (CMAKE_CONFIGURATION_TYPES)
+      add_custom_command(
+	OUTPUT ${hwloc_BINARY_DIR}/Release/hwloc.dll
+	COMMAND cmake --build ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
+	WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+      )
+      add_custom_target(build_hwloc DEPENDS  ${hwloc_BINARY_DIR}/Release/hwloc.dll)
+    else()
+      add_custom_command(
+	OUTPUT ${hwloc_BINARY_DIR}/hwloc.dll
+	COMMAND cmake --build ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
+	WORKING_DIRECTORY ${hwloc_BINARY_DIR}
+      )
+      add_custom_target(build_hwloc DEPENDS  ${hwloc_BINARY_DIR}/hwloc.dll)
+    endif()
+
     add_custom_command(
-      OUTPUT ${hwloc_BINARY_DIR}/hwloc.dll
-      COMMAND cmake --build -S ${hwloc_SOURCE_DIR}/contrib/windows-cmake -B ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
-      WORKING_DIRECTORY ${hwloc_BINARY_DIR}
-    )
-    add_custom_target(build_hwloc DEPENDS  ${hwloc_BINARY_DIR}/hwloc.dll)
-    add_custom_command(
-      OUTPUT ${PYHWLOC_OUTPUT_DIR}/lib/hwloc.dll
+      OUTPUT ${PYHWLOC_OUTPUT_DIR}/bin/hwloc.dll
       COMMAND cmake --install ${hwloc_BINARY_DIR} --config=Release --parallel=${nproc}
       WORKING_DIRECTORY ${hwloc_BINARY_DIR}
     )
-    add_custom_target(install_hwloc DEPENDS ${PYHWLOC_OUTPUT_DIR}/lib/hwloc.dll)
+    add_custom_target(install_hwloc DEPENDS ${PYHWLOC_OUTPUT_DIR}/bin/hwloc.dll)
     add_dependencies(install_hwloc build_hwloc)
+
+    set(HWLOC_LIBRARY ${PYHWLOC_OUTPUT_DIR}/lib/hwloc.lib)
+    set(HWLOC_INCLUDE_DIR ${PYHWLOC_OUTPUT_DIR}/include/)
   else()
     add_custom_command(
       OUTPUT ${PYHWLOC_OUTPUT_DIR}/lib/libhwloc.so COMMAND make -j${nproc} install WORKING_DIRECTORY ${hwloc_BINARY_DIR}

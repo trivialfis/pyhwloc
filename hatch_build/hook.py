@@ -64,9 +64,13 @@ def run_cmake_build(
         str(source_path),
         "-B",
         str(build_path),
-        f"-DCMAKE_BUILD_TYPE={build_type}",
         *cmake_args,
     ]
+    if platform.system() == "Windows":
+        # I don't want cmake to pick up mingw somehow.
+        configure_cmd.append("-GVisual Studio 17 2022")
+    else:
+        f"-DCMAKE_BUILD_TYPE={build_type}",
 
     print(f"CMake config: {' '.join(configure_cmd)}")
     result = subprocess.run(configure_cmd, check=False)
@@ -128,9 +132,6 @@ class CMakeBuildHook(BuildHookInterface):
             print("Native libraries already exist, skipping CMake build")
             return
 
-        if platform.system() == "Windows" and fetch_hwloc:
-            raise NotImplementedError()
-
         # Fetch hwloc
         cmake_args = []
         assert fetch_hwloc in (None, "True", "False")
@@ -168,7 +169,11 @@ class CMakeBuildHook(BuildHookInterface):
 
         # Remove all the unneeded files. We don't use the embedded mode as it doesn't
         # generate shared objects.
-        for dirname in ["bin", "include", "sbin", "share"]:
+        rmdirs = ["include", "sbin", "share"]
+        if platform.system() != "Windows":
+            rmdirs.append("bin")
+
+        for dirname in rmdirs:
             path = os.path.join(lib_dir, dirname)
             if os.path.exists(path):
                 shutil.rmtree(path)
@@ -177,7 +182,8 @@ class CMakeBuildHook(BuildHookInterface):
         if os.path.exists(path):
             shutil.rmtree(path)
 
-        for dirpath, dirnames, filenames in os.walk(os.path.join(lib_dir, "lib")):
+        libdir_name = "bin" if platform.system() == "Windows" else "lib"
+        for dirpath, dirnames, filenames in os.walk(os.path.join(lib_dir, libdir_name)):
             for f in filenames:
                 path = os.path.join(dirpath, f)
                 if os.path.islink(path):
