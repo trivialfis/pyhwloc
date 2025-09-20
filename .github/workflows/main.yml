@@ -176,6 +176,10 @@ jobs:
         pip install .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
 
         python -c "from pyhwloc import Topology"
+
+    - name: Run tests
+      shell: pwsh
+      run: |
         pytest -s -v .\tests
 
     - name: Upload binary wheel
