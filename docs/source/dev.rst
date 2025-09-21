@@ -2,12 +2,21 @@
 Developer Notes
 ###############
 
+Symbol Conflicts
+================
+
+The hwloc is loaded into the public linker name space to support hwloc plugins. This might
+have unintended consequences.
+
+Design Decisions
+================
+
 Some design decisions were made in the initial development phase. For instance, whether
 something should be a Python attribute or a Python method. My choice at the time was
 simple, if it's part of a C struct, it's an attribute, otherwise, it's a function. If both
 are possible, like the ``cpuset`` and the ``pci_id``, we use property. This way, we can
 keep it simple and allow future extension for parameters. It's ok, Python stdlib does not
-use property very often: ``threading.get_ident()``, let's move on.
+use property very often, let's move on.
 
 Hwloc has lots of setters and getters, some Python users might frown upon this design
 pattern, but we decided keep it instead. Most of these setters and getters have
