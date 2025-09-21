@@ -42,8 +42,11 @@ class Distances(_TopoRef):
 
     .. code-block:: python
 
-        dist = topo.get_disances()
-        d = dist[0, 1]
+        from pyhwloc import from_this_system
+
+        with from_this_system() as topo:
+            dist = topo.get_disances()
+            d = dist[0, 1]
 
     """
 

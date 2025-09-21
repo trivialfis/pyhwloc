@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Iterator, TypeAlias
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
-from .utils import PciId, _Flags, _or_flags, _reuse_doc, _TopoRef
+from .utils import PciId, _Flags, _get_info, _or_flags, _reuse_doc, _TopoRef
 
 if TYPE_CHECKING:
     from .topology import Topology
@@ -360,7 +360,18 @@ class Object(_TopoRef):
             else None
         )
 
-    # struct hwloc_infos_s infos
+    @property
+    def info(self) -> dict[str, str]:
+        """Get the object info."""
+        infos = self.native_handle.contents.infos
+        infos_d = _get_info(infos)
+
+        return infos_d
+
+    @_reuse_doc(_core.obj_add_info)
+    def add_info(self, name: str, value: str) -> None:
+        _core.obj_add_info(self.native_handle, name, value)
+
     # void *userdata
 
     @property
