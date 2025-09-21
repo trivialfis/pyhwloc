@@ -44,13 +44,13 @@ It's necessary to specify the hwloc root for Windows as CMake can't find its ins
 
   .. code-block:: powershell
 
-  pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
+    pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
 
 - Editable installation:
 
   .. code-block:: powershell
 
-  pip install -e . --no-deps --no-build-isolation --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
+    pip install -e . --no-deps --no-build-isolation --config-settings=hwloc-root-dir="$Env:CONDA_PREFIX"
 
 Linux
 -----

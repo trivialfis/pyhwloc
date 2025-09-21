@@ -46,7 +46,7 @@ if os.path.exists(_search_name):
     _hwloc_lib_name = _search_name
 else:
     # Dynamically find hwloc library at runtime
-    found = find_library("hwloc")
+    found = find_library(_get_libname("hwloc"))
     if found is None:
         raise ImportError("hwloc library not found.")
 

@@ -21,6 +21,7 @@ def test_context_manager_current_system() -> None:
         assert isinstance(topo.depth, int)
         assert topo.depth > 0
         assert topo.is_this_system()
+        assert "hwlocVersion" in topo.info
 
     # After context manager exits, topology should be destroyed
     assert not topo.is_loaded

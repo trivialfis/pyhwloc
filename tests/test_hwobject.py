@@ -168,3 +168,12 @@ def test_query_ancestor() -> None:
         assert ancestor.type == ObjType.HWLOC_OBJ_CORE
         assert objs[0].is_in_subtree(ancestor)
         assert objs[1].is_in_subtree(ancestor)
+
+
+def test_info() -> None:
+    with Topology.from_synthetic("node:2 core:2 pu:2") as topo:
+        obj = topo.get_root_obj()
+        obj.add_info("Foo0", "Bar0")
+        obj.add_info("Foo1", "Bar1")
+        info = obj.info
+        assert info == {"Foo0": "Bar0", "Foo1": "Bar1"}

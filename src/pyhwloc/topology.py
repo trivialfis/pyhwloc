@@ -29,7 +29,7 @@ from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object as _Object
 from .hwobject import ObjType as _ObjType
-from .utils import _Flags, _memview_to_mem, _or_flags, _reuse_doc
+from .utils import _Flags, _get_info, _memview_to_mem, _or_flags, _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
@@ -1181,6 +1181,15 @@ class Topology:
     def get_cpukinds(self) -> CpuKinds:
         """Get a proxy object for the CPU kinds."""
         return CpuKinds(weakref.ref(self))
+
+    @property
+    @_reuse_doc(_core.topology_get_infos)
+    def info(self) -> dict[str, str]:
+        infos_ptr = _core.topology_get_infos(self.native_handle)
+        infos_d = {}
+        if infos_ptr:
+            infos_d = _get_info(infos_ptr.contents)
+        return infos_d
 
 
 @_reuse_doc(_core.get_api_version)

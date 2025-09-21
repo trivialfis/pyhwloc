@@ -21,6 +21,7 @@ _R = TypeVar("_R")
 if TYPE_CHECKING:
     import weakref
 
+    from .hwloc import core as _core
     from .topology import Topology
 
 
@@ -92,19 +93,29 @@ def _memview_to_mem(mem: memoryview) -> tuple[ctypes.c_void_p, int]:
 
 class _HasTopoRef(Protocol):
     @property
-    def _topo_ref(self) -> weakref.ReferenceType["Topology"]: ...
+    def _topo_ref(self) -> weakref.ReferenceType[Topology]: ...
 
 
 class _TopoRef:
     """A mixin class for accessing a reference to the topology."""
 
     @property
-    def _topo(self: _HasTopoRef) -> "Topology":
+    def _topo(self: _HasTopoRef) -> Topology:
         if not self._topo_ref or not self._topo_ref().is_loaded:  # type: ignore
             raise RuntimeError("Topology is invalid")
         v = self._topo_ref()
         assert v is not None
         return v
+
+
+def _get_info(infos: _core.hwloc_infos_s) -> dict[str, str]:
+    infos_d = {}
+    for i in range(infos.count):
+        info = infos.array[i]
+        name = info.name.decode("utf-8") if info.name else ""
+        value = info.value.decode("utf-8") if info.value else ""
+        infos_d[name] = value
+    return infos_d
 
 
 @dataclass

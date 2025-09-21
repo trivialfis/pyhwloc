@@ -22,8 +22,8 @@ PyHwloc is designed with two layers:
 
 1. **High-Level Interface** (Recommended): Provides Pythonic classes and methods that are
    easy to use and follow Python conventions, but has limited feature set at the moment.
-2. **Low-Level Interface**: Direct mapping of the C API through ``ctypes`` for advanced
-   use cases when high-level features are insufficient.
+2. **Low-Level Interface**: Direct mapping of the C API through :py:mod:`ctypes` for
+   advanced use cases when high-level features are insufficient.
 
 Most users should start with the high-level interface and only use the low-level API when
 specific functionality is missing. Two interfaces can interpolate through the use of the
@@ -44,13 +44,13 @@ Here's a simple example to get started with ``pyhwloc``:
 
 .. code-block:: python
 
-    from pyhwloc import Topology
+    from pyhwloc import from_this_system
 
     # Create and load system topology
-    with Topology.from_this_system() as topo:
+    with from_this_system() as topo:
         # Get basic system information
-        n_cores = topo.n_cores
-        n_numa = topo.n_numa_nodes
+        n_cores = topo.n_cores()
+        n_numa = topo.n_numa_nodes()
 
         print(f"System has {n_cores} CPU cores")
         print(f"System has {n_numa} NUMA nodes")
@@ -64,6 +64,38 @@ We have some more examples in the :doc:`/examples/index`.
 
 Tips and Tricks
 ===============
+
+Documentation
+-------------
+
+We reuse the C document for most of the functions, which might look confusing if you are
+not already familiar with hwloc. On the other hand, the package is fully typed. Please use
+the type hints as part of the document.
+
+The Topology Class
+------------------
+
+The hwloc API is built upon the :py:class:`~pyhwloc.topology.Topology`, through which one
+can obtain device :py:class:`~pyhwloc.hwobject.Object` and other attributes. For
+interpolation with CUDA libraries, the :py:class:`~pyhwloc.nvml.Device` can be converted
+into a :py:class:`~pyhwloc.hwobject.Object` through the topology. Following is a snippet
+for waling the topology with object nodes:
+
+.. code-block:: python
+
+    import pyhwloc
+
+    with pyhwloc.Topology() as topo:
+        for node in topo.iter_numa_nodes():
+            print(f"NUMA Node {node.logical_index}: {node}")
+            if node.total_memory > 0:
+                print(f"  Memory: {node.total_memory // (1024 * 1024)} MB")
+
+The :py:class:`~pyhwloc.hwobject.Object` represents a specific software or hardware device
+in the device tree. You can get its attributes using specific getters like
+:py:class:`~pyhwloc.hwobject.Object.pci_id`, or the
+:py:meth:`~pyhwloc.hwobject.Object.attr`.
+
 
 Working with Enum Flags
 -----------------------

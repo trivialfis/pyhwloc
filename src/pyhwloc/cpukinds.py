@@ -14,7 +14,7 @@ import weakref
 from typing import TYPE_CHECKING
 
 from .hwloc import core as _core
-from .utils import _reuse_doc, _TopoRef
+from .utils import _get_info, _reuse_doc, _TopoRef
 
 if TYPE_CHECKING:
     from .bitmap import Bitmap
@@ -91,11 +91,7 @@ class CpuKinds(_TopoRef):
         infos_d = {}
         if infos_ptr:
             infos = infos_ptr.contents
-            for i in range(infos.count):
-                info = infos.array[i]
-                name = info.name.decode("utf-8") if info.name else ""
-                value = info.value.decode("utf-8") if info.value else ""
-                infos_d[name] = value
+            infos_d = _get_info(infos)
 
         return cpuset, efficiency, infos_d
 
