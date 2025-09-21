@@ -41,7 +41,7 @@ class Device(_TopoRef):
     """
 
     def __init__(self) -> None:
-        raise RuntimeError("Use `get_device` instead.")
+        raise RuntimeError("Use `get_device` or `from_idx` instead.")
         self._idx: int = -1
         self._topo_ref: weakref.ReferenceType["Topology"]
 

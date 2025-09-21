@@ -2,7 +2,7 @@
 PyHwloc API
 ###########
 
-This page provides the reference for the high-level interface. All classes in this
+This page provides the reference for the high-level interface. Most classes in this
 interface have a ``native_handle`` property that returns a C handle for the underlying
 type. Users can use it to reach to the :doc:`low-level </low_level>` interface.
 

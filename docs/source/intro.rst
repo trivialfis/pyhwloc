@@ -22,8 +22,8 @@ PyHwloc is designed with two layers:
 
 1. **High-Level Interface** (Recommended): Provides Pythonic classes and methods that are
    easy to use and follow Python conventions, but has limited feature set at the moment.
-2. **Low-Level Interface**: Direct mapping of the C API through ``ctypes`` for advanced
-   use cases when high-level features are insufficient.
+2. **Low-Level Interface**: Direct mapping of the C API through :py:mod:`ctypes` for
+   advanced use cases when high-level features are insufficient.
 
 Most users should start with the high-level interface and only use the low-level API when
 specific functionality is missing. Two interfaces can interpolate through the use of the
@@ -44,13 +44,13 @@ Here's a simple example to get started with ``pyhwloc``:
 
 .. code-block:: python
 
-    from pyhwloc import Topology
+    from pyhwloc import from_this_system
 
     # Create and load system topology
-    with Topology.from_this_system() as topo:
+    with from_this_system() as topo:
         # Get basic system information
-        n_cores = topo.n_cores
-        n_numa = topo.n_numa_nodes
+        n_cores = topo.n_cores()
+        n_numa = topo.n_numa_nodes()
 
         print(f"System has {n_cores} CPU cores")
         print(f"System has {n_numa} NUMA nodes")
