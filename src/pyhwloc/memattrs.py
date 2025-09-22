@@ -6,10 +6,6 @@ Memory Attributes
 
 This module provides high-level interfaces for hwloc memory attributes.
 
-See `Topology Attributes: Distances, Memory Attributes and CPU Kinds
-<https://www.open-mpi.org/projects/hwloc/doc/v2.12.2/topoattrs.html>`__ for an
-introduction to the basic concepts.
-
 """
 
 from __future__ import annotations
