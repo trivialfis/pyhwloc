@@ -41,7 +41,7 @@ RUN \
     ./install_hwloc.sh && \
     ./build_doc_xml.sh
 
-# Stage 2: Final runtime stage without doxygen and build dependencies
+# Stage 2: Final runtime stage without doxygen and its build dependencies
 FROM condaforge/miniforge3:25.3.1-0
 
 RUN set -x \

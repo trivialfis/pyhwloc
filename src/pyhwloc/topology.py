@@ -19,10 +19,8 @@ from typing import (
     Any,
     Callable,
     Iterator,
-    Optional,
     Type,
     TypeAlias,
-    Union,
 )
 
 from .bitmap import Bitmap as _Bitmap
