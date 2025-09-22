@@ -13,6 +13,7 @@ import logging
 import os
 import weakref
 from collections import namedtuple
+from copy import copy
 from types import TracebackType
 from typing import (
     TYPE_CHECKING,
@@ -538,19 +539,19 @@ class Topology:
     def cpuset(self) -> _Bitmap:
         # Same as get_root_obj().cpuset
         bitmap = _core.topology_get_topology_cpuset(self.native_handle)
-        return _Bitmap.from_native_handle(bitmap, own=False)
+        return copy(_Bitmap.from_native_handle(bitmap, own=False))
 
     @property
     @_reuse_doc(_core.topology_get_allowed_cpuset)
     def allowed_cpuset(self) -> _Bitmap:
         bitmap = _core.topology_get_allowed_cpuset(self.native_handle)
-        return _Bitmap.from_native_handle(bitmap, own=False)
+        return copy(_Bitmap.from_native_handle(bitmap, own=False))
 
     @property
     @_reuse_doc(_core.topology_get_allowed_nodeset)
     def allowed_nodeset(self) -> _Bitmap:
         bitmap = _core.topology_get_allowed_nodeset(self.native_handle)
-        return _Bitmap.from_native_handle(bitmap, own=False)
+        return copy(_Bitmap.from_native_handle(bitmap, own=False))
 
     @_reuse_doc(_core.get_nbobjs_by_depth)
     def get_nbobjs_by_depth(self, depth: int) -> int:

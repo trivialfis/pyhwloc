@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import ctypes
 import weakref
+from copy import copy
 from enum import IntEnum
 from typing import TYPE_CHECKING, Iterator, TypeAlias
 
@@ -51,7 +52,7 @@ class Object(_TopoRef):
     """
 
     def __init__(
-        self, hdl: _core.ObjPtr, topology: weakref.ReferenceType["Topology"]
+        self, hdl: _core.ObjPtr, topology: weakref.ReferenceType[Topology]
     ) -> None:
         assert hdl
         self._hdl = hdl
@@ -330,14 +331,14 @@ class Object(_TopoRef):
     def cpuset(self) -> Bitmap | None:
         """CPUs covered by this object."""
         cpuset = self.native_handle.contents.cpuset
-        return Bitmap.from_native_handle(cpuset, own=False) if cpuset else None
+        return copy(Bitmap.from_native_handle(cpuset, own=False)) if cpuset else None
 
     @property
     def complete_cpuset(self) -> Bitmap | None:
         """The complete CPU set of processors of this object."""
         complete_cpuset = self.native_handle.contents.complete_cpuset
         return (
-            Bitmap.from_native_handle(complete_cpuset, own=False)
+            copy(Bitmap.from_native_handle(complete_cpuset, own=False))
             if complete_cpuset
             else None
         )
@@ -346,14 +347,14 @@ class Object(_TopoRef):
     def nodeset(self) -> Bitmap | None:
         """NUMA nodes covered by this object or containing this object."""
         nodeset = self.native_handle.contents.nodeset
-        return Bitmap.from_native_handle(nodeset, own=False) if nodeset else None
+        return copy(Bitmap.from_native_handle(nodeset, own=False)) if nodeset else None
 
     @property
     def complete_nodeset(self) -> Bitmap | None:
         """The complete NUMA node set of this object."""
         complete_nodeset = self.native_handle.contents.complete_nodeset
         return (
-            Bitmap.from_native_handle(complete_nodeset, own=False)
+            copy(Bitmap.from_native_handle(complete_nodeset, own=False))
             if complete_nodeset
             else None
         )

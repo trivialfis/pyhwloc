@@ -97,10 +97,12 @@ class Bitmap:
         represent CPU index.
 
         """
-        return cls.from_native_handle(_sched.cpuset_from_sched_affinity(index), True)
+        return cls.from_native_handle(
+            _sched.cpuset_from_sched_affinity(index), own=True
+        )
 
     @classmethod
-    def from_native_handle(cls, hdl: _bitmap.bitmap_t, own: bool = True) -> Bitmap:
+    def from_native_handle(cls, hdl: _bitmap.bitmap_t, *, own: bool = True) -> Bitmap:
         bitmap = cls.__new__(cls)
         assert not hasattr(bitmap, "_hdl")
         bitmap._hdl = hdl

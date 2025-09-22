@@ -43,12 +43,13 @@ class Device(_TopoRef):
     """
 
     def __init__(self) -> None:
-        raise RuntimeError("Use `get_device` or `from_idx` instead.")
+        raise RuntimeError("Use `get_device` instead.")
         self._idx: int = -1
-        self._topo_ref: weakref.ReferenceType["Topology"]
+        self._topo_ref: weakref.ReferenceType[Topology]
 
     @classmethod
-    def from_idx(cls, topo: weakref.ReferenceType["Topology"], idx: int) -> Device:
+    def from_idx(cls, topo: weakref.ReferenceType[Topology], idx: int) -> Device:
+        """Create Device from CUDA ordinal."""
         dev = cls.__new__(cls)
         dev._idx = idx
         dev._topo_ref = topo
