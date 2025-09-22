@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from pyhwloc.distance import Distances
+from pyhwloc.distances import Distances
 from pyhwloc.hwloc.lib import normpath
 from pyhwloc.hwobject import GetTypeDepth
 from pyhwloc.topology import Topology

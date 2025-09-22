@@ -33,7 +33,7 @@ from .utils import _Flags, _get_info, _memview_to_mem, _or_flags, _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
-    from .distance import Distances
+    from .distances import Distances
     from .memattrs import MemAttrsAccessor as _MemAttrsAccessor
 
 __all__ = [
@@ -183,7 +183,7 @@ class Topology:
         self._hdl = hdl
         self._loaded = True
         # See the distance release method for more info.
-        self._cleanup: list[weakref.ReferenceType["Distances"]] = []
+        self._cleanup: list[weakref.ReferenceType[Distances]] = []
 
     @classmethod
     def from_native_handle(cls, hdl: _core.topology_t, is_loaded: bool) -> Topology:
@@ -761,8 +761,8 @@ class Topology:
 
     # Distance Methods
     @_reuse_doc(_core.distances_get)
-    def get_distances(self, kind: _Flags[DistancesKind] = 0) -> list["Distances"]:
-        from .distance import Distances
+    def get_distances(self, kind: _Flags[DistancesKind] = 0) -> list[Distances]:
+        from .distances import Distances
 
         # Get count first
         nr = ctypes.c_uint(0)
