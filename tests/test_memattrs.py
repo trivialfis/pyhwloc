@@ -14,7 +14,7 @@ def test_get_memattrs() -> None:
     with from_this_system().set_all_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
     ) as topo:
-        memattrs = topo.memory_attributes
+        memattrs = topo.memattrs
         attr = memattrs.get(MemAttrId.HWLOC_MEMATTR_ID_CAPACITY)
         attr_by_name = memattrs.get(attr.name)
         assert attr == attr_by_name
@@ -46,7 +46,7 @@ def test_memattrs_setter() -> None:
     with from_this_system().set_all_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
     ) as topo:
-        memattrs = topo.memory_attributes
+        memattrs = topo.memattrs
         attr = memattrs.get(MemAttrId.HWLOC_MEMATTR_ID_BANDWIDTH)
         assert attr.name == "Bandwidth"
 
@@ -80,7 +80,7 @@ def test_memattrs_find_best() -> None:
     with from_this_system().set_all_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
     ) as topo:
-        memattrs = topo.memory_attributes
+        memattrs = topo.memattrs
 
         attr = memattrs.register(
             "foo",
@@ -113,7 +113,7 @@ def test_local_numa_nodes() -> None:
     with from_this_system().set_all_types_filter(
         TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
     ) as topo:
-        memattrs = topo.memory_attributes
+        memattrs = topo.memattrs
 
         with pytest.raises(TypeError, match="Initiator cannot be None"):
             memattrs.get_local_numa_nodes(None)  # type: ignore

@@ -804,7 +804,8 @@ class Topology:
         return result
 
     @property
-    def memory_attributes(self) -> _MemAttrsAccessor:
+    def memattrs(self) -> _MemAttrsAccessor:
+        """Get a proxy object for the memory attributes."""
         from .memattrs import MemAttrsAccessor
 
         return MemAttrsAccessor(weakref.ref(self))
@@ -1187,7 +1188,8 @@ class Topology:
             if hdl:
                 _core._close_proc_handle(hdl)
 
-    def get_cpukinds(self) -> CpuKinds:
+    @property
+    def cpukinds(self) -> CpuKinds:
         """Get a proxy object for the CPU kinds."""
         return CpuKinds(weakref.ref(self))
 
