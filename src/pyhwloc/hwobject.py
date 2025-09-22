@@ -480,7 +480,7 @@ class Object(_TopoRef):
     # End -- Looking at Ancestor and Child Objects
 
     def __str__(self) -> str:
-        type_name = self.type.name.replace("", "")
+        type_name = self.type.name
         parts = [f"{type_name}#{self.logical_index}"]
 
         if self.name:
