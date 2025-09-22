@@ -57,11 +57,11 @@ class Device(_TopoRef):
     def __init__(self) -> None:
         raise RuntimeError("Use `get_device` instead.")
         self._nvml_hdl: ctypes._Pointer = None
-        self._topo_ref: weakref.ReferenceType["Topology"]
+        self._topo_ref: weakref.ReferenceType[Topology]
 
     @classmethod
     def from_native_handle(
-        cls, topo: weakref.ReferenceType["Topology"], hdl: ctypes._Pointer
+        cls, topo: weakref.ReferenceType[Topology], hdl: ctypes._Pointer
     ) -> Device:
         """Create Device from NVML handle and index.
 
@@ -79,7 +79,7 @@ class Device(_TopoRef):
         return dev
 
     @classmethod
-    def from_idx(cls, topo: weakref.ReferenceType["Topology"], idx: int) -> Device:
+    def from_idx(cls, topo: weakref.ReferenceType[Topology], idx: int) -> Device:
         import pynvml as nm
 
         hdl = nm.nvmlDeviceGetHandleByIndex(idx)
@@ -189,7 +189,7 @@ def _get_uuid(ordinal: int) -> str:
 
 def get_cpu_affinity(device: int | str) -> Bitmap:
     """Get optimal affinity using nvml directly. This should produce the same result as
-    :py:meth:`pyhwloc.nvml.Device.cpuset`.
+    :py:meth:`pyhwloc.nvml.Device.get_affinity`.
 
     Parameters
     ----------

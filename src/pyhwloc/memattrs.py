@@ -10,9 +10,9 @@ This module provides high-level interfaces for hwloc memory attributes.
 
 from __future__ import annotations
 
-import copy
 import ctypes
 import weakref
+from copy import copy
 from typing import TYPE_CHECKING, TypeAlias, Union, overload
 
 from .bitmap import Bitmap as _Bitmap
@@ -203,7 +203,7 @@ class MemAttr(_TopoRef):
             bitmap = _Bitmap.from_native_handle(
                 best_initiator.location.cpuset, own=False
             )
-            return copy.copy(bitmap), value
+            return copy(bitmap), value
 
     @_reuse_doc(_core.memattr_get_targets)
     def get_targets(
@@ -294,7 +294,7 @@ class MemAttr(_TopoRef):
                     initiators_array[i].location.cpuset, own=False
                 )
                 value = int(values_array[i])
-                result.append((copy.copy(bitmap), value))
+                result.append((copy(bitmap), value))
 
         return result
 

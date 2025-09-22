@@ -52,11 +52,11 @@ class Device(_TopoRef):
     def __init__(self) -> None:
         raise RuntimeError("Use `get_device` instead.")
         self._cu_device: CUDevice
-        self._topo_ref: weakref.ReferenceType["Topology"]
+        self._topo_ref: weakref.ReferenceType[Topology]
 
     @classmethod
     def from_native_handle(
-        cls, topo: weakref.ReferenceType["Topology"], device: CUDevice
+        cls, topo: weakref.ReferenceType[Topology], device: CUDevice
     ) -> Device:
         """Create Device from CUDA driver device.
 
@@ -74,7 +74,7 @@ class Device(_TopoRef):
         return dev
 
     @classmethod
-    def from_idx(cls, topo: weakref.ReferenceType["Topology"], idx: int) -> Device:
+    def from_idx(cls, topo: weakref.ReferenceType[Topology], idx: int) -> Device:
         import cuda.bindings.driver as cuda
 
         status, cu_device = cuda.cuDeviceGet(idx)
@@ -82,7 +82,7 @@ class Device(_TopoRef):
         return cls.from_native_handle(topo, cu_device)
 
     @property
-    def native_handle(self) -> "CUDevice":
+    def native_handle(self) -> CUDevice:
         return self._cu_device
 
     # Use property to be consistent with hwobject.pci_id
