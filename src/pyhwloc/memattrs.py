@@ -90,9 +90,10 @@ def _initiator_loc(
 class MemAttr(_TopoRef):
     """High-level interface for a single memory attribute.
 
-    Memory attributes describe characteristics like bandwidth, latency, or capacity
-    of memory nodes. This class provides methods to query values and find optimal
-    targets or initiators for memory operations.
+    Memory attributes describe characteristics like bandwidth, latency, or capacity of
+    memory nodes. This class provides methods to query values and find optimal targets
+    or initiators for memory operations.
+
     """
 
     def __init__(
@@ -316,12 +317,7 @@ class MemAttr(_TopoRef):
 
 
 class MemAttrsAccessor(_TopoRef):
-    """High-level interface for managing memory attributes.
-
-    This class provides methods to query available memory attributes,
-    register custom attributes, and find optimal memory nodes based
-    on attribute criteria.
-    """
+    """Accessor for memory attributes."""
 
     def __init__(self, topo: weakref.ReferenceType[Topology]) -> None:
         self._topo_ref = topo
