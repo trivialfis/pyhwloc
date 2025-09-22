@@ -42,7 +42,7 @@ class Device(_TopoRef):
             status, cu_device = cuda.cuDeviceGet(0)
             dev = get_device(topo, cu_device)
             print(dev.get_affinity())  # CPU affinity
-            print(dev.pci_ids())  # PCI information
+            print(dev.pci_id)  # PCI information
             # Get the hwloc objects
             pcidev = dev.get_pcidev()
             osdev = dev.get_osdev()
@@ -55,7 +55,7 @@ class Device(_TopoRef):
         self._topo_ref: weakref.ReferenceType["Topology"]
 
     @classmethod
-    def from_cu_device(
+    def from_native_handle(
         cls, topo: weakref.ReferenceType["Topology"], device: CUDevice
     ) -> Device:
         """Create Device from CUDA driver device.
@@ -79,7 +79,7 @@ class Device(_TopoRef):
 
         status, cu_device = cuda.cuDeviceGet(idx)
         _cudadr._check_cu(status)
-        return cls.from_cu_device(topo, cu_device)
+        return cls.from_native_handle(topo, cu_device)
 
     @property
     def native_handle(self) -> "CUDevice":
@@ -145,4 +145,4 @@ def get_device(topology: Topology, device: int | CUDevice) -> Device:
     if isinstance(device, int):
         return Device.from_idx(weakref.ref(topology), device)
     else:
-        return Device.from_cu_device(weakref.ref(topology), device)
+        return Device.from_native_handle(weakref.ref(topology), device)
