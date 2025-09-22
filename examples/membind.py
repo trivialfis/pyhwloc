@@ -23,22 +23,18 @@ def bind_np_array() -> None:
         if not topo.get_support().membind.set_area_membind:
             return
 
-        nodeset, policy = topo.get_area_membind(
-            array.data, MemBindFlags.HWLOC_MEMBIND_BYNODESET
-        )
+        nodeset, policy = topo.get_area_membind(array.data, MemBindFlags.BYNODESET)
         print(MemBindPolicy(policy).name, nodeset)
-        # >>> HWLOC_MEMBIND_FIRSTTOUCH 0
+        # >>> FIRSTTOUCH 0
 
         # Use to the first node.
         nodeset.only(0)
-        topo.set_area_membind(array.data, nodeset, MemBindPolicy.HWLOC_MEMBIND_BIND, 0)
+        topo.set_area_membind(array.data, nodeset, MemBindPolicy.BIND, 0)
 
-        nodeset, policy = topo.get_area_membind(
-            array.data, MemBindFlags.HWLOC_MEMBIND_BYNODESET
-        )
+        nodeset, policy = topo.get_area_membind(array.data, MemBindFlags.BYNODESET)
         print(MemBindPolicy(policy).name, nodeset)
-        # >>> HWLOC_MEMBIND_BIND 0
-        assert policy == MemBindPolicy.HWLOC_MEMBIND_BIND
+        # >>> BIND 0
+        assert policy == MemBindPolicy.BIND
 
 
 def main() -> None:

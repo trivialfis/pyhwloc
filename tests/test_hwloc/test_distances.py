@@ -69,7 +69,7 @@ def test_distances_comprehensive() -> None:
 
     # Get NUMA node objects
     for i in range(n_nodes):
-        obj = get_obj_by_type(topo, ObjType.HWLOC_OBJ_NUMANODE, i)
+        obj = get_obj_by_type(topo, ObjType.NUMANODE, i)
         assert obj is not None
         objs[i] = obj
 
@@ -88,10 +88,7 @@ def test_distances_comprehensive() -> None:
         values[_r(i, i)] = 1
 
     # Create distance handle
-    kind = (
-        DistancesKind.HWLOC_DISTANCES_KIND_VALUE_LATENCY
-        | DistancesKind.HWLOC_DISTANCES_KIND_FROM_USER
-    )
+    kind = DistancesKind.VALUE_LATENCY | DistancesKind.FROM_USER
     # no name
     handle = distances_add_create(topo, "", kind)
     assert handle
@@ -105,7 +102,7 @@ def test_distances_comprehensive() -> None:
         values,
     )
     # Group the objects based on distance.
-    distances_add_commit(topo, handle, DistancesAddFlag.HWLOC_DISTANCES_ADD_FLAG_GROUP)
+    distances_add_commit(topo, handle, DistancesAddFlag.GROUP)
     # Refresh topology
     topology_refresh(topo)
     # Check topology depth
@@ -117,7 +114,7 @@ def test_distances_comprehensive() -> None:
     nr = ctypes.c_uint(1)
     distances_get_by_type(
         topo,
-        ObjType.HWLOC_OBJ_NUMANODE,
+        ObjType.NUMANODE,
         ctypes.byref(nr),
         ctypes.byref(distances),
         kind=0,
@@ -128,13 +125,13 @@ def test_distances_comprehensive() -> None:
     assert distances.contents.kind == kind
 
     # Test helper functions
-    numa_node_2 = get_obj_by_type(topo, ObjType.HWLOC_OBJ_NUMANODE, 2)
+    numa_node_2 = get_obj_by_type(topo, ObjType.NUMANODE, 2)
     assert numa_node_2 is not None
     index = distances_obj_index(distances[0], numa_node_2)
     assert index == 2
 
     # Test distance pair values
-    numa_node_1 = get_obj_by_type(topo, ObjType.HWLOC_OBJ_NUMANODE, 1)
+    numa_node_1 = get_obj_by_type(topo, ObjType.NUMANODE, 1)
     assert numa_node_1 is not None
     value1to2, value2to1 = distances_obj_pair_values(
         distances,
@@ -145,7 +142,7 @@ def test_distances_comprehensive() -> None:
     assert value2to1 == values[_r(2, 1)]
 
     # Test error cases - PU objects should not be in NUMA distance matrix
-    pu_obj = get_obj_by_type(topo, ObjType.HWLOC_OBJ_PU, 0)
+    pu_obj = get_obj_by_type(topo, ObjType.PU, 0)
     assert pu_obj is not None
     pu_index = distances_obj_index(distances[0], pu_obj)
     assert pu_index == -1, "PU object should not be in NUMA distances."

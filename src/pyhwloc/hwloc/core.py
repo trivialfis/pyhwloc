@@ -70,59 +70,55 @@ hwloc_const_nodeset_t = const_bitmap_t
 
 @_cenumdoc("hwloc_obj_type_t")
 class ObjType(IntEnum):
-    HWLOC_OBJ_MACHINE = 0
-    HWLOC_OBJ_PACKAGE = 1
-    HWLOC_OBJ_DIE = 2
-    HWLOC_OBJ_CORE = 3
-    HWLOC_OBJ_PU = 4
-    HWLOC_OBJ_L1CACHE = 5
-    HWLOC_OBJ_L2CACHE = 6
-    HWLOC_OBJ_L3CACHE = 7
-    HWLOC_OBJ_L4CACHE = 8
-    HWLOC_OBJ_L5CACHE = 9
-    HWLOC_OBJ_L1ICACHE = 10
-    HWLOC_OBJ_L2ICACHE = 11
-    HWLOC_OBJ_L3ICACHE = 12
-    HWLOC_OBJ_GROUP = 13
-    HWLOC_OBJ_NUMANODE = 14
-    HWLOC_OBJ_MEMCACHE = 15
-    HWLOC_OBJ_BRIDGE = 16
-    HWLOC_OBJ_PCI_DEVICE = 17
-    HWLOC_OBJ_OS_DEVICE = 18
-    HWLOC_OBJ_MISC = 19
-    HWLOC_OBJ_TYPE_MAX = 20
+    MACHINE = 0
+    PACKAGE = 1
+    DIE = 2
+    CORE = 3
+    PU = 4
+    L1CACHE = 5
+    L2CACHE = 6
+    L3CACHE = 7
+    L4CACHE = 8
+    L5CACHE = 9
+    L1ICACHE = 10
+    L2ICACHE = 11
+    L3ICACHE = 12
+    GROUP = 13
+    NUMANODE = 14
+    MEMCACHE = 15
+    BRIDGE = 16
+    PCI_DEVICE = 17
+    OS_DEVICE = 18
+    MISC = 19
+    TYPE_MAX = 20
 
 
 @_cenumdoc("hwloc_obj_cache_type_e")
-class CacheType(IntEnum):
-    HWLOC_OBJ_CACHE_UNIFIED = 0
-    HWLOC_OBJ_CACHE_DATA = 1
-    HWLOC_OBJ_CACHE_INSTRUCTION = 2
+class ObjCacheType(IntEnum):
+    UNIFIED = 0
+    DATA = 1
+    INSTRUCTION = 2
 
 
 # typedef in hwloc.h
-hwloc_obj_cache_type_t = CacheType
+hwloc_obj_cache_type_t = ObjCacheType
 
 
 @_cenumdoc("hwloc_obj_bridge_type_e")
-class BridgeType(IntEnum):
-    HWLOC_OBJ_BRIDGE_HOST = 0
-    HWLOC_OBJ_BRIDGE_PCI = 1
-
-
-# typedef in hwloc.h
-hwloc_obj_bridge_type_t = BridgeType
+class ObjBridgeType(IntEnum):
+    HOST = 0
+    PCI = 1
 
 
 @_cenumdoc("hwloc_obj_osdev_type_e")
 class ObjOsdevType(IntEnum):
-    HWLOC_OBJ_OSDEV_STORAGE = 1 << 0
-    HWLOC_OBJ_OSDEV_MEMORY = 1 << 1
-    HWLOC_OBJ_OSDEV_GPU = 1 << 2
-    HWLOC_OBJ_OSDEV_COPROC = 1 << 3
-    HWLOC_OBJ_OSDEV_NETWORK = 1 << 4
-    HWLOC_OBJ_OSDEV_OPENFABRICS = 1 << 5
-    HWLOC_OBJ_OSDEV_DMA = 1 << 6
+    STORAGE = 1 << 0
+    MEMORY = 1 << 1
+    GPU = 1 << 2
+    COPROC = 1 << 3
+    NETWORK = 1 << 4
+    OPENFABRICS = 1 << 5
+    DMA = 1 << 6
 
 
 HWLOC_TYPE_UNORDERED = 2147483647
@@ -441,14 +437,14 @@ def topology_check(topology: topology_t) -> None:
 
 @_cenumdoc("hwloc_get_type_depth_e")
 class GetTypeDepth(IntEnum):
-    HWLOC_TYPE_DEPTH_UNKNOWN = -1
-    HWLOC_TYPE_DEPTH_MULTIPLE = -2
-    HWLOC_TYPE_DEPTH_NUMANODE = -3
-    HWLOC_TYPE_DEPTH_BRIDGE = -4
-    HWLOC_TYPE_DEPTH_PCI_DEVICE = -5
-    HWLOC_TYPE_DEPTH_OS_DEVICE = -6
-    HWLOC_TYPE_DEPTH_MISC = -7
-    HWLOC_TYPE_DEPTH_MEMCACHE = -8
+    UNKNOWN = -1
+    MULTIPLE = -2
+    NUMANODE = -3
+    BRIDGE = -4
+    PCI_DEVICE = -5
+    OS_DEVICE = -6
+    MISC = -7
+    MEMCACHE = -8
 
 
 _LIB.hwloc_topology_get_depth.argtypes = [topology_t]
@@ -625,12 +621,12 @@ def hwloc_obj_type_string(obj_type: ObjType) -> bytes:
 
 @_cenumdoc("hwloc_obj_snprintf_flag_e")
 class ObjSnprintfFlag(IntEnum):
-    HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE = 1 << 0
-    HWLOC_OBJ_SNPRINTF_FLAG_LONG_NAMES = 1 << 1
-    HWLOC_OBJ_SNPRINTF_FLAG_SHORT_NAMES = 1 << 2
-    HWLOC_OBJ_SNPRINTF_FLAG_MORE_ATTRS = 1 << 3
-    HWLOC_OBJ_SNPRINTF_FLAG_NO_UNITS = 1 << 4
-    HWLOC_OBJ_SNPRINTF_FLAG_UNITS_1000 = 1 << 5
+    OLD_VERBOSE = 1 << 0
+    LONG_NAMES = 1 << 1
+    SHORT_NAMES = 1 << 2
+    MORE_ATTRS = 1 << 3
+    NO_UNITS = 1 << 4
+    UNITS_1000 = 1 << 5
 
 
 _LIB.hwloc_obj_type_snprintf.argtypes = [
@@ -788,10 +784,10 @@ def topology_get_infos(topology: topology_t) -> InfosPtr:
 
 @_cenumdoc("hwloc_cpubind_flags_t")
 class CpuBindFlags(IntEnum):
-    HWLOC_CPUBIND_PROCESS = 1 << 0
-    HWLOC_CPUBIND_THREAD = 1 << 1
-    HWLOC_CPUBIND_STRICT = 1 << 2
-    HWLOC_CPUBIND_NOMEMBIND = 1 << 3
+    PROCESS = 1 << 0
+    THREAD = 1 << 1
+    STRICT = 1 << 2
+    NOMEMBIND = 1 << 3
 
 
 if sys.platform == "win32":
@@ -987,24 +983,24 @@ def get_proc_last_cpu_location(
 
 @_cenumdoc("hwloc_membind_policy_t")
 class MemBindPolicy(IntEnum):
-    HWLOC_MEMBIND_DEFAULT = 0
-    HWLOC_MEMBIND_FIRSTTOUCH = 1
-    HWLOC_MEMBIND_BIND = 2
-    HWLOC_MEMBIND_INTERLEAVE = 3
-    HWLOC_MEMBIND_WEIGHTED_INTERLEAVE = 5
-    HWLOC_MEMBIND_NEXTTOUCH = 4
-    HWLOC_MEMBIND_MIXED = -1
+    DEFAULT = 0
+    FIRSTTOUCH = 1
+    BIND = 2
+    INTERLEAVE = 3
+    WEIGHTED_INTERLEAVE = 5
+    NEXTTOUCH = 4
+    MIXED = -1
 
 
 @_cenumdoc("hwloc_membind_flags_t")
 class MemBindFlags(IntEnum):
-    HWLOC_MEMBIND_PROCESS = 1 << 0
-    HWLOC_MEMBIND_THREAD = 1 << 1
-    HWLOC_MEMBIND_STRICT = 1 << 2
+    PROCESS = 1 << 0
+    THREAD = 1 << 1
+    STRICT = 1 << 2
     # Only used by Linux `set_area_membind` and `set_thisthread_membind`.
-    HWLOC_MEMBIND_MIGRATE = 1 << 3
-    HWLOC_MEMBIND_NOCPUBIND = 1 << 4
-    HWLOC_MEMBIND_BYNODESET = 1 << 5
+    MIGRATE = 1 << 3
+    NOCPUBIND = 1 << 4
+    BYNODESET = 1 << 5
 
 
 _LIB.hwloc_set_membind.argtypes = [
@@ -1229,7 +1225,7 @@ def free(topology: topology_t, addr: ctypes.c_void_p, length: int) -> None:
 
 
 class TopologyComponentsFlag(IntEnum):
-    HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST = 1 << 0
+    BLACKLIST = 1 << 0
 
 
 _LIB.hwloc_topology_set_pid.argtypes = [topology_t, hwloc_pid_t]
@@ -1365,24 +1361,24 @@ class hwloc_topology_support(_PrintableStruct):
 
 @_cenumdoc("hwloc_topology_flags_e")
 class TopologyFlags(IntEnum):
-    HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED = 1 << 0
-    HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM = 1 << 1
-    HWLOC_TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES = 1 << 2
-    HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT = 1 << 3
-    HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING = 1 << 4
-    HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING = 1 << 5
-    HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING = 1 << 6
-    HWLOC_TOPOLOGY_FLAG_NO_DISTANCES = 1 << 7
-    HWLOC_TOPOLOGY_FLAG_NO_MEMATTRS = 1 << 8
-    HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS = 1 << 9
+    INCLUDE_DISALLOWED = 1 << 0
+    IS_THISSYSTEM = 1 << 1
+    THISSYSTEM_ALLOWED_RESOURCES = 1 << 2
+    IMPORT_SUPPORT = 1 << 3
+    RESTRICT_TO_CPUBINDING = 1 << 4
+    RESTRICT_TO_MEMBINDING = 1 << 5
+    DONT_CHANGE_BINDING = 1 << 6
+    NO_DISTANCES = 1 << 7
+    NO_MEMATTRS = 1 << 8
+    NO_CPUKINDS = 1 << 9
 
 
 @_cenumdoc("hwloc_type_filter_e")
 class TypeFilter(IntEnum):
-    HWLOC_TYPE_FILTER_KEEP_ALL = 0
-    HWLOC_TYPE_FILTER_KEEP_NONE = 1
-    HWLOC_TYPE_FILTER_KEEP_STRUCTURE = 2
-    HWLOC_TYPE_FILTER_KEEP_IMPORTANT = 3
+    KEEP_ALL = 0
+    KEEP_NONE = 1
+    KEEP_STRUCTURE = 2
+    KEEP_IMPORTANT = 3
 
 
 _LIB.hwloc_topology_set_flags.argtypes = [topology_t, ctypes.c_ulong]
@@ -1500,18 +1496,18 @@ def topology_get_userdata(topology: topology_t) -> int:
 
 @_cenumdoc("hwloc_restrict_flags_e")
 class RestrictFlags(IntEnum):
-    HWLOC_RESTRICT_FLAG_REMOVE_CPULESS = 1 << 0
-    HWLOC_RESTRICT_FLAG_ADAPT_MISC = 1 << 1
-    HWLOC_RESTRICT_FLAG_ADAPT_IO = 1 << 2
-    HWLOC_RESTRICT_FLAG_BYNODESET = 1 << 3
-    HWLOC_RESTRICT_FLAG_REMOVE_MEMLESS = 1 << 4
+    REMOVE_CPULESS = 1 << 0
+    ADAPT_MISC = 1 << 1
+    ADAPT_IO = 1 << 2
+    BYNODESET = 1 << 3
+    REMOVE_MEMLESS = 1 << 4
 
 
 @_cenumdoc("hwloc_allow_flags_e")
 class AllowFlags(IntEnum):
-    HWLOC_ALLOW_FLAG_ALL = 1 << 0
-    HWLOC_ALLOW_FLAG_LOCAL_RESTRICTIONS = 1 << 1
-    HWLOC_ALLOW_FLAG_CUSTOM = 1 << 2
+    ALL = 1 << 0
+    LOCAL_RESTRICTIONS = 1 << 1
+    CUSTOM = 1 << 2
 
 
 _LIB.hwloc_topology_restrict.argtypes = [
@@ -2240,7 +2236,7 @@ def get_obj_with_same_locality(
 
 @_cenumdoc("hwloc_allow_flags_e")
 class DistribFlags(IntEnum):
-    HWLOC_DISTRIB_FLAG_REVERSE = 1 << 0
+    REVERSE = 1 << 0
 
 
 _pyhwloc_lib.pyhwloc_distrib.argtypes = [
@@ -2478,7 +2474,7 @@ def bridge_covers_pcibus(bridge: ObjPtr, domain: int, bus: int) -> int:
 
 @_cenumdoc("hwloc_topology_export_xml_flags_e")
 class ExportXmlFlags(IntEnum):
-    HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2 = 1 << 1
+    V2 = 1 << 1
 
 
 _LIB.hwloc_topology_export_xml.argtypes = [topology_t, ctypes.c_char_p, ctypes.c_ulong]
@@ -2626,10 +2622,10 @@ def topology_set_userdata_import_callback(
 
 @_cenumdoc("hwloc_topology_export_synthetic_flags_e")
 class ExportSyntheticFlags(IntEnum):
-    HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES = 1 << 0
-    HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_ATTRS = 1 << 1
-    HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_V1 = 1 << 2
-    HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_IGNORE_MEMORY = 1 << 3
+    NO_EXTENDED_TYPES = 1 << 0
+    NO_ATTRS = 1 << 1
+    V1 = 1 << 2
+    IGNORE_MEMORY = 1 << 3
 
 
 _LIB.hwloc_topology_export_synthetic.argtypes = [
@@ -2665,20 +2661,20 @@ def topology_export_synthetic(
 
 @_cenumdoc("hwloc_distances_kind_e")
 class DistancesKind(IntEnum):
-    HWLOC_DISTANCES_KIND_FROM_OS = 1 << 0
-    HWLOC_DISTANCES_KIND_FROM_USER = 1 << 1
-    HWLOC_DISTANCES_KIND_VALUE_LATENCY = 1 << 2
-    HWLOC_DISTANCES_KIND_VALUE_BANDWIDTH = 1 << 3
-    HWLOC_DISTANCES_KIND_HETEROGENEOUS_TYPES = 1 << 4
-    HWLOC_DISTANCES_KIND_VALUE_HOPS = 1 << 5
+    FROM_OS = 1 << 0
+    FROM_USER = 1 << 1
+    VALUE_LATENCY = 1 << 2
+    VALUE_BANDWIDTH = 1 << 3
+    HETEROGENEOUS_TYPES = 1 << 4
+    VALUE_HOPS = 1 << 5
 
 
 @_cenumdoc("hwloc_distances_transform_e")
 class DistancesTransform(IntEnum):
-    HWLOC_DISTANCES_TRANSFORM_REMOVE_NULL = 0
-    HWLOC_DISTANCES_TRANSFORM_LINKS = 1
-    HWLOC_DISTANCES_TRANSFORM_MERGE_SWITCH_PORTS = 2
-    HWLOC_DISTANCES_TRANSFORM_TRANSITIVE_CLOSURE = 3
+    REMOVE_NULL = 0
+    LINKS = 1
+    MERGE_SWITCH_PORTS = 2
+    TRANSITIVE_CLOSURE = 3
 
 
 @_cstructdoc()
@@ -2909,8 +2905,8 @@ hwloc_distances_add_handle_t = ctypes.c_void_p
 
 @_cenumdoc("hwloc_distances_add_flag_e")
 class DistancesAddFlag(IntEnum):
-    HWLOC_DISTANCES_ADD_FLAG_GROUP = 1 << 0
-    HWLOC_DISTANCES_ADD_FLAG_GROUP_INACCURATE = 1 << 1
+    GROUP = 1 << 0
+    GROUP_INACCURATE = 1 << 1
 
 
 _LIB.hwloc_distances_add_create.argtypes = [
@@ -3029,29 +3025,29 @@ hwloc_memattr_id_t = ctypes.c_uint
 
 @_cenumdoc("hwloc_memattr_id_e")
 class MemAttrId(IntEnum):
-    HWLOC_MEMATTR_ID_CAPACITY = 0
-    HWLOC_MEMATTR_ID_LOCALITY = 1
-    HWLOC_MEMATTR_ID_BANDWIDTH = 2
-    HWLOC_MEMATTR_ID_LATENCY = 3
-    HWLOC_MEMATTR_ID_READ_BANDWIDTH = 4
-    HWLOC_MEMATTR_ID_WRITE_BANDWIDTH = 5
-    HWLOC_MEMATTR_ID_READ_LATENCY = 6
-    HWLOC_MEMATTR_ID_WRITE_LATENCY = 7
-    HWLOC_MEMATTR_ID_MAX = 8
+    CAPACITY = 0
+    LOCALITY = 1
+    BANDWIDTH = 2
+    LATENCY = 3
+    READ_BANDWIDTH = 4
+    WRITE_BANDWIDTH = 5
+    READ_LATENCY = 6
+    WRITE_LATENCY = 7
+    MAX = 8
 
 
 @_cenumdoc("hwloc_location_type_e")
 class LocationType(IntEnum):
-    HWLOC_LOCATION_TYPE_OBJECT = 0
-    HWLOC_LOCATION_TYPE_CPUSET = 1
+    OBJECT = 0
+    CPUSET = 1
 
 
 @_cenumdoc("hwloc_local_numanode_flag_e")
 class LocalNumaNodeFlag(IntEnum):
-    HWLOC_LOCAL_NUMANODE_FLAG_LARGER_LOCALITY = 1 << 0
-    HWLOC_LOCAL_NUMANODE_FLAG_SMALLER_LOCALITY = 1 << 1
-    HWLOC_LOCAL_NUMANODE_FLAG_ALL = 1 << 2
-    HWLOC_LOCAL_NUMANODE_FLAG_INTERSECT_LOCALITY = 1 << 3
+    LARGER_LOCALITY = 1 << 0
+    SMALLER_LOCALITY = 1 << 1
+    ALL = 1 << 2
+    INTERSECT_LOCALITY = 1 << 3
 
 
 @_cuniondoc("hwloc_location")
@@ -3295,9 +3291,9 @@ def memattr_get_initiators(
 
 @_cenumdoc("hwloc_memattr_flag_e")
 class MemAttrFlag(IntEnum):
-    HWLOC_MEMATTR_FLAG_HIGHER_FIRST = 1 << 0
-    HWLOC_MEMATTR_FLAG_LOWER_FIRST = 1 << 1
-    HWLOC_MEMATTR_FLAG_NEED_INITIATOR = 1 << 2
+    HIGHER_FIRST = 1 << 0
+    LOWER_FIRST = 1 << 1
+    NEED_INITIATOR = 1 << 2
 
 
 _LIB.hwloc_memattr_get_name.argtypes = [

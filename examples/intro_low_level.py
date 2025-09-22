@@ -128,8 +128,8 @@ def main() -> int:
     # Third example:
     # Print the number of packages.
     #########################################################################
-    depth = get_type_depth(topology, ObjType.HWLOC_OBJ_PACKAGE)
-    if depth == GetTypeDepth.HWLOC_TYPE_DEPTH_UNKNOWN:
+    depth = get_type_depth(topology, ObjType.PACKAGE)
+    if depth == GetTypeDepth.UNKNOWN:
         print("*** The number of packages is unknown")
     else:
         print(f"*** {get_nbobjs_by_depth(topology, depth)} package(s)")
@@ -141,7 +141,7 @@ def main() -> int:
     #########################################################################
     levels = 0
     size = 0
-    obj = get_obj_by_type(topology, ObjType.HWLOC_OBJ_PU, 0)
+    obj = get_obj_by_type(topology, ObjType.PU, 0)
     while obj:
         if obj_type_is_cache(obj.contents.type):
             levels += 1
@@ -156,7 +156,7 @@ def main() -> int:
     # First find out where cores are, or else smaller sets of CPUs if
     # the OS doesn't have the notion of a "core".
     #########################################################################
-    depth = get_type_or_below_depth(topology, ObjType.HWLOC_OBJ_CORE)
+    depth = get_type_or_below_depth(topology, ObjType.CORE)
 
     # Get last core.
     obj = get_obj_by_depth(topology, depth, get_nbobjs_by_depth(topology, depth) - 1)
@@ -184,8 +184,8 @@ def main() -> int:
     # memory to the last NUMA node.
     #########################################################################
     # Get last node. There's always at least one.
-    n = get_nbobjs_by_type(topology, ObjType.HWLOC_OBJ_NUMANODE)
-    obj = get_obj_by_type(topology, ObjType.HWLOC_OBJ_NUMANODE, n - 1)
+    n = get_nbobjs_by_type(topology, ObjType.NUMANODE)
+    obj = get_obj_by_type(topology, ObjType.NUMANODE, n - 1)
     assert obj is not None
 
     size = 1024 * 1024
@@ -193,8 +193,8 @@ def main() -> int:
         topology,
         size,
         obj.contents.nodeset,
-        MemBindPolicy.HWLOC_MEMBIND_BIND,
-        MemBindFlags.HWLOC_MEMBIND_BYNODESET,
+        MemBindPolicy.BIND,
+        MemBindFlags.BYNODESET,
     )
     free(topology, m, size)
 
@@ -206,8 +206,8 @@ def main() -> int:
             m,
             size,
             obj.contents.nodeset,
-            MemBindPolicy.HWLOC_MEMBIND_BIND,
-            MemBindFlags.HWLOC_MEMBIND_BYNODESET,
+            MemBindPolicy.BIND,
+            MemBindFlags.BYNODESET,
         )
 
     # Destroy topology object.

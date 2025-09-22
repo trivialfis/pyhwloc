@@ -8,6 +8,7 @@ CPU Kinds is a structure inside the topology. The Python interface implements it
 independent class.
 
 """
+
 from __future__ import annotations
 
 import weakref

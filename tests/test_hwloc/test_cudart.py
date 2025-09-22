@@ -33,7 +33,7 @@ from .test_core import Topology
 
 
 def test_get_device_osdev() -> None:
-    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.KEEP_IMPORTANT])
 
     status, cnt = cudart.cudaGetDeviceCount()
     _check_cudart(status)
@@ -41,11 +41,11 @@ def test_get_device_osdev() -> None:
     for ordinal in range(cnt):
         dev_obj = get_device_osdev_by_index(topo.hdl, ordinal)
         assert _skip_if_none(dev_obj)
-        assert dev_obj.contents.type == ObjType.HWLOC_OBJ_OS_DEVICE
+        assert dev_obj.contents.type == ObjType.OS_DEVICE
 
 
 def test_cudart_get_device_cpuset() -> None:
-    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.KEEP_IMPORTANT])
 
     status, cnt = cudart.cudaGetDeviceCount()
     _check_cudart(status)
@@ -63,7 +63,7 @@ def test_cudart_get_device_cpuset() -> None:
 
 
 def test_get_device_pcidev() -> None:
-    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.KEEP_IMPORTANT])
 
     status, cnt = cudart.cudaGetDeviceCount()
     _check_cudart(status)
@@ -72,4 +72,4 @@ def test_get_device_pcidev() -> None:
         pci_obj = get_device_pcidev(topo.hdl, ordinal)
         assert _skip_if_none(pci_obj)
         assert pci_obj is not None
-        assert pci_obj.contents.type == ObjType.HWLOC_OBJ_PCI_DEVICE
+        assert pci_obj.contents.type == ObjType.PCI_DEVICE

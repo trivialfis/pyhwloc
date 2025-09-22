@@ -30,12 +30,9 @@ from .test_core import Topology
 def test_memattr_get_name_flags() -> None:
     topo = Topology()
 
-    attr_id = MemAttrId.HWLOC_MEMATTR_ID_BANDWIDTH
+    attr_id = MemAttrId.BANDWIDTH
     exp_name = "Bandwidth"
-    exp_flags = (
-        MemAttrFlag.HWLOC_MEMATTR_FLAG_HIGHER_FIRST
-        | MemAttrFlag.HWLOC_MEMATTR_FLAG_NEED_INITIATOR
-    )
+    exp_flags = MemAttrFlag.HIGHER_FIRST | MemAttrFlag.NEED_INITIATOR
 
     name = memattr_get_name(topo.hdl, hwloc_memattr_id_t(attr_id))
     flags = memattr_get_flags(topo.hdl, hwloc_memattr_id_t(attr_id))
@@ -50,11 +47,11 @@ def test_memattr_register_and_set_value() -> None:
 
     # Register a custom memory attribute
     attr_name = "CustomLatency"
-    attr_flags = MemAttrFlag.HWLOC_MEMATTR_FLAG_LOWER_FIRST
+    attr_flags = MemAttrFlag.LOWER_FIRST
 
     # Register the new attribute
     attr_id = memattr_register(topo.hdl, attr_name, attr_flags)
-    assert attr_id.value >= MemAttrId.HWLOC_MEMATTR_ID_MAX
+    assert attr_id.value >= MemAttrId.MAX
 
     retrieved_name = memattr_get_name(topo.hdl, attr_id)
     assert retrieved_name == attr_name
@@ -63,11 +60,11 @@ def test_memattr_register_and_set_value() -> None:
     assert retrieved_flags == attr_flags
 
     # Create an initiator location (using CPU object)
-    cpu_obj = get_obj_by_type(topo.hdl, ObjType.HWLOC_OBJ_PU, 0)
+    cpu_obj = get_obj_by_type(topo.hdl, ObjType.PU, 0)
     assert cpu_obj
     # Create location structure for the initiator
     initiator = hwloc_location()
-    initiator.type = LocationType.HWLOC_LOCATION_TYPE_OBJECT
+    initiator.type = LocationType.OBJECT
     initiator.location = hwloc_location_u()
     initiator.location.object = cpu_obj
 

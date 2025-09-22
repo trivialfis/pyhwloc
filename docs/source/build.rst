@@ -38,7 +38,8 @@ keyword. Then we can run the following to build both libraries:
   ninja
   ninja install
 
-It's necessary to specify the hwloc root for Windows as CMake can't find its installation.
+Then we can proceed to build pyhwloc. It's necessary to specify the hwloc root for Windows
+as CMake can't find its installation.
 
 - Binary wheel
 
@@ -58,8 +59,8 @@ Linux
 To use a pre-built hwloc in the system or a virtual environment (conda):
 
 - Create a conda environment that's similar to the CI build.
-- Build hwloc, install it into the conda environment (``CONDA_PREFIX``). We have example
-  scripts used in the CI. Then proceed to create the wheel:
+- Build hwloc from source, install it into the conda environment (``CONDA_PREFIX``). We
+  have example scripts used in the CI. Then proceed to create the wheel:
 
   + Binary wheel
 
@@ -84,7 +85,7 @@ Fat Wheel
 ---------
 
 In addition to reusing the system hwloc installation, pyhwloc can fetch and build hwloc
-from source automatically during build:
+from source and bundle it into the wheel automatically:
 
 .. code-block:: sh
 
@@ -103,13 +104,14 @@ A complete list of options available with the ``--config-settings=``:
 - ``fetch-hwloc=True`` to build the fat wheel.
 
 The binary wheel for Linux uses plugins by default. However, plugins for Windows is not
-yet supported.
+yet supported. Due to the plugins support, all symbols from hwloc are loaded into the
+public name space using :py:data:`ctypes.RTLD_GLOBAL`.
 
 Building the Document
 =====================
 
-We have a docker file in the project for creating the environment with the right
-doxygen. Following are notes for how to do it manually.
+We have a docker file in the project for creating the environment with the right doxygen
+version. Following are notes for how to do it manually.
 
 We use the ``breathe`` project to generate sphinx doc for low-level API from the C doxygen
 document. This requires:
@@ -126,7 +128,7 @@ document. This requires:
   ``--enable-doxygen`` option since the ``doxygen-config.cfg`` file is generated under the
   build root.
 
-- You can inform the sphinx build about the XML path via the ``PYHWLOC_XML_PATH``
+- You can inform the pyhwloc sphinx build about the XML path via the ``PYHWLOC_XML_PATH``
   environment variable:
 
 .. code-block:: sh

@@ -4,6 +4,7 @@
 Interoperability with the CUDA Driver API
 ==========================================
 """
+
 from __future__ import annotations
 
 import weakref
@@ -35,7 +36,7 @@ class Device(_TopoRef):
         import cuda.bindings.driver as cuda
 
         with Topology.from_this_system().set_io_types_filter(
-            TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
+            TypeFilter.KEEP_ALL
         ) as topo:
             # Get the first CUDA device
             status, cu_device = cuda.cuDeviceGet(0)

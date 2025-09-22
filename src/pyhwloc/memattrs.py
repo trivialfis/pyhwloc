@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, TypeAlias, Union, overload
 
 from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
-from .hwobject import Object
+from .hwobject import Object as _Object
 from .utils import _Flags, _or_flags, _reuse_doc, _TopoRef
 
 if TYPE_CHECKING:
@@ -35,18 +35,18 @@ MemAttrFlag: TypeAlias = _core.MemAttrFlag
 LocalNumaNodeFlag: TypeAlias = _core.LocalNumaNodeFlag
 MemAttrId: TypeAlias = _core.MemAttrId
 
-_Initiator: TypeAlias = Union[Object, _Bitmap, set[int]]
+_Initiator: TypeAlias = Union[_Object, _Bitmap, set[int]]
 
 
 @overload
-def _sched_set(initiator: _Initiator) -> _Bitmap | Object: ...
+def _sched_set(initiator: _Initiator) -> _Bitmap | _Object: ...
 
 
 @overload
 def _sched_set(initiator: None) -> None: ...
 
 
-def _sched_set(initiator: _Initiator | None) -> _Bitmap | Object | None:
+def _sched_set(initiator: _Initiator | None) -> _Bitmap | _Object | None:
     """Function to help keep the converted bitmap alive."""
     if isinstance(initiator, set):
         bitmap_ref = _Bitmap.from_sched_set(initiator)
@@ -65,16 +65,16 @@ def _initiator_loc(initiator: None) -> None: ...
 def _initiator_loc(
     initiator: _Initiator | None,
 ) -> _core.hwloc_location | None:
-    if isinstance(initiator, Object):
+    if isinstance(initiator, _Object):
         initiator_loc = _core.hwloc_location()
-        initiator_loc.type = _core.LocationType.HWLOC_LOCATION_TYPE_OBJECT
+        initiator_loc.type = _core.LocationType.OBJECT
         initiator_loc.location = _core.hwloc_location_u()
         initiator_loc.location.object = initiator.native_handle
         return initiator_loc
 
     if isinstance(initiator, _Bitmap):
         initiator_loc = _core.hwloc_location()
-        initiator_loc.type = _core.LocationType.HWLOC_LOCATION_TYPE_CPUSET
+        initiator_loc.type = _core.LocationType.CPUSET
         initiator_loc.location = _core.hwloc_location_u()
         initiator_loc.location.cpuset = initiator.native_handle
         return initiator_loc
@@ -125,7 +125,7 @@ class MemAttr(_TopoRef):
         initiator. For instance Bandwidth and Latency, but not Capacity.
 
         """
-        return bool(self.flags & _core.MemAttrFlag.HWLOC_MEMATTR_FLAG_NEED_INITIATOR)
+        return bool(self.flags & _core.MemAttrFlag.NEED_INITIATOR)
 
     @property
     def higher_first(self) -> bool:
@@ -133,7 +133,7 @@ class MemAttr(_TopoRef):
         values. For instance Bandwidth.
 
         """
-        return bool(self.flags & _core.MemAttrFlag.HWLOC_MEMATTR_FLAG_HIGHER_FIRST)
+        return bool(self.flags & _core.MemAttrFlag.HIGHER_FIRST)
 
     @property
     def lower_first(self) -> bool:
@@ -141,11 +141,11 @@ class MemAttr(_TopoRef):
         instance Latency.
 
         """
-        return bool(self.flags & _core.MemAttrFlag.HWLOC_MEMATTR_FLAG_LOWER_FIRST)
+        return bool(self.flags & _core.MemAttrFlag.LOWER_FIRST)
 
     @_reuse_doc(_core.memattr_get_value)
     def get_value(
-        self, target_node: Object, initiator: _Initiator | None = None
+        self, target_node: _Object, initiator: _Initiator | None = None
     ) -> int:
         initiator = _sched_set(initiator)
         initiator_loc = _initiator_loc(initiator)
@@ -159,7 +159,7 @@ class MemAttr(_TopoRef):
     @_reuse_doc(_core.memattr_set_value)
     def set_value(
         self,
-        target_node: Object,
+        target_node: _Object,
         value: int,
         initiator: _Initiator | None = None,
     ) -> None:
@@ -176,7 +176,7 @@ class MemAttr(_TopoRef):
     @_reuse_doc(_core.memattr_get_best_target)
     def get_best_target(
         self, initiator: _Initiator | None = None
-    ) -> tuple[Object, int]:
+    ) -> tuple[_Object, int]:
         initiator = _sched_set(initiator)
         initiator_loc = _initiator_loc(initiator)
         # ::HWLOC_LOCATION_TYPE_OBJECT is currently unused internally by hwloc
@@ -186,18 +186,18 @@ class MemAttr(_TopoRef):
             ctypes.byref(initiator_loc) if initiator_loc is not None else None,
         )
 
-        return Object(best_target, self._topo_ref), value
+        return _Object(best_target, self._topo_ref), value
 
     @_reuse_doc(_core.memattr_get_best_initiator)
-    def get_best_initiator(self, target_node: Object) -> tuple[Object | _Bitmap, int]:
+    def get_best_initiator(self, target_node: _Object) -> tuple[_Object | _Bitmap, int]:
         best_initiator, value = _core.memattr_get_best_initiator(
             self._topo.native_handle,
             self._attr_id,
             target_node.native_handle,
         )
 
-        if best_initiator.type == _core.LocationType.HWLOC_LOCATION_TYPE_OBJECT:
-            obj = Object(best_initiator.location.object, self._topo_ref)
+        if best_initiator.type == _core.LocationType.OBJECT:
+            obj = _Object(best_initiator.location.object, self._topo_ref)
             return obj, value
         else:
             bitmap = _Bitmap.from_native_handle(
@@ -208,7 +208,7 @@ class MemAttr(_TopoRef):
     @_reuse_doc(_core.memattr_get_targets)
     def get_targets(
         self, initiator: _Initiator | None = None
-    ) -> list[tuple[Object, int]]:
+    ) -> list[tuple[_Object, int]]:
         initiator = _sched_set(initiator)
         initiator_loc = _initiator_loc(initiator)
 
@@ -241,7 +241,7 @@ class MemAttr(_TopoRef):
 
         result = []
         for i in range(nr.value):
-            target_obj = Object(targets_array[i], self._topo_ref)
+            target_obj = _Object(targets_array[i], self._topo_ref)
             value = int(values_array[i])
             result.append((target_obj, value))
 
@@ -250,8 +250,8 @@ class MemAttr(_TopoRef):
     @_reuse_doc(_core.memattr_get_initiators)
     def get_initiators(
         self,
-        target_node: Object,
-    ) -> list[tuple[Object | _Bitmap, int]]:
+        target_node: _Object,
+    ) -> list[tuple[_Object | _Bitmap, int]]:
         # First call to get the number of initiators
         nrlocs = ctypes.c_uint(0)
         _core.memattr_get_initiators(
@@ -280,22 +280,16 @@ class MemAttr(_TopoRef):
             values_array,
         )
 
-        result: list[tuple[Object | _Bitmap, int]] = []
+        result: list[tuple[_Object | _Bitmap, int]] = []
         for i in range(nrlocs.value):
-            if (
-                initiators_array[i].type
-                == _core.LocationType.HWLOC_LOCATION_TYPE_OBJECT
-            ):
-                initiator_obj = Object(
+            if initiators_array[i].type == _core.LocationType.OBJECT:
+                initiator_obj = _Object(
                     initiators_array[i].location.object, self._topo_ref
                 )
                 value = int(values_array[i])
                 result.append((initiator_obj, value))
             else:
-                assert (
-                    initiators_array[i].type
-                    == _core.LocationType.HWLOC_LOCATION_TYPE_CPUSET
-                )
+                assert initiators_array[i].type == _core.LocationType.CPUSET
                 bitmap = _Bitmap.from_native_handle(
                     initiators_array[i].location.cpuset, own=False
                 )
@@ -347,7 +341,7 @@ class MemAttrsAccessor(_TopoRef):
     @_reuse_doc(_core.get_local_numanode_objs)
     def get_local_numa_nodes(
         self, initiator: _Initiator, flags: _Flags[LocalNumaNodeFlag] = 0
-    ) -> list[Object]:
+    ) -> list[_Object]:
         if initiator is None:
             raise TypeError("Initiator cannot be None")
 
@@ -382,7 +376,7 @@ class MemAttrsAccessor(_TopoRef):
 
         result = []
         for i in range(nr.value):
-            node_obj = Object(nodes_array[i], self._topo_ref)
+            node_obj = _Object(nodes_array[i], self._topo_ref)
             result.append(node_obj)
 
         return result

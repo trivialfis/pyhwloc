@@ -30,8 +30,7 @@ __all__ = ["Distances"]
 def _ravel(n_objs: int, i: int, j: int) -> int:
     if not (0 <= i < n_objs and 0 <= j < n_objs):
         raise IndexError(
-            f"Index ({i}, {j}) is out of bounds for matrix of "
-            f"size {n_objs}x{n_objs}"
+            f"Index ({i}, {j}) is out of bounds for matrix of size {n_objs}x{n_objs}"
         )
     return i * n_objs + j
 

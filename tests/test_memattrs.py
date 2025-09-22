@@ -1,5 +1,6 @@
 # Copyright (c) 2025, NVIDIA CORPORATION.
 # SPDX-License-Identifier: BSD-3-Clause
+from __future__ import annotations
 
 import pytest
 
@@ -11,11 +12,9 @@ from pyhwloc.topology import TypeFilter
 
 
 def test_get_memattrs() -> None:
-    with from_this_system().set_all_types_filter(
-        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
-    ) as topo:
+    with from_this_system().set_all_types_filter(TypeFilter.KEEP_ALL) as topo:
         memattrs = topo.get_memattrs()
-        attr = memattrs.get(MemAttrId.HWLOC_MEMATTR_ID_CAPACITY)
+        attr = memattrs.get(MemAttrId.CAPACITY)
         attr_by_name = memattrs.get(attr.name)
         assert attr == attr_by_name
         assert attr.name == "Capacity"
@@ -24,7 +23,7 @@ def test_get_memattrs() -> None:
         assert attr.higher_first is True
         assert attr.lower_first is False
 
-        obj = topo.get_obj_by_type(ObjType.HWLOC_OBJ_NUMANODE, 0)
+        obj = topo.get_obj_by_type(ObjType.NUMANODE, 0)
         assert obj is not None
         v = attr.get_value(obj)
         assert isinstance(v, int)
@@ -32,8 +31,8 @@ def test_get_memattrs() -> None:
         attr = memattrs.register(
             "foo",
             [
-                MemAttrFlag.HWLOC_MEMATTR_FLAG_NEED_INITIATOR,
-                MemAttrFlag.HWLOC_MEMATTR_FLAG_HIGHER_FIRST,
+                MemAttrFlag.NEED_INITIATOR,
+                MemAttrFlag.HIGHER_FIRST,
             ],
         )
         assert memattrs.get("foo") == attr
@@ -43,20 +42,18 @@ def test_get_memattrs() -> None:
 
 
 def test_memattrs_setter() -> None:
-    with from_this_system().set_all_types_filter(
-        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
-    ) as topo:
+    with from_this_system().set_all_types_filter(TypeFilter.KEEP_ALL) as topo:
         memattrs = topo.get_memattrs()
-        attr = memattrs.get(MemAttrId.HWLOC_MEMATTR_ID_BANDWIDTH)
+        attr = memattrs.get(MemAttrId.BANDWIDTH)
         assert attr.name == "Bandwidth"
 
         assert attr.needs_initiator is True
         assert attr.higher_first is True
         assert attr.lower_first is False
 
-        numa = topo.get_obj_by_type(ObjType.HWLOC_OBJ_NUMANODE, 0)
+        numa = topo.get_obj_by_type(ObjType.NUMANODE, 0)
         assert numa is not None
-        core = topo.get_obj_by_type(ObjType.HWLOC_OBJ_CORE, 0)
+        core = topo.get_obj_by_type(ObjType.CORE, 0)
         assert core is not None
 
         v = 2345
@@ -77,25 +74,23 @@ def test_memattrs_setter() -> None:
 
 
 def test_memattrs_find_best() -> None:
-    with from_this_system().set_all_types_filter(
-        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
-    ) as topo:
+    with from_this_system().set_all_types_filter(TypeFilter.KEEP_ALL) as topo:
         memattrs = topo.get_memattrs()
 
         attr = memattrs.register(
             "foo",
             [
-                MemAttrFlag.HWLOC_MEMATTR_FLAG_NEED_INITIATOR,
-                MemAttrFlag.HWLOC_MEMATTR_FLAG_LOWER_FIRST,
+                MemAttrFlag.NEED_INITIATOR,
+                MemAttrFlag.LOWER_FIRST,
             ],
         )
 
         targets = attr.get_targets()
         assert not targets
 
-        numa = topo.get_obj_by_type(ObjType.HWLOC_OBJ_NUMANODE, 0)
+        numa = topo.get_obj_by_type(ObjType.NUMANODE, 0)
         assert numa is not None
-        core = topo.get_obj_by_type(ObjType.HWLOC_OBJ_CORE, 0)
+        core = topo.get_obj_by_type(ObjType.CORE, 0)
         v = 2345
         attr.set_value(numa, v, core)
         targets = attr.get_targets()
@@ -110,32 +105,30 @@ def test_memattrs_find_best() -> None:
 
 
 def test_local_numa_nodes() -> None:
-    with from_this_system().set_all_types_filter(
-        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
-    ) as topo:
+    with from_this_system().set_all_types_filter(TypeFilter.KEEP_ALL) as topo:
         memattrs = topo.get_memattrs()
 
         with pytest.raises(TypeError, match="Initiator cannot be None"):
             memattrs.get_local_numa_nodes(None)  # type: ignore
 
         # Test with core initiator
-        core = topo.get_obj_by_type(ObjType.HWLOC_OBJ_CORE, 0)
+        core = topo.get_obj_by_type(ObjType.CORE, 0)
         if core is not None:
             local_nodes = memattrs.get_local_numa_nodes(core)
             assert isinstance(local_nodes, list)
             for node in local_nodes:
-                assert node.type == ObjType.HWLOC_OBJ_NUMANODE
+                assert node.type == ObjType.NUMANODE
 
         # Test with a sched set initiator
         cpu_set = {0}
         local_nodes = memattrs.get_local_numa_nodes(cpu_set)
         assert isinstance(local_nodes, list)
         for node in local_nodes:
-            assert node.type == ObjType.HWLOC_OBJ_NUMANODE
+            assert node.type == ObjType.NUMANODE
 
         # Test with a bitmap initiator
         bitmap = Bitmap.from_sched_set({0})
         local_nodes = memattrs.get_local_numa_nodes(bitmap)
         assert isinstance(local_nodes, list)
         for node in local_nodes:
-            assert node.type == ObjType.HWLOC_OBJ_NUMANODE
+            assert node.type == ObjType.NUMANODE

@@ -8,6 +8,7 @@ The top-level pyhwloc exports some shorthands for creating the
 :py:class:`~pyhwloc.topology.Topology`.
 
 """
+
 from __future__ import annotations
 
 from .hwloc import __version__

@@ -19,10 +19,8 @@ from typing import (
     Any,
     Callable,
     Iterator,
-    Optional,
     Type,
     TypeAlias,
-    Union,
 )
 
 from .bitmap import Bitmap as _Bitmap
@@ -69,7 +67,7 @@ def _from_xml_buffer(xml_buffer: str, load: bool) -> _core.topology_t:
 
 
 def _not_nodeset(flags: int) -> bool:
-    return not bool(flags & MemBindFlags.HWLOC_MEMBIND_BYNODESET)
+    return not bool(flags & MemBindFlags.BYNODESET)
 
 
 def _to_bitmap(target: _BindTarget, is_cpuset: bool) -> _Bitmap:
@@ -152,13 +150,13 @@ class Topology:
     .. code-block::
 
         with Topology.from_this_system().set_all_types_filter(
-            TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+            TypeFilter.KEEP_IMPORTANT
         ) as topo:
             # auto load when using a context manager
             pass
 
         topo = Topology.from_this_system().set_all_types_filter(
-            TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+            TypeFilter.KEEP_IMPORTANT
         ).load() # Load the topology
 
     Lastly, there's a short hand for using the current system if you don't need to apply
@@ -493,7 +491,7 @@ class Topology:
         name: str,
         flags: _Flags[
             _core.TopologyComponentsFlag
-        ] = _core.TopologyComponentsFlag.HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST,
+        ] = _core.TopologyComponentsFlag.BLACKLIST,
     ) -> Topology:
         # switched order between name and flags, as flags usually come at last.
         _core.topology_set_components(self._hdl, _or_flags(flags), name)
@@ -591,7 +589,7 @@ class Topology:
         -------
         Number of core objects in the topology
         """
-        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_CORE)
+        return self.get_nbobjs_by_type(_ObjType.CORE)
 
     def iter_objs_by_type(self, obj_type: _ObjType) -> Iterator[_Object]:
         """Iterate over all objects of specific type.
@@ -648,7 +646,7 @@ class Topology:
         ------
         All PU (processing unit) object instances
         """
-        return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_PU)
+        return self.iter_objs_by_type(_ObjType.PU)
 
     def iter_cores(self) -> Iterator[_Object]:
         """Iterate over all cores.
@@ -657,7 +655,7 @@ class Topology:
         ------
         All core object instances
         """
-        return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_CORE)
+        return self.iter_objs_by_type(_ObjType.CORE)
 
     def iter_numa_nodes(self) -> Iterator[_Object]:
         """Iterate over all NUMA nodes.
@@ -666,7 +664,7 @@ class Topology:
         ------
         All NUMA node object instances
         """
-        return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_NUMANODE)
+        return self.iter_objs_by_type(_ObjType.NUMANODE)
 
     def iter_packages(self) -> Iterator[_Object]:
         """Iterate over all packages (sockets).
@@ -675,7 +673,7 @@ class Topology:
         ------
         All package object instances
         """
-        return self.iter_objs_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
+        return self.iter_objs_by_type(_ObjType.PACKAGE)
 
     # Finding I/O objects
     def _iter_io_devices(
@@ -723,7 +721,7 @@ class Topology:
         -------
         Number of PU objects in the topology
         """
-        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PU)
+        return self.get_nbobjs_by_type(_ObjType.PU)
 
     def n_numa_nodes(self) -> int:
         """Get the total number of NUMA nodes.
@@ -732,7 +730,7 @@ class Topology:
         -------
         Number of NUMA node objects in the topology
         """
-        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_NUMANODE)
+        return self.get_nbobjs_by_type(_ObjType.NUMANODE)
 
     def n_packages(self) -> int:
         """Get the total number of packages (sockets).
@@ -741,7 +739,7 @@ class Topology:
         -------
         Number of package objects in the topology
         """
-        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PACKAGE)
+        return self.get_nbobjs_by_type(_ObjType.PACKAGE)
 
     def n_pci_devices(self) -> int:
         """Get the total number of PCI devices.
@@ -750,7 +748,7 @@ class Topology:
         -------
         Number of PCI device objects in the topology
         """
-        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_PCI_DEVICE)
+        return self.get_nbobjs_by_type(_ObjType.PCI_DEVICE)
 
     def n_os_devices(self) -> int:
         """Get the total number of OS devices.
@@ -759,7 +757,7 @@ class Topology:
         -------
         Number of OS device objects in the topology
         """
-        return self.get_nbobjs_by_type(_ObjType.HWLOC_OBJ_OS_DEVICE)
+        return self.get_nbobjs_by_type(_ObjType.OS_DEVICE)
 
     # Distance Methods
     @_reuse_doc(_core.distances_get)
@@ -1163,7 +1161,7 @@ class Topology:
         ----------
         pid
             Process ID to query. On Linux, pid can also be a thread ID if the flag is
-            set to HWLOC_CPUBIND_THREAD.
+            set to THREAD.
         flags
             Flags for getting CPU location
 
