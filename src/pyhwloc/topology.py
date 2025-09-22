@@ -19,8 +19,10 @@ from typing import (
     Any,
     Callable,
     Iterator,
+    Optional,
     Type,
     TypeAlias,
+    Union,
 )
 
 from .bitmap import Bitmap as _Bitmap
@@ -34,6 +36,7 @@ from .utils import _Flags, _get_info, _memview_to_mem, _or_flags, _reuse_doc
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
     from .distance import Distances
+    from .memattrs import MemAttrsAccessor as _MemAttrsAccessor
 
 __all__ = [
     "Topology",
@@ -799,6 +802,12 @@ class Topology:
         self._cleanup.extend([weakref.ref(dist) for dist in result])
 
         return result
+
+    @property
+    def memory_attributes(self) -> _MemAttrsAccessor:
+        from .memattrs import MemAttrsAccessor
+
+        return MemAttrsAccessor(weakref.ref(self))
 
     # Memory Binding Methods
     def set_membind(
