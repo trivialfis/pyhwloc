@@ -5,6 +5,7 @@ Interoperability with the NVIDIA Management Library (NVML)
 ==========================================================
 
 """
+
 from __future__ import annotations
 
 import ctypes
