@@ -3088,9 +3088,10 @@ _LIB.hwloc_memattr_get_by_name.restype = ctypes.c_int
 def memattr_get_by_name(
     topology: topology_t,
     name: bytes,
-    idx: ctypes._Pointer,  # [hwloc_memattr_id_t]
-) -> None:
-    _checkc(_LIB.hwloc_memattr_get_by_name(topology, name, idx))
+) -> int:
+    idx = hwloc_memattr_id_t()
+    _checkc(_LIB.hwloc_memattr_get_by_name(topology, name, ctypes.byref(idx)))
+    return idx.value
 
 
 _LIB.hwloc_get_local_numanode_objs.argtypes = [
@@ -3108,7 +3109,7 @@ def get_local_numanode_objs(
     topology: topology_t,
     location: LocationPtr,
     nr: UintPtr,
-    nodes: ObjPtr,
+    nodes: ObjPtr | ctypes.Array | None,
     flags: int,
 ) -> None:
     _checkc(_LIB.hwloc_get_local_numanode_objs(topology, location, nr, nodes, flags))
@@ -3145,7 +3146,7 @@ def memattr_get_value(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
     target_node: ObjPtr,
-    initiator: LocationPtr,
+    initiator: LocationPtr | None,
 ) -> int:
     value = hwloc_uint64_t(0)
     # flags must be 0 for now.
@@ -3172,16 +3173,23 @@ _LIB.hwloc_memattr_get_best_target.restype = ctypes.c_int
 def memattr_get_best_target(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
-    initiator: LocationPtr,
-    flags: int,
-    best_target: ObjPtr,
-    value: ctypes._Pointer,  # [hwloc_uint64_t]
-) -> None:
+    initiator: LocationPtr | None,
+) -> tuple[ObjPtr, int]:
+    best_target = obj_t()
+    value = hwloc_uint64_t()
+    # flags must be 0 for now.
+    flags = 0
     _checkc(
         _LIB.hwloc_memattr_get_best_target(
-            topology, attribute, initiator, flags, best_target, value
+            topology,
+            attribute,
+            initiator,
+            flags,
+            ctypes.byref(best_target),
+            ctypes.byref(value),
         )
     )
+    return best_target, value.value
 
 
 _LIB.hwloc_memattr_get_best_initiator.argtypes = [
@@ -3200,15 +3208,22 @@ def memattr_get_best_initiator(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
     target_node: ObjPtr,
-    flags: int,
-    best_initiator: ctypes._Pointer,  # [hwloc_location]
-    value: ctypes._Pointer,  # [hwloc_uint64_t]
-) -> None:
+) -> tuple[hwloc_location, int]:
+    best_initiator = hwloc_location()
+    value = hwloc_uint64_t()
+    # flags must be 0 for now.
+    flags = 0
     _checkc(
         _LIB.hwloc_memattr_get_best_initiator(
-            topology, attribute, target_node, flags, best_initiator, value
+            topology,
+            attribute,
+            target_node,
+            flags,
+            ctypes.byref(best_initiator),
+            ctypes.byref(value),
         )
     )
+    return best_initiator, value.value
 
 
 _LIB.hwloc_memattr_get_targets.argtypes = [
@@ -3227,12 +3242,13 @@ _LIB.hwloc_memattr_get_targets.restype = ctypes.c_int
 def memattr_get_targets(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
-    initiator: LocationPtr,
-    flags: int,
+    initiator: LocationPtr | None,
     nr: UintPtr,
-    targets: ObjPtr,  # [obj_t]
-    values: ctypes._Pointer,  # [hwloc_uint64_t]
+    targets: ObjPtr | ctypes.Array | None,  # [obj_t]
+    values: ctypes._Pointer | ctypes.Array | None,  # [hwloc_uint64_t]
 ) -> None:
+    # flags must be 0 for now.
+    flags = 0
     _checkc(
         _LIB.hwloc_memattr_get_targets(
             topology, attribute, initiator, flags, nr, targets, values
@@ -3257,11 +3273,12 @@ def memattr_get_initiators(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
     target_node: ObjPtr,
-    flags: int,
     nr: UintPtr,
-    initiators: LocationPtr,  # [hwloc_location]
-    values: ctypes._Pointer,  # [hwloc_uint64_t]
+    initiators: LocationPtr | ctypes.Array | None,  # [hwloc_location]
+    values: ctypes._Pointer | ctypes.Array | None,  # [hwloc_uint64_t]
 ) -> None:
+    # flags must be 0 for now.
+    flags = 0
     _checkc(
         _LIB.hwloc_memattr_get_initiators(
             topology, attribute, target_node, flags, nr, initiators, values
@@ -3360,7 +3377,7 @@ def memattr_set_value(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
     target_node: ObjPtr,
-    initiator: LocationPtr,
+    initiator: LocationPtr | None,
     value: int,
 ) -> None:
     # flags must be 0 for now
