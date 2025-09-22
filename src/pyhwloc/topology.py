@@ -803,8 +803,8 @@ class Topology:
 
         return result
 
-    @property
-    def memory_attributes(self) -> _MemAttrsAccessor:
+    def get_memattrs(self) -> _MemAttrsAccessor:
+        """Get a proxy object for the memory attributes."""
         from .memattrs import MemAttrsAccessor
 
         return MemAttrsAccessor(weakref.ref(self))
