@@ -14,7 +14,7 @@ def test_cpukinds() -> None:
         "L2Cache:6(size=1048576) L1dCache:1(size=32768) Core:1 PU:2(indexes=2*12:1*2)"
     )
     with Topology.from_synthetic(desc) as topo:
-        kinds = topo.cpukinds
+        kinds = topo.get_cpukinds()
         assert kinds.n_kinds() == 0
         cpuset = Bitmap()
         cpuset.set(0)
