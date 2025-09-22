@@ -95,25 +95,25 @@ class Object(_TopoRef):
 
     # - Begin accessors for attr
     def is_numa_node(self) -> bool:
-        return self.type == ObjType.HWLOC_OBJ_NUMANODE
+        return self.type == ObjType.NUMANODE
 
     def is_group(self) -> bool:
-        return self.type == ObjType.HWLOC_OBJ_GROUP
+        return self.type == ObjType.GROUP
 
     def is_pci_device(self) -> bool:
-        return self.type == ObjType.HWLOC_OBJ_PCI_DEVICE
+        return self.type == ObjType.PCI_DEVICE
 
     def is_bridge(self) -> bool:
-        return self.type == ObjType.HWLOC_OBJ_BRIDGE
+        return self.type == ObjType.BRIDGE
 
     def is_os_device(self) -> bool:
-        return self.type == ObjType.HWLOC_OBJ_OS_DEVICE
+        return self.type == ObjType.OS_DEVICE
 
     def is_package(self) -> bool:
-        return self.type == ObjType.HWLOC_OBJ_PACKAGE
+        return self.type == ObjType.PACKAGE
 
     def is_machine(self) -> bool:
-        return self.type == ObjType.HWLOC_OBJ_MACHINE
+        return self.type == ObjType.MACHINE
 
     def is_osdev_type(self, typ: int) -> bool:
         if not self.is_os_device():
@@ -126,13 +126,13 @@ class Object(_TopoRef):
         return bool(osdev_types & typ)
 
     def is_osdev_gpu(self) -> bool:
-        return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_GPU)
+        return self.is_osdev_type(ObjOsdevType.GPU)
 
     def is_osdev_coproc(self) -> bool:
-        return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_COPROC)
+        return self.is_osdev_type(ObjOsdevType.COPROC)
 
     def is_osdev_storage(self) -> bool:
-        return self.is_osdev_type(ObjOsdevType.HWLOC_OBJ_OSDEV_STORAGE)
+        return self.is_osdev_type(ObjOsdevType.STORAGE)
 
     # Kinds of object Type
     @_reuse_doc(_core.obj_type_is_normal)
@@ -177,22 +177,22 @@ class Object(_TopoRef):
             return None
         # FIXME: Am I getting this right? I looked into the `hwloc_obj_attr_snprintf`
         # implementation, but it doesn't use the group. Also, if the bridge upstream is
-        # HWLOC_OBJ_BRIDGE_PCI, this union can be converted to PCIe?
+        # PCI, this union can be converted to PCIe?
         if self.is_cache():
             return attr.contents.cache
 
         typ = self.type
         match typ:
-            case ObjType.HWLOC_OBJ_NUMANODE:
+            case ObjType.NUMANODE:
                 return attr.contents.numanode
             # cache has been handled
-            case ObjType.HWLOC_OBJ_GROUP:
+            case ObjType.GROUP:
                 return attr.contents.group
-            case ObjType.HWLOC_OBJ_PCI_DEVICE:
+            case ObjType.PCI_DEVICE:
                 return attr.contents.pcidev
-            case ObjType.HWLOC_OBJ_BRIDGE:
+            case ObjType.BRIDGE:
                 return attr.contents.bridge
-            case ObjType.HWLOC_OBJ_OS_DEVICE:
+            case ObjType.OS_DEVICE:
                 return attr.contents.osdev
             case _:
                 return None
@@ -200,9 +200,7 @@ class Object(_TopoRef):
     def format_attr(
         self,
         sep: str = ", ",
-        flags: _Flags[
-            ObjSnprintfFlag
-        ] = ObjSnprintfFlag.HWLOC_OBJ_SNPRINTF_FLAG_OLD_VERBOSE,
+        flags: _Flags[ObjSnprintfFlag] = ObjSnprintfFlag.FLAG_OLD_VERBOSE,
     ) -> str | None:
         """Print the attributes."""
         n_bytes = 1024
@@ -482,7 +480,7 @@ class Object(_TopoRef):
     # End -- Looking at Ancestor and Child Objects
 
     def __str__(self) -> str:
-        type_name = self.type.name.replace("HWLOC_OBJ_", "")
+        type_name = self.type.name.replace("", "")
         parts = [f"{type_name}#{self.logical_index}"]
 
         if self.name:

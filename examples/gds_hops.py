@@ -64,24 +64,22 @@ def pprint(table: list[list]) -> None:
 
 
 if __name__ == "__main__":
-    with Topology.from_this_system().set_io_types_filter(
-        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
-    ) as topo:
+    with Topology.from_this_system().set_io_types_filter(TypeFilter.KEEP_ALL) as topo:
         # Look for GPUs
         gpus = []
-        for obj in topo.iter_objs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
+        for obj in topo.iter_objs_by_type(ObjType.OS_DEVICE):
             # Check if it's a GPU device
             if obj.is_osdev_gpu():
-                assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE
+                assert obj.depth == GetTypeDepth.OS_DEVICE
                 assert obj.name is not None
                 if obj.name.lower().startswith("cuda"):
                     gpus.append(obj)
 
         # Look for NVME drives
         nvmes = []
-        for obj in topo.iter_objs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE):
+        for obj in topo.iter_objs_by_type(ObjType.OS_DEVICE):
             if obj.is_osdev_storage():
-                assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_OS_DEVICE
+                assert obj.depth == GetTypeDepth.OS_DEVICE
                 assert obj.name is not None
                 if obj.name.lower().startswith("nvme"):
                     nvmes.append(obj)

@@ -112,7 +112,7 @@ For basic enum values, you can work with them like standard Python enums:
     from pyhwloc.topology import MemBindPolicy
 
     # Use enum values directly (integer 2)
-    policy = MemBindPolicy.HWLOC_MEMBIND_BIND
+    policy = MemBindPolicy.BIND
 
     # Get human-readable name
     policy_name = MemBindPolicy(policy).name
@@ -132,15 +132,15 @@ ways to work with these:
         # Method 1: Pass a list of flags (recommended)
         topo.set_membind(
             target_set,
-            MemBindPolicy.HWLOC_MEMBIND_BIND,
-            [MemBindFlags.HWLOC_MEMBIND_STRICT, MemBindFlags.HWLOC_MEMBIND_THREAD],
+            MemBindPolicy.BIND,
+            [MemBindFlags.STRICT, MemBindFlags.THREAD],
         )
 
         # Method 2: Use bitwise OR manually
-        combined_flags = MemBindFlags.HWLOC_MEMBIND_STRICT | MemBindFlags.HWLOC_MEMBIND_THREAD
+        combined_flags = MemBindFlags.STRICT | MemBindFlags.THREAD
         topo.set_membind(
             target_set,
-            MemBindPolicy.HWLOC_MEMBIND_BIND,
+            MemBindPolicy.BIND,
             combined_flags,
         )
 
@@ -155,7 +155,7 @@ To check if a specific flag is present in a composite flag value:
 .. code-block:: python
 
     # Check if a flag is set
-    is_strict = bool(flags & MemBindFlags.HWLOC_MEMBIND_STRICT)
+    is_strict = bool(flags & MemBindFlags.STRICT)
 
 
 Using the Bitmap

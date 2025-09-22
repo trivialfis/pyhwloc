@@ -39,18 +39,18 @@ def test_get_device_osdev() -> None:
     res, cnt = cuda.cuDeviceGetCount()
     _check_cu(res)
 
-    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.KEEP_IMPORTANT])
 
     for i in range(cnt):
         res, dev = cuda.cuDeviceGet(i)
         _check_cu(res)
         dev_obj = get_device_osdev(topo.hdl, dev)
         assert _skip_if_none(dev_obj)
-        assert dev_obj.contents.type == ObjType.HWLOC_OBJ_OS_DEVICE
+        assert dev_obj.contents.type == ObjType.OS_DEVICE
 
         dev_obj = get_device_osdev_by_index(topo.hdl, i)
         assert _skip_if_none(dev_obj)
-        assert dev_obj.contents.type == ObjType.HWLOC_OBJ_OS_DEVICE
+        assert dev_obj.contents.type == ObjType.OS_DEVICE
 
 
 def test_cuda_get_device_pci_ids() -> None:
@@ -59,7 +59,7 @@ def test_cuda_get_device_pci_ids() -> None:
     _check_cu(res)
     assert cnt > 0
 
-    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.KEEP_IMPORTANT])
 
     for i in range(cnt):
         res, dev = cuda.cuDeviceGet(i)
@@ -87,7 +87,7 @@ def test_cuda_get_device_cpuset() -> None:
     _check_cu(res)
     assert cnt > 0
 
-    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.KEEP_IMPORTANT])
 
     for i in range(cnt):
         res, dev = cuda.cuDeviceGet(i)
@@ -112,7 +112,7 @@ def test_cuda_get_device_pcidev() -> None:
     _check_cu(res)
     assert cnt > 0
 
-    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.KEEP_IMPORTANT])
 
     for i in range(cnt):
         res, dev = cuda.cuDeviceGet(i)
@@ -122,7 +122,7 @@ def test_cuda_get_device_pcidev() -> None:
         pci_obj = get_device_pcidev(topo.hdl, dev)
         assert _skip_if_none(pci_obj)
 
-        assert pci_obj.contents.type == ObjType.HWLOC_OBJ_PCI_DEVICE
+        assert pci_obj.contents.type == ObjType.PCI_DEVICE
         # Get the PCI attributes
         pci_attr = pci_obj.contents.attr.contents.pcidev
 

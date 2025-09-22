@@ -71,7 +71,7 @@ def run_cpubind(flags: int) -> None:
 def test_cpubind() -> None:
     run_cpubind(0)  # The most portable way
     # Not so portable?
-    run_cpubind(CpuBindFlags.HWLOC_CPUBIND_STRICT)
+    run_cpubind(CpuBindFlags.STRICT)
 
 
 def test_thread_cpubind() -> None:

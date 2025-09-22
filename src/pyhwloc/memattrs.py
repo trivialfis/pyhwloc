@@ -67,14 +67,14 @@ def _initiator_loc(
 ) -> _core.hwloc_location | None:
     if isinstance(initiator, _Object):
         initiator_loc = _core.hwloc_location()
-        initiator_loc.type = _core.LocationType.HWLOC_LOCATION_TYPE_OBJECT
+        initiator_loc.type = _core.LocationType.OBJECT
         initiator_loc.location = _core.hwloc_location_u()
         initiator_loc.location.object = initiator.native_handle
         return initiator_loc
 
     if isinstance(initiator, _Bitmap):
         initiator_loc = _core.hwloc_location()
-        initiator_loc.type = _core.LocationType.HWLOC_LOCATION_TYPE_CPUSET
+        initiator_loc.type = _core.LocationType.CPUSET
         initiator_loc.location = _core.hwloc_location_u()
         initiator_loc.location.cpuset = initiator.native_handle
         return initiator_loc
@@ -125,7 +125,7 @@ class MemAttr(_TopoRef):
         initiator. For instance Bandwidth and Latency, but not Capacity.
 
         """
-        return bool(self.flags & _core.MemAttrFlag.HWLOC_MEMATTR_FLAG_NEED_INITIATOR)
+        return bool(self.flags & _core.MemAttrFlag.NEED_INITIATOR)
 
     @property
     def higher_first(self) -> bool:
@@ -133,7 +133,7 @@ class MemAttr(_TopoRef):
         values. For instance Bandwidth.
 
         """
-        return bool(self.flags & _core.MemAttrFlag.HWLOC_MEMATTR_FLAG_HIGHER_FIRST)
+        return bool(self.flags & _core.MemAttrFlag.HIGHER_FIRST)
 
     @property
     def lower_first(self) -> bool:
@@ -141,7 +141,7 @@ class MemAttr(_TopoRef):
         instance Latency.
 
         """
-        return bool(self.flags & _core.MemAttrFlag.HWLOC_MEMATTR_FLAG_LOWER_FIRST)
+        return bool(self.flags & _core.MemAttrFlag.LOWER_FIRST)
 
     @_reuse_doc(_core.memattr_get_value)
     def get_value(
@@ -196,7 +196,7 @@ class MemAttr(_TopoRef):
             target_node.native_handle,
         )
 
-        if best_initiator.type == _core.LocationType.HWLOC_LOCATION_TYPE_OBJECT:
+        if best_initiator.type == _core.LocationType.OBJECT:
             obj = _Object(best_initiator.location.object, self._topo_ref)
             return obj, value
         else:
@@ -282,20 +282,14 @@ class MemAttr(_TopoRef):
 
         result: list[tuple[_Object | _Bitmap, int]] = []
         for i in range(nrlocs.value):
-            if (
-                initiators_array[i].type
-                == _core.LocationType.HWLOC_LOCATION_TYPE_OBJECT
-            ):
+            if initiators_array[i].type == _core.LocationType.OBJECT:
                 initiator_obj = _Object(
                     initiators_array[i].location.object, self._topo_ref
                 )
                 value = int(values_array[i])
                 result.append((initiator_obj, value))
             else:
-                assert (
-                    initiators_array[i].type
-                    == _core.LocationType.HWLOC_LOCATION_TYPE_CPUSET
-                )
+                assert initiators_array[i].type == _core.LocationType.CPUSET
                 bitmap = _Bitmap.from_native_handle(
                     initiators_array[i].location.cpuset, own=False
                 )

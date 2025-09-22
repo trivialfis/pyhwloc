@@ -37,7 +37,7 @@ def test_context_manager_current_system() -> None:
 
     # Method should raise RuntimeError
     with pytest.raises(RuntimeError, match="Topology has been destroyed"):
-        topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU)
+        topo.get_nbobjs_by_type(ObjType.PU)
 
     # Properties should also raise RuntimeError
     with pytest.raises(RuntimeError, match="Topology has been destroyed"):
@@ -158,10 +158,7 @@ def test_copy_export() -> None:
             == topo.export_xml_buffer(0)
             == dcp.export_xml_buffer(0)
         )
-        assert (
-            len(cp.export_xml_buffer(ExportXmlFlags.HWLOC_TOPOLOGY_EXPORT_XML_FLAG_V2))
-            > 2
-        )
+        assert len(cp.export_xml_buffer(ExportXmlFlags.V2)) > 2
     finally:
         topo.destroy()
         cp.destroy()
@@ -232,10 +229,10 @@ def test_get_nbobjs_by_type() -> None:
         # - 8 PUs (2 nodes * 2 cores * 2 PUs each)
 
         # Test direct method calls
-        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_MACHINE) == 1
-        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_NUMANODE) == 2
-        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_CORE) == 4
-        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_PU) == 8
+        assert topo.get_nbobjs_by_type(ObjType.MACHINE) == 1
+        assert topo.get_nbobjs_by_type(ObjType.NUMANODE) == 2
+        assert topo.get_nbobjs_by_type(ObjType.CORE) == 4
+        assert topo.get_nbobjs_by_type(ObjType.PU) == 8
 
         # Test convenience properties
         assert topo.n_cpus() == 8
@@ -250,7 +247,7 @@ def test_get_nbobjs_by_type() -> None:
 def test_get_nbobjs_by_type_with_filter() -> None:
     # Create topology with I/O filter that removes all I/O objects
     with Topology.from_this_system().set_io_types_filter(
-        type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_NONE
+        type_filter=TypeFilter.KEEP_NONE
     ) as topo:
         # I/O objects should be filtered out
         assert topo.n_os_devices() == 0
@@ -264,14 +261,14 @@ def test_get_nbobjs_by_type_with_filter() -> None:
         pytest.skip("Skipping OS device test on Windows.")
 
     with Topology.from_this_system().set_io_types_filter(
-        type_filter=TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+        type_filter=TypeFilter.KEEP_IMPORTANT
     ) as topo:
-        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
+        assert topo.get_nbobjs_by_type(ObjType.OS_DEVICE) > 0
 
     with Topology.from_this_system().set_all_types_filter(
-        TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+        TypeFilter.KEEP_IMPORTANT
     ) as topo:
-        assert topo.get_nbobjs_by_type(ObjType.HWLOC_OBJ_OS_DEVICE) > 0
+        assert topo.get_nbobjs_by_type(ObjType.OS_DEVICE) > 0
 
 
 def test_object_iteration() -> None:
@@ -300,7 +297,7 @@ def test_object_iteration() -> None:
         assert root is not None
 
         # Test object access by type
-        machine = topo.get_obj_by_type(ObjType.HWLOC_OBJ_MACHINE, 0)
+        machine = topo.get_obj_by_type(ObjType.MACHINE, 0)
         assert machine is not None
 
         # Test iteration by depth
@@ -330,15 +327,15 @@ def test_find_io_devices() -> None:
         os.path.dirname(normpath(__file__)), "sample_osdev.xml"
     )
     with Topology.from_xml_file(sample_osdev_path).set_io_types_filter(
-        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
+        TypeFilter.KEEP_ALL
     ) as topo:
         for pci in topo.iter_pci_devices():
             assert pci.pci_id.domain == pci.pci_id.dev == 0
-            assert pci.type == ObjType.HWLOC_OBJ_PCI_DEVICE
+            assert pci.type == ObjType.PCI_DEVICE
         for bridge in topo.iter_bridges():
-            assert bridge.type == ObjType.HWLOC_OBJ_BRIDGE
+            assert bridge.type == ObjType.BRIDGE
         for osdev in topo.iter_os_devices():
-            assert osdev.type == ObjType.HWLOC_OBJ_OS_DEVICE
+            assert osdev.type == ObjType.OS_DEVICE
 
 
 def test_helpers() -> None:

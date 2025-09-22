@@ -28,24 +28,24 @@ def test_get_proc_last_cpu_loc() -> None:
 
         idx = loc.first()
         assert idx >= 0
-        obj = topo.get_obj_by_type(ObjType.HWLOC_OBJ_PU, idx)
+        obj = topo.get_obj_by_type(ObjType.PU, idx)
         assert obj is not None
-        assert obj.type == ObjType.HWLOC_OBJ_PU
+        assert obj.type == ObjType.PU
 
         # W/O proc
         loc = topo.get_last_cpu_location(flags)
         assert isinstance(loc, Bitmap)
         idx = loc.first()
         assert idx >= 0
-        obj = topo.get_obj_by_type(ObjType.HWLOC_OBJ_PU, idx)
+        obj = topo.get_obj_by_type(ObjType.PU, idx)
         assert obj is not None
-        assert obj.type == ObjType.HWLOC_OBJ_PU
+        assert obj.type == ObjType.PU
 
     with Topology.from_this_system() as topo:
         run(topo, 0)
 
         if platform.system() == "Linux":
-            run(topo, CpuBindFlags.HWLOC_CPUBIND_THREAD)
+            run(topo, CpuBindFlags.THREAD)
 
 
 def test_cpubind() -> None:
@@ -98,7 +98,7 @@ def test_thread_cpubind() -> None:
         target = copy.copy(orig)
         idx = target.first()
 
-        obj = topo.get_obj_by_type(ObjType.HWLOC_OBJ_PU, idx)
+        obj = topo.get_obj_by_type(ObjType.PU, idx)
         assert obj is not None
         topo.set_thread_cpubind(thread_id, obj)
 

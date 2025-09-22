@@ -27,7 +27,7 @@ def test_distance_numa() -> None:
 
         assert len(dist.objects) == 2
         for obj in dist.objects:
-            assert obj.depth == GetTypeDepth.HWLOC_TYPE_DEPTH_NUMANODE
+            assert obj.depth == GetTypeDepth.NUMANODE
         v = dist.get_distance(dist.objects[0], dist.objects[1])
         assert v[0] == v[1] == 21
         v = dist.get_distance(dist.objects[0], dist.objects[0])

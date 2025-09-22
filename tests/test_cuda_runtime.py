@@ -16,9 +16,7 @@ from pyhwloc.utils import PciId
 
 
 def test_cudart() -> None:
-    with Topology.from_this_system().set_io_types_filter(
-        TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
-    ) as topo:
+    with Topology.from_this_system().set_io_types_filter(TypeFilter.KEEP_ALL) as topo:
         dev = hwloc_cudart.get_device(topo, 0)
 
         osdev = dev.get_osdev()

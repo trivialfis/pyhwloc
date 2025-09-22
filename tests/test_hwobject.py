@@ -21,7 +21,7 @@ def test_get_root_object() -> None:
         # Root should have logical index 0
         assert root.logical_index == 0
         # Root should be a machine type
-        assert root.type == ObjType.HWLOC_OBJ_MACHINE
+        assert root.type == ObjType.MACHINE
         assert root.parent is None
         # Root should have children (the NUMA nodes)
         assert root.arity > 0
@@ -50,7 +50,7 @@ def test_object_properties() -> None:
 
         # Test basic properties
         assert isinstance(cpu.type, ObjType)
-        assert cpu.type == ObjType.HWLOC_OBJ_PU
+        assert cpu.type == ObjType.PU
         assert cpu.depth >= 0
         assert cpu.logical_index >= 0
         assert cpu.sibling_rank >= 0
@@ -165,7 +165,7 @@ def test_query_ancestor() -> None:
         assert len(objs) == 8
         ancestor = objs[0].common_ancestor_obj(objs[1])
         assert ancestor.is_normal()
-        assert ancestor.type == ObjType.HWLOC_OBJ_CORE
+        assert ancestor.type == ObjType.CORE
         assert objs[0].is_in_subtree(ancestor)
         assert objs[1].is_in_subtree(ancestor)
 

@@ -33,7 +33,7 @@ class Nvml:
 
 
 def test_get_device_osdev() -> None:
-    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.KEEP_IMPORTANT])
 
     with Nvml():
         nvhdl = nm.nvmlDeviceGetHandleByIndex(0)
@@ -42,11 +42,11 @@ def test_get_device_osdev() -> None:
 
         dev_obj = get_device_osdev(topo.hdl, nvhdl)
         assert _skip_if_none(dev_obj)
-        assert dev_obj.contents.type == ObjType.HWLOC_OBJ_OS_DEVICE
+        assert dev_obj.contents.type == ObjType.OS_DEVICE
 
 
 def test_nvml_get_device_cpuset() -> None:
-    topo = Topology([TypeFilter.HWLOC_TYPE_FILTER_KEEP_IMPORTANT])
+    topo = Topology([TypeFilter.KEEP_IMPORTANT])
 
     with Nvml():
         # Get handle for the first device

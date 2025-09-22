@@ -38,7 +38,7 @@ class Device(_TopoRef):
         import pynvml
 
         with Topology.from_this_system().set_io_types_filter(
-            TypeFilter.HWLOC_TYPE_FILTER_KEEP_ALL
+            TypeFilter.KEEP_ALL
         ) as topo:
             # Initialize NVML
             pynvml.nvmlInit()
