@@ -63,7 +63,7 @@ class Device(_TopoRef):
         Parameters
         ----------
         topo :
-            Weak reference to topology
+            Weak reference to the topology
         device :
             CUdevice handle from CUDA driver API
 
@@ -75,6 +75,7 @@ class Device(_TopoRef):
 
     @classmethod
     def from_idx(cls, topo: weakref.ReferenceType[Topology], idx: int) -> Device:
+        """Create Device from the CUDA driver ordinal."""
         import cuda.bindings.driver as cuda
 
         status, cu_device = cuda.cuDeviceGet(idx)

@@ -49,6 +49,7 @@ class Device(_TopoRef):
 
     @classmethod
     def from_idx(cls, topo: weakref.ReferenceType[Topology], idx: int) -> Device:
+        """Create Device from CUDA ordinal."""
         dev = cls.__new__(cls)
         dev._idx = idx
         dev._topo_ref = topo

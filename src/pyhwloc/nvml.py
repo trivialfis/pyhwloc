@@ -80,6 +80,7 @@ class Device(_TopoRef):
 
     @classmethod
     def from_idx(cls, topo: weakref.ReferenceType[Topology], idx: int) -> Device:
+        """Create Device from NVML device ordinal."""
         import pynvml as nm
 
         hdl = nm.nvmlDeviceGetHandleByIndex(idx)
@@ -95,6 +96,7 @@ class Device(_TopoRef):
 
     @property
     def native_handle(self) -> ctypes._Pointer:
+        """Obtain the NVML's native device handle."""
         return self._nvml_hdl
 
     @_reuse_doc(_nvml.get_device_cpuset)
