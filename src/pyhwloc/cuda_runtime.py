@@ -36,6 +36,7 @@ class Device(_TopoRef):
             ordinal = 0  # The first CUDA runtime device.
             dev = get_device(topo, ordinal)
             print(dev.get_affinity())  # CPU affinity
+            print(dev.pci_id)  # PCI information
             # Get the hwloc object
             osdev = dev.get_osdev()
 
