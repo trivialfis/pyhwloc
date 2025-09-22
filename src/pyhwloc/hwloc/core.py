@@ -94,24 +94,24 @@ class ObjType(IntEnum):
 
 
 @_cenumdoc("hwloc_obj_cache_type_e")
-class CacheType(IntEnum):
+class ObjCacheType(IntEnum):
     HWLOC_OBJ_CACHE_UNIFIED = 0
     HWLOC_OBJ_CACHE_DATA = 1
     HWLOC_OBJ_CACHE_INSTRUCTION = 2
 
 
 # typedef in hwloc.h
-hwloc_obj_cache_type_t = CacheType
+hwloc_obj_cache_type_t = ObjCacheType
 
 
 @_cenumdoc("hwloc_obj_bridge_type_e")
-class BridgeType(IntEnum):
+class ObjBridgeType(IntEnum):
     HWLOC_OBJ_BRIDGE_HOST = 0
     HWLOC_OBJ_BRIDGE_PCI = 1
 
 
 # typedef in hwloc.h
-hwloc_obj_bridge_type_t = BridgeType
+hwloc_obj_bridge_type_t = ObjBridgeType
 
 
 @_cenumdoc("hwloc_obj_osdev_type_e")
