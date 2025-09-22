@@ -200,7 +200,7 @@ class Object(_TopoRef):
     def format_attr(
         self,
         sep: str = ", ",
-        flags: _Flags[ObjSnprintfFlag] = ObjSnprintfFlag.FLAG_OLD_VERBOSE,
+        flags: _Flags[ObjSnprintfFlag] = ObjSnprintfFlag.OLD_VERBOSE,
     ) -> str | None:
         """Print the attributes."""
         n_bytes = 1024

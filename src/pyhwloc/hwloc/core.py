@@ -621,12 +621,12 @@ def hwloc_obj_type_string(obj_type: ObjType) -> bytes:
 
 @_cenumdoc("hwloc_obj_snprintf_flag_e")
 class ObjSnprintfFlag(IntEnum):
-    FLAG_OLD_VERBOSE = 1 << 0
-    FLAG_LONG_NAMES = 1 << 1
-    FLAG_SHORT_NAMES = 1 << 2
-    FLAG_MORE_ATTRS = 1 << 3
-    FLAG_NO_UNITS = 1 << 4
-    FLAG_UNITS_1000 = 1 << 5
+    OLD_VERBOSE = 1 << 0
+    LONG_NAMES = 1 << 1
+    SHORT_NAMES = 1 << 2
+    MORE_ATTRS = 1 << 3
+    NO_UNITS = 1 << 4
+    UNITS_1000 = 1 << 5
 
 
 _LIB.hwloc_obj_type_snprintf.argtypes = [
