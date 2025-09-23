@@ -38,7 +38,7 @@ from .utils import _Flags, _get_info, _memview_to_mem, _or_flags, _reuse_doc
 # Distance-related imports (lazy import to avoid circular dependencies)
 if TYPE_CHECKING:
     from .distances import Distances
-    from .memattrs import MemAttrsAccessor as _MemAttrsAccessor
+    from .memattrs import MemAttrs as _MemAttrs
 
 __all__ = [
     "Topology",
@@ -842,11 +842,11 @@ class Topology:
 
         return result
 
-    def get_memattrs(self) -> _MemAttrsAccessor:
+    def get_memattrs(self) -> _MemAttrs:
         """Get a proxy object for the memory attributes."""
-        from .memattrs import MemAttrsAccessor
+        from .memattrs import MemAttrs
 
-        return MemAttrsAccessor(weakref.ref(self))
+        return MemAttrs(weakref.ref(self))
 
     # Memory Binding Methods
     def set_membind(

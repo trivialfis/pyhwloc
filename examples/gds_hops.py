@@ -12,16 +12,18 @@ Please see the `GDS document
 
 """
 
+from typing import TypeGuard
+
 from pyhwloc import Topology
 from pyhwloc.hwobject import GetTypeDepth, Object, ObjType, OsDevice
 from pyhwloc.topology import TypeFilter
 
 
-def is_osdev_gpu(obj: Object) -> bool:
+def is_osdev_gpu(obj: Object) -> TypeGuard[OsDevice]:
     return isinstance(obj, OsDevice) and obj.is_gpu()
 
 
-def is_osdev_storage(obj: Object) -> bool:
+def is_osdev_storage(obj: Object) -> TypeGuard[OsDevice]:
     return isinstance(obj, OsDevice) and obj.is_storage()
 
 
