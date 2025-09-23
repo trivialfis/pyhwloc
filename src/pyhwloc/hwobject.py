@@ -175,18 +175,23 @@ class Object(_TopoRef):
 
     # - Begin accessors for attr
     def is_numa_node(self) -> bool:
+        """Whether this object is a :py:class:`NumaNode`."""
         return self.type == ObjType.NUMANODE
 
     def is_group(self) -> bool:
+        """Whether this object is a :py:class:`Group`."""
         return self.type == ObjType.GROUP
 
     def is_pci_device(self) -> bool:
+        """Whether this object is a :py:class:`PciDevice`."""
         return self.type == ObjType.PCI_DEVICE
 
     def is_bridge(self) -> bool:
+        """Whether this object is a :py:class:`Bridge`."""
         return self.type == ObjType.BRIDGE
 
     def is_os_device(self) -> bool:
+        """Whether this object is a :py:class:`OsDevice`."""
         return self.type == ObjType.OS_DEVICE
 
     def is_package(self) -> bool:
