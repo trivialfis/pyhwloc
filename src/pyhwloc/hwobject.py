@@ -51,9 +51,7 @@ class Object(_TopoRef):
 
     """
 
-    def __init__(
-        self, hdl: _core.ObjPtr, topology: weakref.ReferenceType[Topology]
-    ) -> None:
+    def __init__(self, hdl: _core.ObjPtr, topology: _RefTopo) -> None:
         assert hdl
         self._hdl = hdl
         self._topo_ref = topology
@@ -116,6 +114,7 @@ class Object(_TopoRef):
     def is_machine(self) -> bool:
         return self.type == ObjType.MACHINE
 
+    # OS dev
     def is_osdev_type(self, typ: int) -> bool:
         if not self.is_os_device():
             return False

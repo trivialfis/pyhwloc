@@ -286,12 +286,12 @@ class hwloc_bridge_attr_s(_PrintableStruct):
         (
             "upstream_type",
             ctypes.c_int,
-        ),  # hwloc_obj_bridge_type_t - Upstream Bridge type
+        ),  # hwloc_obj_bridge_type_e - Upstream Bridge type
         ("downstream", hwloc_bridge_downstream_u),
         (
             "downstream_type",
             ctypes.c_int,
-        ),  # hwloc_obj_bridge_type_t - Downstream Bridge type
+        ),  # hwloc_obj_bridge_type_e - Downstream Bridge type
         ("depth", ctypes.c_uint),
     ]
 
