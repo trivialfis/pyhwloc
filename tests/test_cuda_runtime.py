@@ -11,6 +11,7 @@ if not has_gpu():
     pytest.skip("GPU discovery tests.", allow_module_level=True)
 
 from pyhwloc import cuda_runtime as hwloc_cudart
+from pyhwloc.hwobject import OsDevice
 from pyhwloc.topology import Topology, TypeFilter
 from pyhwloc.utils import PciId
 
@@ -21,7 +22,7 @@ def test_cudart() -> None:
 
         osdev = dev.get_osdev()
         assert osdev is not None
-        assert osdev.is_osdev_gpu()
+        assert isinstance(osdev, OsDevice) and osdev.is_gpu()
 
         pcidev = dev.get_pcidev()
         if pcidev is not None:

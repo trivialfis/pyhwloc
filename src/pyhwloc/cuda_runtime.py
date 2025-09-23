@@ -11,7 +11,7 @@ import weakref
 
 from .bitmap import Bitmap
 from .hwloc import cudart as _cudart
-from .hwobject import Object
+from .hwobject import OsDevice, PciDevice
 from .topology import Topology
 from .utils import PciId, _reuse_doc, _TopoRef
 
@@ -78,17 +78,17 @@ class Device(_TopoRef):
         return bitmap
 
     @_reuse_doc(_cudart.get_device_pcidev)
-    def get_pcidev(self) -> Object | None:
+    def get_pcidev(self) -> PciDevice | None:
         dev_obj = _cudart.get_device_pcidev(self._topo.native_handle, self._idx)
         if dev_obj:
-            return Object(dev_obj, self._topo_ref)
+            return PciDevice(dev_obj, self._topo_ref)
         return None
 
     @_reuse_doc(_cudart.get_device_osdev_by_index)
-    def get_osdev(self) -> Object | None:
+    def get_osdev(self) -> OsDevice | None:
         dev_obj = _cudart.get_device_osdev_by_index(self._topo.native_handle, self._idx)
         if dev_obj:
-            return Object(dev_obj, self._topo_ref)
+            return OsDevice(dev_obj, self._topo_ref)
         return None
 
 

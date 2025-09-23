@@ -8,7 +8,7 @@ Simple script for listing GPU devices
 import cuda.bindings.runtime as cudart
 
 from pyhwloc import from_this_system
-from pyhwloc.hwobject import GetTypeDepth, ObjType
+from pyhwloc.hwobject import GetTypeDepth, ObjType, OsDevice
 from pyhwloc.topology import TypeFilter
 
 
@@ -59,7 +59,7 @@ def list_with_osdev() -> None:
         # Look for OS devices (which include GPUs)
         for obj in topo.iter_objs_by_type(ObjType.OS_DEVICE):
             # Check if it's a GPU device
-            if obj.is_osdev_gpu():
+            if isinstance(obj, OsDevice) and obj.is_gpu():
                 assert obj.depth == GetTypeDepth.OS_DEVICE
                 print(obj, ":", obj.format_attr())
 

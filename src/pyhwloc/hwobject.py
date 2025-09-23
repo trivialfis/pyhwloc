@@ -11,33 +11,101 @@ Python interface of the hwloc_obj type.
 from __future__ import annotations
 
 import ctypes
-import weakref
 from copy import copy
 from enum import IntEnum
-from typing import TYPE_CHECKING, Iterator, TypeAlias
+from typing import TYPE_CHECKING, Iterator, Protocol, TypeAlias, cast
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
 from .utils import PciId, _Flags, _get_info, _or_flags, _reuse_doc, _TopoRef
 
 if TYPE_CHECKING:
-    from .topology import Topology
+    from .topology import _RefTopo
+
 
 __all__ = [
     "Object",
     "ObjType",
     "ObjOsdevType",
+    "ObjBridgeType",
     "ObjSnprintfFlag",
     "GetTypeDepth",
     "compare_types",
     "ObjTypeCmp",
+    "NumaNode",
+    "Cache",
+    "Group",
+    "PciDevice",
+    "Bridge",
+    "OsDevice",
 ]
 
 
 ObjType: TypeAlias = _core.ObjType
 ObjOsdevType: TypeAlias = _core.ObjOsdevType
+ObjBridgeType: TypeAlias = _core.ObjBridgeType
 ObjSnprintfFlag: TypeAlias = _core.ObjSnprintfFlag
 GetTypeDepth: TypeAlias = _core.GetTypeDepth
+
+
+class _HasAttr(Protocol):
+    @property
+    def attr(self) -> _core.hwloc_pcidev_attr_s: ...
+
+
+class _PciDevAttr(_HasAttr):
+    @property
+    def func(self) -> int:
+        return self.attr.func
+
+    @property
+    def vendor_id(self) -> int:
+        return self.attr.vendor_id
+
+    @property
+    def device_id(self) -> int:
+        return self.attr.device_id
+
+    @property
+    def subvendor_id(self) -> int:
+        return self.attr.subvendor_id
+
+    @property
+    def subdevice_id(self) -> int:
+        return self.attr.subdevice_id
+
+    @property
+    def revision(self) -> int:
+        return self.attr.revision
+
+    @property
+    def prog_if(self) -> int:
+        return self.attr.prog_if
+
+    @property
+    def linkspeed(self) -> float:
+        return self.attr.linkspeed
+
+    @property
+    def base_class(self) -> int:
+        return self.attr.base_class
+
+    @property
+    def subclass(self) -> int:
+        return self.attr.subclass
+
+    @property
+    def pci_id(self) -> PciId:
+        return PciId(self.attr.domain, self.attr.bus, self.attr.dev)
+
+
+class PciDevAttr(_PciDevAttr):
+    def __init__(self, attr: _core.hwloc_pcidev_attr_s) -> None:
+        self._attr = attr
+
+    @property
+    def attr(self) -> _core.hwloc_pcidev_attr_s:
+        return self._attr
 
 
 class Object(_TopoRef):
@@ -113,26 +181,6 @@ class Object(_TopoRef):
 
     def is_machine(self) -> bool:
         return self.type == ObjType.MACHINE
-
-    # OS dev
-    def is_osdev_type(self, typ: int) -> bool:
-        if not self.is_os_device():
-            return False
-
-        attr = self.attr
-        if attr is None:
-            return False
-        osdev_types = attr.types
-        return bool(osdev_types & typ)
-
-    def is_osdev_gpu(self) -> bool:
-        return self.is_osdev_type(ObjOsdevType.GPU)
-
-    def is_osdev_coproc(self) -> bool:
-        return self.is_osdev_type(ObjOsdevType.COPROC)
-
-    def is_osdev_storage(self) -> bool:
-        return self.is_osdev_type(ObjOsdevType.STORAGE)
 
     # Kinds of object Type
     @_reuse_doc(_core.obj_type_is_normal)
@@ -226,21 +274,21 @@ class Object(_TopoRef):
     def next_cousin(self) -> Object | None:
         """Next object of same type and depth."""
         if self.native_handle.contents.next_cousin:
-            return Object(self.native_handle.contents.next_cousin, self._topo_ref)
+            return _object(self.native_handle.contents.next_cousin, self._topo_ref)
         return None
 
     @property
     def prev_cousin(self) -> Object | None:
         """Previous object of same type and depth."""
         if self.native_handle.contents.prev_cousin:
-            return Object(self.native_handle.contents.prev_cousin, self._topo_ref)
+            return _object(self.native_handle.contents.prev_cousin, self._topo_ref)
         return None
 
     @property
     def parent(self) -> Object | None:
         """Parent object, None if root (Machine object)."""
         if self.native_handle.contents.parent:
-            return Object(self.native_handle.contents.parent, self._topo_ref)
+            return _object(self.native_handle.contents.parent, self._topo_ref)
         return None
 
     @property
@@ -252,14 +300,14 @@ class Object(_TopoRef):
     def next_sibling(self) -> Object | None:
         """Next object below the same parent."""
         if self.native_handle.contents.next_sibling:
-            return Object(self.native_handle.contents.next_sibling, self._topo_ref)
+            return _object(self.native_handle.contents.next_sibling, self._topo_ref)
         return None
 
     @property
     def prev_sibling(self) -> Object | None:
         """Previous object below the same parent."""
         if self.native_handle.contents.prev_sibling:
-            return Object(self.native_handle.contents.prev_sibling, self._topo_ref)
+            return _object(self.native_handle.contents.prev_sibling, self._topo_ref)
         return None
 
     @property
@@ -273,14 +321,14 @@ class Object(_TopoRef):
     def first_child(self) -> Object | None:
         """First normal child."""
         if self.native_handle.contents.first_child:
-            return Object(self.native_handle.contents.first_child, self._topo_ref)
+            return _object(self.native_handle.contents.first_child, self._topo_ref)
         return None
 
     @property
     def last_child(self) -> Object | None:
         """Last normal child."""
         if self.native_handle.contents.last_child:
-            return Object(self.native_handle.contents.last_child, self._topo_ref)
+            return _object(self.native_handle.contents.last_child, self._topo_ref)
         return None
 
     @property
@@ -297,7 +345,7 @@ class Object(_TopoRef):
     def memory_first_child(self) -> Object | None:
         """First Memory child."""
         if self.native_handle.contents.memory_first_child:
-            return Object(
+            return _object(
                 self.native_handle.contents.memory_first_child, self._topo_ref
             )
         return None
@@ -311,7 +359,7 @@ class Object(_TopoRef):
     def io_first_child(self) -> Object | None:
         """First I/O child."""
         if self.native_handle.contents.io_first_child:
-            return Object(self.native_handle.contents.io_first_child, self._topo_ref)
+            return _object(self.native_handle.contents.io_first_child, self._topo_ref)
         return None
 
     @property
@@ -323,7 +371,7 @@ class Object(_TopoRef):
     def misc_first_child(self) -> Object | None:
         """First Misc child."""
         if self.native_handle.contents.misc_first_child:
-            return Object(self.native_handle.contents.misc_first_child, self._topo_ref)
+            return _object(self.native_handle.contents.misc_first_child, self._topo_ref)
         return None
 
     @property
@@ -440,7 +488,7 @@ class Object(_TopoRef):
     def common_ancestor_obj(self, other: Object) -> Object:
         if self.depth < 0 or other.depth < 0:
             raise ValueError("This function only works with objects in the main tree.")
-        return Object(
+        return _object(
             _core.get_common_ancestor_obj(
                 self._topo.native_handle, self.native_handle, other.native_handle
             ),
@@ -454,7 +502,7 @@ class Object(_TopoRef):
         )
         if obj is None:
             return None
-        return Object(
+        return _object(
             obj,
             self._topo_ref,
         )
@@ -466,7 +514,7 @@ class Object(_TopoRef):
         )
         if obj is None:
             return None
-        return Object(
+        return _object(
             obj,
             self._topo_ref,
         )
@@ -508,6 +556,124 @@ class Object(_TopoRef):
         return hash(ctypes.addressof(self.native_handle.contents))
 
 
+class NumaNode(Object):
+    """NUMA node object."""
+
+    @property
+    def attr(self) -> _core.hwloc_numanode_attr_s:
+        return cast(_core.hwloc_numanode_attr_s, super().attr)
+
+    @property
+    def local_memory(self) -> int:
+        return self.attr.local_memory
+
+    @property
+    def page_types(self) -> list[int]:
+        prop = []
+        for i in range(self.attr.page_types_len):
+            prop.append(self.attr.page_types[i])
+        return prop
+
+
+class Cache(Object):
+    """Cache :py:class:`Object`."""
+
+    @property
+    def attr(self) -> _core.hwloc_cache_attr_s:
+        return cast(_core.hwloc_cache_attr_s, super().attr)
+
+    @property
+    def size(self) -> int:
+        return self.attr.size
+
+    @property
+    def cache_depth(self) -> int:
+        return self.attr.depth
+
+    @property
+    def linesize(self) -> int:
+        return self.attr.linesize
+
+    @property
+    def associativity(self) -> int:
+        return self.attr.associativity
+
+    @property
+    def cache_type(self) -> int:
+        return _core.ObjCacheType(self.attr.type)
+
+
+class Group(Object):
+    """:py:class:`Object` with type == `GROUP`."""
+
+    @property
+    def attr(self) -> _core.hwloc_group_attr_s:
+        return cast(_core.hwloc_group_attr_s, super().attr)
+
+    @property
+    def group_depth(self) -> int:
+        return self.attr.depth
+
+    # fixme: expose `alloc_group_object` and `free_group_object.`
+
+
+class PciDevice(Object, _PciDevAttr):
+    """:py:class:`Object` with type == `PCI_DEVICE`."""
+
+    def __init__(self, hdl: _core.ObjPtr, topology: _RefTopo) -> None:
+        super().__init__(hdl, topology)
+
+    @property
+    def attr(self) -> _core.hwloc_pcidev_attr_s:
+        return cast(_core.hwloc_pcidev_attr_s, super().attr)
+
+
+class Bridge(Object):
+    """:py:class:`Object` with type == `BRIDGE`."""
+
+    @property
+    def attr(self) -> _core.hwloc_bridge_attr_s:
+        return cast(_core.hwloc_bridge_attr_s, super().attr)
+
+    @property
+    def upstream_pci(self) -> PciDevAttr:
+        return PciDevAttr(self.attr.upstream.pci)
+
+    @property
+    def upstream_type(self) -> ObjBridgeType:
+        return self.attr.upstream_type
+
+    @property
+    def downstream_pci(self) -> _core.hwloc_bridge_downstream_pci_s:
+        return self.attr.downstream.pci
+
+    def downstream_type(self) -> ObjBridgeType:
+        return self.attr.downstream_type
+
+
+class OsDevice(Object):
+    """:py:class:`Object` with type == `OS_DEVICE`."""
+
+    def is_osdev_type(self, typ: int) -> bool:
+        if not self.is_os_device():
+            return False
+
+        attr = self.attr
+        if attr is None:
+            return False
+        osdev_types = attr.types
+        return bool(osdev_types & typ)
+
+    def is_gpu(self) -> bool:
+        return self.is_osdev_type(ObjOsdevType.GPU)
+
+    def is_coproc(self) -> bool:
+        return self.is_osdev_type(ObjOsdevType.COPROC)
+
+    def is_storage(self) -> bool:
+        return self.is_osdev_type(ObjOsdevType.STORAGE)
+
+
 class ObjTypeCmp(IntEnum):
     """Result from :py:func:`~pyhwloc.hwobject.compare_types`."""
 
@@ -535,3 +701,30 @@ def compare_types(type1: ObjType | Object, type2: ObjType | Object) -> ObjTypeCm
     if r > 0:
         return ObjTypeCmp.INCLUDED_BY
     return ObjTypeCmp.EQUAL
+
+
+def _object(hdl: _core.ObjPtr, topology: _RefTopo) -> Object:
+    assert hdl
+    attr = hdl.contents.attr
+    if not attr:
+        return Object(hdl, topology)
+
+    typ = ObjType(hdl.contents.type)
+    is_cache = _core.obj_type_is_cache(typ)
+    if is_cache:
+        return Cache(hdl, topology)
+
+    match typ:
+        case ObjType.NUMANODE:
+            return NumaNode(hdl, topology)
+        # cache has been handled
+        case ObjType.GROUP:
+            return Group(hdl, topology)
+        case ObjType.PCI_DEVICE:
+            return PciDevice(hdl, topology)
+        case ObjType.BRIDGE:
+            return Bridge(hdl, topology)
+        case ObjType.OS_DEVICE:
+            return OsDevice(hdl, topology)
+        case _:
+            return Object(hdl, topology)

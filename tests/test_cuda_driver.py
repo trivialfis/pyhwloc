@@ -14,6 +14,7 @@ cuda = pytest.importorskip("cuda.bindings.driver")
 
 from pyhwloc import cuda_driver as hwloc_cudadr
 from pyhwloc.hwloc.cudadr import _check_cu
+from pyhwloc.hwobject import OsDevice
 from pyhwloc.topology import Topology, TypeFilter
 
 
@@ -27,7 +28,7 @@ def test_cuda_driver() -> None:
 
         osdev = dev.get_osdev()
         assert osdev is not None
-        assert osdev.is_osdev_gpu()
+        assert isinstance(osdev, OsDevice) and osdev.is_gpu()
 
         pcidev = dev.get_pcidev()
         assert pcidev is not None

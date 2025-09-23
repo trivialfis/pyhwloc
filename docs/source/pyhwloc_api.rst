@@ -23,7 +23,7 @@ type. Users can use it to reach to the :doc:`low-level </low_level>` interface.
 .. automodule:: pyhwloc.hwobject
   :members:
 
-.. automodule:: pyhwloc.distance
+.. automodule:: pyhwloc.distances
   :members:
 
 .. automodule:: pyhwloc.cpukinds

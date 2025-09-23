@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from .bitmap import Bitmap
 from .hwloc import cudadr as _cudadr
-from .hwobject import Object
+from .hwobject import OsDevice, PciDevice
 from .topology import Topology
 from .utils import PciId, _reuse_doc, _TopoRef
 
@@ -110,25 +110,25 @@ class Device(_TopoRef):
         return bitmap
 
     @_reuse_doc(_cudadr.get_device_pcidev)
-    def get_pcidev(self) -> Object | None:
+    def get_pcidev(self) -> PciDevice | None:
         import cuda.bindings.driver as cuda
 
         dev_obj = _cudadr.get_device_pcidev(
             self._topo.native_handle, cuda.CUdevice(self.native_handle)
         )
         if dev_obj:
-            return Object(dev_obj, self._topo_ref)
+            return PciDevice(dev_obj, self._topo_ref)
         return None
 
     @_reuse_doc(_cudadr.get_device_osdev)
-    def get_osdev(self) -> Object | None:
+    def get_osdev(self) -> OsDevice | None:
         import cuda.bindings.driver as cuda
 
         dev_obj = _cudadr.get_device_osdev(
             self._topo.native_handle, cuda.CUdevice(self.native_handle)
         )
         if dev_obj:
-            return Object(dev_obj, self._topo_ref)
+            return OsDevice(dev_obj, self._topo_ref)
         return None
 
 

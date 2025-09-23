@@ -16,7 +16,7 @@ from typing import Sequence
 
 from .bitmap import Bitmap
 from .hwloc import nvml as _nvml
-from .hwobject import Object
+from .hwobject import OsDevice
 from .topology import Topology
 from .utils import _reuse_doc, _TopoRef
 
@@ -108,10 +108,10 @@ class Device(_TopoRef):
         return bitmap
 
     @_reuse_doc(_nvml.get_device_osdev)
-    def get_osdev(self) -> Object | None:
+    def get_osdev(self) -> OsDevice | None:
         dev_obj = _nvml.get_device_osdev(self._topo.native_handle, self.native_handle)
         if dev_obj:
-            return Object(dev_obj, self._topo_ref)
+            return OsDevice(dev_obj, self._topo_ref)
         return None
 
 

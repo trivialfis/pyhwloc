@@ -11,7 +11,7 @@ import pytest
 
 from pyhwloc.bitmap import Bitmap
 from pyhwloc.hwloc.lib import normpath
-from pyhwloc.hwobject import ObjType
+from pyhwloc.hwobject import Bridge, ObjType, OsDevice, PciDevice
 from pyhwloc.topology import (
     AllowFlags,
     ExportXmlFlags,
@@ -340,9 +340,12 @@ def test_find_io_devices() -> None:
         for pci in topo.iter_pci_devices():
             assert pci.pci_id.domain == pci.pci_id.dev == 0
             assert pci.type == ObjType.PCI_DEVICE
+            assert isinstance(pci, PciDevice)
         for bridge in topo.iter_bridges():
             assert bridge.type == ObjType.BRIDGE
+            assert isinstance(bridge, Bridge)
         for osdev in topo.iter_os_devices():
+            assert isinstance(osdev, OsDevice)
             assert osdev.type == ObjType.OS_DEVICE
 
 
