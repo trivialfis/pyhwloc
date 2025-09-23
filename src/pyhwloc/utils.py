@@ -32,6 +32,8 @@ if TYPE_CHECKING:
     from .hwloc import core as _core
     from .topology import Topology
 
+    _TopoRef: TypeAlias = weakref.ReferenceType[Topology]
+
 
 def _reuse_doc(orig: Callable) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
     def fn(fobj: Callable[_P, _R]) -> Callable[_P, _R]:
@@ -97,9 +99,6 @@ def _memview_to_mem(mem: memoryview) -> tuple[ctypes.c_void_p, int]:
     buf = Buffer.from_buffer(mem)
     addr = ctypes.cast(buf, ctypes.c_void_p)
     return addr, size
-
-
-_TopoRef: TypeAlias = weakref.ReferenceType[Topology]
 
 
 class _HasTopoRef(Protocol):
