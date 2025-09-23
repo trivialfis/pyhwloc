@@ -21,8 +21,9 @@ __all__ = [
     "get_device",
 ]
 
+
 if TYPE_CHECKING:
-    from cuda.bindings.driver import CUDevice
+    from cuda.bindings.driver import CUdevice
 
     from .utils import _TopoRef
 
@@ -53,11 +54,11 @@ class Device(_TopoRefMixin):
 
     def __init__(self) -> None:
         raise RuntimeError("Use `get_device` instead.")
-        self._cu_device: CUDevice
+        self._cu_device: CUdevice
         self._topo_ref: _TopoRef
 
     @classmethod
-    def from_native_handle(cls, topo: _TopoRef, device: CUDevice) -> Device:
+    def from_native_handle(cls, topo: _TopoRef, device: CUdevice) -> Device:
         """Create Device from CUDA driver device.
 
         Parameters
@@ -83,7 +84,7 @@ class Device(_TopoRefMixin):
         return cls.from_native_handle(topo, cu_device)
 
     @property
-    def native_handle(self) -> CUDevice:
+    def native_handle(self) -> CUdevice:
         return self._cu_device
 
     # Use property to be consistent with hwobject.pci_id
@@ -132,7 +133,7 @@ class Device(_TopoRefMixin):
         return None
 
 
-def get_device(topology: Topology, device: int | CUDevice) -> Device:
+def get_device(topology: Topology, device: int | CUdevice) -> Device:
     """Get the CUDA driver device from its CUdevice handle or ordinal.
 
     Parameters
