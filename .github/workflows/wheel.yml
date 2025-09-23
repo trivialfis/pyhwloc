@@ -20,6 +20,14 @@ jobs:
       image: quay.io/pypa/manylinux_2_28_x86_64
 
     steps:
+    - name: Trust git cloning project sources
+      run: |
+        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: false
+
     - name: Build binary wheel
       shell: bash -l {0}
       run: |
