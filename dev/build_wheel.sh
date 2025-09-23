@@ -1,6 +1,6 @@
 # quay.io/pypa/manylinux_2_28_x86_64
 
-alias python=/opt/python/cp312-cp312/bin/python
+export PATH=/opt/python/cp312-cp312/bin/:$PATH
 
 pip wheel -v . --config-settings=fetch-hwloc=True --wheel-dir dist/
 
