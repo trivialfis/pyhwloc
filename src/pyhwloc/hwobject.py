@@ -333,7 +333,15 @@ class Object(_TopoRef):
         """Number of normal children."""
         return self.native_handle.contents.arity
 
-    #   struct hwloc_obj **children;
+    @property
+    def children(self) -> list[Object]:
+        """Normal children. Memory, Misc and I/O children are not listed here."""
+        ptr_children = self.native_handle.contents.children
+        results = []
+        for i in range(self.arity):
+            obj = _object(ptr_children[i], self._topo_ref)
+            results.append(obj)
+        return results
 
     @property
     def first_child(self) -> Object | None:
@@ -650,6 +658,7 @@ class Group(Object):
 
     @property
     def group_depth(self) -> int:
+        """Depth of group object."""
         return self.attr.depth
 
     # fixme: expose `alloc_group_object` and `free_group_object.`
@@ -677,17 +686,21 @@ class Bridge(Object):
 
     @property
     def upstream_pci(self) -> PciDevAttr:
+        """PCI attribute of the upstream part as a PCI device."""
         return PciDevAttr(self.attr.upstream.pci)
 
     @property
     def upstream_type(self) -> ObjBridgeType:
+        """Upstream Bridge type."""
         return self.attr.upstream_type
 
     @property
     def downstream_pci(self) -> _core.hwloc_bridge_downstream_pci_s:
+        """PCI attribute of the downstream part as a PCI device."""
         return self.attr.downstream.pci
 
     def downstream_type(self) -> ObjBridgeType:
+        """Downstream Bridge type"""
         return self.attr.downstream_type
 
 
@@ -700,6 +713,7 @@ class OsDevice(Object):
         return cast(_core.hwloc_osdev_attr_s, super().attr)
 
     def is_osdev_type(self, typ: int) -> bool:
+        """Check type of the OS device."""
         if not self.is_os_device():
             return False
 
