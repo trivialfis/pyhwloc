@@ -9,9 +9,17 @@ import platform
 
 import pytest
 
+from pyhwloc.bitmap import Bitmap
 from pyhwloc.hwloc.lib import normpath
 from pyhwloc.hwobject import ObjType
-from pyhwloc.topology import ExportXmlFlags, Topology, TypeFilter
+from pyhwloc.topology import (
+    AllowFlags,
+    ExportXmlFlags,
+    RestrictFlags,
+    Topology,
+    TopologyFlags,
+    TypeFilter,
+)
 
 
 def test_context_manager_current_system() -> None:
@@ -353,3 +361,42 @@ def test_helpers() -> None:
         obj = topo.get_pu_obj_by_os_index(0)
         assert obj is not None
         assert obj.is_normal()
+
+
+def test_topology_restrict() -> None:
+    desc = "node:2 core:2 pu:2"
+
+    with Topology.from_synthetic(desc) as topo:
+        initial_cpuset = topo.cpuset
+        assert initial_cpuset.weight() == 8
+
+        nodeset = Bitmap()
+        nodeset.set(0)
+        topo.restrict(nodeset, RestrictFlags.BYNODESET)
+        topo.refresh()
+
+        assert topo.cpuset.weight() == 8
+        assert topo.allowed_nodeset.weight() == 1
+        assert topo.get_nbobjs_by_type(ObjType.NUMANODE) == 1
+
+
+def test_topology_allow() -> None:
+    desc = "node:2 core:2 pu:2"
+
+    with Topology.from_synthetic(desc).set_flags(
+        TopologyFlags.INCLUDE_DISALLOWED
+    ) as topo:
+        allowed_cpuset = topo.allowed_cpuset
+        assert allowed_cpuset.weight() == 8
+
+        cpuset = Bitmap()
+        cpuset.set(0)
+
+        with pytest.raises(ValueError):
+            topo.allow(cpuset, None, AllowFlags.ALL)
+
+        topo.allow(cpuset, None, AllowFlags.CUSTOM)
+        topo.refresh()
+
+        assert topo.allowed_cpuset.weight() == 1
+        assert topo.allowed_nodeset.weight() == 2

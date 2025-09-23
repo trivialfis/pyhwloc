@@ -46,6 +46,8 @@ __all__ = [
     "MemBindPolicy",
     "MemBindFlags",
     "CpuBindFlags",
+    "AllowFlags",
+    "RestrictFlags",
 ]
 
 
@@ -99,7 +101,9 @@ DistancesKind: TypeAlias = _core.DistancesKind
 MemBindPolicy: TypeAlias = _core.MemBindPolicy
 MemBindFlags: TypeAlias = _core.MemBindFlags
 CpuBindFlags: TypeAlias = _core.CpuBindFlags
-
+# Modifying a loaded topology
+AllowFlags: TypeAlias = _core.AllowFlags
+RestrictFlags: TypeAlias = _core.RestrictFlags
 # internal
 _BindTarget: TypeAlias = _Bitmap | set[int] | _Object
 
@@ -497,6 +501,31 @@ class Topology:
         # switched order between name and flags, as flags usually come at last.
         _core.topology_set_components(self._hdl, _or_flags(flags), name)
         return self
+
+    # Modifying a Loaded Topology
+
+    @_reuse_doc(_core.topology_restrict)
+    def restrict(self, cpuset: _Bitmap, flags: _Flags[RestrictFlags]) -> None:
+        _core.topology_restrict(
+            self.native_handle, cpuset.native_handle, _or_flags(flags)
+        )
+
+    @_reuse_doc(_core.topology_allow)
+    def allow(
+        self,
+        cpuset: _Bitmap | None,
+        nodeset: _Bitmap | None,
+        flags: _Flags[AllowFlags],
+    ) -> None:
+        cpuset_hdl = cpuset.native_handle if cpuset else None
+        nodeset_hdl = nodeset.native_handle if nodeset else None
+        _core.topology_allow(
+            self.native_handle, cpuset_hdl, nodeset_hdl, _or_flags(flags)
+        )
+
+    @_reuse_doc(_core.topology_refresh)
+    def refresh(self) -> None:
+        _core.topology_refresh(self.native_handle)
 
     def get_obj_by_depth(self, depth: int, idx: int) -> _Object | None:
         """Get object at specific depth and index.
