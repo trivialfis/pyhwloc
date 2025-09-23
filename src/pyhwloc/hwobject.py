@@ -18,10 +18,10 @@ from typing import TYPE_CHECKING, Iterator, Protocol, TypeAlias, cast
 
 from .bitmap import Bitmap
 from .hwloc import core as _core
-from .utils import PciId, _Flags, _get_info, _or_flags, _reuse_doc, _TopoRef
+from .utils import PciId, _Flags, _get_info, _or_flags, _reuse_doc, _TopoRefMixin
 
 if TYPE_CHECKING:
-    from .topology import _RefTopo
+    from .utils import _TopoRef
 
 
 __all__ = [
@@ -121,7 +121,7 @@ class PciDevAttr(_PciDevAttr):
         return self._attr
 
 
-class Object(_TopoRef):
+class Object(_TopoRefMixin):
     """High-level interface for the hwloc object. Only the topology can return
     objects. User should not use the constructor.
 
@@ -132,7 +132,7 @@ class Object(_TopoRef):
 
     """
 
-    def __init__(self, hdl: _core.ObjPtr, topology: _RefTopo) -> None:
+    def __init__(self, hdl: _core.ObjPtr, topology: _TopoRef) -> None:
         assert hdl
         self._hdl = hdl
         self._topo_ref = topology
@@ -667,7 +667,7 @@ class Group(Object):
 class PciDevice(Object, _PciDevAttr):
     """:py:class:`Object` with type == `PCI_DEVICE`."""
 
-    def __init__(self, hdl: _core.ObjPtr, topology: _RefTopo) -> None:
+    def __init__(self, hdl: _core.ObjPtr, topology: _TopoRef) -> None:
         super().__init__(hdl, topology)
 
     @property
@@ -765,7 +765,7 @@ def compare_types(type1: ObjType | Object, type2: ObjType | Object) -> ObjTypeCm
     return ObjTypeCmp.EQUAL
 
 
-def _object(hdl: _core.ObjPtr, topology: _RefTopo) -> Object:
+def _object(hdl: _core.ObjPtr, topology: _TopoRef) -> Object:
     assert hdl
     attr = hdl.contents.attr
     if not attr:

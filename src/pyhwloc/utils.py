@@ -10,7 +10,15 @@ from __future__ import annotations
 import ctypes
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, ParamSpec, Protocol, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    ParamSpec,
+    Protocol,
+    TypeAlias,
+    TypeVar,
+    Union,
+)
 
 __all__ = ["PciId", "memoryview_from_memory"]
 
@@ -91,12 +99,15 @@ def _memview_to_mem(mem: memoryview) -> tuple[ctypes.c_void_p, int]:
     return addr, size
 
 
+_TopoRef: TypeAlias = weakref.ReferenceType[Topology]
+
+
 class _HasTopoRef(Protocol):
     @property
-    def _topo_ref(self) -> weakref.ReferenceType[Topology]: ...
+    def _topo_ref(self) -> _TopoRef: ...
 
 
-class _TopoRef:
+class _TopoRefMixin:
     """A mixin class for accessing a reference to the topology."""
 
     @property

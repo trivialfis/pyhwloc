@@ -8,12 +8,16 @@ Interoperability with the CUDA Runtime API
 from __future__ import annotations
 
 import weakref
+from typing import TYPE_CHECKING
 
 from .bitmap import Bitmap
 from .hwloc import cudart as _cudart
 from .hwobject import OsDevice, PciDevice
 from .topology import Topology
-from .utils import PciId, _reuse_doc, _TopoRef
+from .utils import PciId, _reuse_doc, _TopoRefMixin
+
+if TYPE_CHECKING:
+    from .utils import _TopoRef
 
 __all__ = [
     "Device",
@@ -21,7 +25,7 @@ __all__ = [
 ]
 
 
-class Device(_TopoRef):
+class Device(_TopoRefMixin):
     """Class to represent a CUDA runtime device. This class can be created using the
     :py:func:`get_device`.
 
@@ -45,10 +49,10 @@ class Device(_TopoRef):
     def __init__(self) -> None:
         raise RuntimeError("Use `get_device` instead.")
         self._idx: int = -1
-        self._topo_ref: weakref.ReferenceType[Topology]
+        self._topo_ref: _TopoRef
 
     @classmethod
-    def from_idx(cls, topo: weakref.ReferenceType[Topology], idx: int) -> Device:
+    def from_idx(cls, topo: _TopoRef, idx: int) -> Device:
         """Create Device from CUDA ordinal."""
         dev = cls.__new__(cls)
         dev._idx = idx

@@ -11,17 +11,16 @@ This module provides high-level interfaces for hwloc memory attributes.
 from __future__ import annotations
 
 import ctypes
-import weakref
 from copy import copy
 from typing import TYPE_CHECKING, TypeAlias, Union, overload
 
 from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
 from .hwobject import Object as _Object
-from .utils import _Flags, _or_flags, _reuse_doc, _TopoRef
+from .utils import _Flags, _or_flags, _reuse_doc, _TopoRefMixin
 
 if TYPE_CHECKING:
-    from .topology import Topology
+    from .utils import _TopoRef
 
 __all__ = [
     "MemAttr",
@@ -87,7 +86,7 @@ def _initiator_loc(
     return None
 
 
-class MemAttr(_TopoRef):
+class MemAttr(_TopoRefMixin):
     """High-level interface for a single memory attribute.
 
     Memory attributes describe characteristics like bandwidth, latency, or capacity of
@@ -96,9 +95,7 @@ class MemAttr(_TopoRef):
 
     """
 
-    def __init__(
-        self, attr_id: _core.hwloc_memattr_id_t, topo: weakref.ReferenceType[Topology]
-    ) -> None:
+    def __init__(self, attr_id: _core.hwloc_memattr_id_t, topo: _TopoRef) -> None:
         self._attr_id = attr_id
         self._topo_ref = topo
 
@@ -310,10 +307,10 @@ class MemAttr(_TopoRef):
         return self.native_handle.value == other.native_handle.value
 
 
-class MemAttrsAccessor(_TopoRef):
+class MemAttrsAccessor(_TopoRefMixin):
     """Accessor for memory attributes."""
 
-    def __init__(self, topo: weakref.ReferenceType[Topology]) -> None:
+    def __init__(self, topo: _TopoRef) -> None:
         self._topo_ref = topo
 
     def get(self, identifier: str | int | _core.MemAttrId) -> MemAttr:

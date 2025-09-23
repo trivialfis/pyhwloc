@@ -1269,5 +1269,3 @@ from_synthetic = Topology.from_synthetic
 from_xml_file = Topology.from_xml_file
 
 from_xml_buffer = Topology.from_xml_buffer
-
-_RefTopo: TypeAlias = weakref.ReferenceType[Topology]

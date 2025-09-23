@@ -14,15 +14,14 @@ introduction to the basic concepts.
 from __future__ import annotations
 
 import ctypes
-import weakref
 from typing import TYPE_CHECKING
 
 from .hwloc import core as _core
 from .hwobject import Object
-from .utils import _reuse_doc, _TopoRef
+from .utils import _reuse_doc, _TopoRefMixin
 
 if TYPE_CHECKING:
-    from .topology import Topology
+    from .utils import _TopoRef
 
 __all__ = ["Distances"]
 
@@ -35,7 +34,7 @@ def _ravel(n_objs: int, i: int, j: int) -> int:
     return i * n_objs + j
 
 
-class Distances(_TopoRef):
+class Distances(_TopoRefMixin):
     """High-level interface for hwloc distance matrix. Users can index the Distances
     class like a matrix:
 
@@ -49,9 +48,7 @@ class Distances(_TopoRef):
 
     """
 
-    def __init__(
-        self, hdl: _core.DistancesPtr, topo: weakref.ReferenceType[Topology]
-    ) -> None:
+    def __init__(self, hdl: _core.DistancesPtr, topo: _TopoRef) -> None:
         if not hdl:
             raise ValueError("Distance handle cannot be None")
 
