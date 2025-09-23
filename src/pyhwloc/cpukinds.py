@@ -11,25 +11,24 @@ independent class.
 
 from __future__ import annotations
 
-import weakref
 from typing import TYPE_CHECKING
 
 from .hwloc import core as _core
-from .utils import _get_info, _reuse_doc, _TopoRef
+from .utils import _get_info, _reuse_doc, _TopoRefMixin
 
 if TYPE_CHECKING:
     from .bitmap import Bitmap
-    from .topology import Topology
+    from .utils import _TopoRef
 
 
-class CpuKinds(_TopoRef):
+class CpuKinds(_TopoRefMixin):
     """Represents the CPU kinds in hwloc. Use the
     :py:meth:`~pyhwloc.topology.Topology.get_cpukinds` to obtain an instance of this
     class.
 
     """
 
-    def __init__(self, topology: weakref.ReferenceType[Topology]) -> None:
+    def __init__(self, topology: _TopoRef) -> None:
         self._topo_ref = topology
 
     @_reuse_doc(_core.cpukinds_register)

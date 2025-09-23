@@ -22,14 +22,17 @@ from typing import (
     Iterator,
     Type,
     TypeAlias,
+    cast,
 )
 
+from . import hwobject as _hwobject
 from .bitmap import Bitmap as _Bitmap
 from .cpukinds import CpuKinds
 from .hwloc import core as _core
 from .hwloc import lib as _lib
 from .hwobject import Object as _Object
 from .hwobject import ObjType as _ObjType
+from .hwobject import _object
 from .utils import _Flags, _get_info, _memview_to_mem, _or_flags, _reuse_doc
 
 # Distance-related imports (lazy import to avoid circular dependencies)
@@ -542,26 +545,26 @@ class Topology:
         Object instance or None if not found
         """
         ptr = _core.get_obj_by_depth(self.native_handle, depth, idx)
-        return _Object(ptr, weakref.ref(self)) if ptr else None
+        return _object(ptr, weakref.ref(self)) if ptr else None
 
     @_reuse_doc(_core.get_root_obj)
     def get_root_obj(self) -> _Object:
-        return _Object(_core.get_root_obj(self.native_handle), weakref.ref(self))
+        return _object(_core.get_root_obj(self.native_handle), weakref.ref(self))
 
     @_reuse_doc(_core.get_obj_by_type)
     def get_obj_by_type(self, obj_type: _ObjType, idx: int) -> _Object | None:
         ptr = _core.get_obj_by_type(self.native_handle, obj_type, idx)
-        return _Object(ptr, weakref.ref(self)) if ptr else None
+        return _object(ptr, weakref.ref(self)) if ptr else None
 
     @_reuse_doc(_core.get_pu_obj_by_os_index)
     def get_pu_obj_by_os_index(self, os_index: int) -> _Object | None:
         ptr = _core.get_pu_obj_by_os_index(self.native_handle, os_index)
-        return _Object(ptr, weakref.ref(self)) if ptr else None
+        return _object(ptr, weakref.ref(self)) if ptr else None
 
     @_reuse_doc(_core.get_numanode_obj_by_os_index)
     def get_numanode_obj_by_os_index(self, os_index: int) -> _Object | None:
         ptr = _core.get_numanode_obj_by_os_index(self.native_handle, os_index)
-        return _Object(ptr, weakref.ref(self)) if ptr else None
+        return _object(ptr, weakref.ref(self)) if ptr else None
 
     @property
     @_reuse_doc(_core.topology_get_topology_cpuset)
@@ -608,7 +611,7 @@ class Topology:
             ptr = _core.get_next_obj_by_depth(self.native_handle, depth, prev)
             if ptr is None:
                 break
-            obj = _Object(ptr, weakref.ref(self))
+            obj = _object(ptr, weakref.ref(self))
             yield obj
             prev = ptr
 
@@ -638,7 +641,7 @@ class Topology:
             ptr = _core.get_next_obj_by_type(self.native_handle, obj_type, prev)
             if ptr is None:
                 break
-            obj = _Object(ptr, weakref.ref(self))
+            obj = _object(ptr, weakref.ref(self))
             yield obj
             prev = ptr
 
@@ -687,14 +690,16 @@ class Topology:
         """
         return self.iter_objs_by_type(_ObjType.CORE)
 
-    def iter_numa_nodes(self) -> Iterator[_Object]:
+    def iter_numa_nodes(self) -> Iterator[_hwobject.NumaNode]:
         """Iterate over all NUMA nodes.
 
         Yields
         ------
         All NUMA node object instances
         """
-        return self.iter_objs_by_type(_ObjType.NUMANODE)
+        return cast(
+            Iterator[_hwobject.NumaNode], self.iter_objs_by_type(_ObjType.NUMANODE)
+        )
 
     def iter_packages(self) -> Iterator[_Object]:
         """Iterate over all packages (sockets).
@@ -714,35 +719,41 @@ class Topology:
             ptr = fn(self.native_handle, prev)
             if ptr is None:
                 break
-            yield _Object(ptr, weakref.ref(self))
+            yield _object(ptr, weakref.ref(self))
             prev = ptr
 
-    def iter_os_devices(self) -> Iterator[_Object]:
+    def iter_os_devices(self) -> Iterator[_hwobject.OsDevice]:
         """Iterate over all OS devices.
 
         Yields
         ------
         All OS devices instances.
         """
-        return self._iter_io_devices(_core.get_next_osdev)
+        return cast(
+            Iterator[_hwobject.OsDevice], self._iter_io_devices(_core.get_next_osdev)
+        )
 
-    def iter_bridges(self) -> Iterator[_Object]:
+    def iter_bridges(self) -> Iterator[_hwobject.Bridge]:
         """Iterate over all bridges.
 
         Yields
         ------
         All bridge instances.
         """
-        return self._iter_io_devices(_core.get_next_bridge)
+        return cast(
+            Iterator[_hwobject.Bridge], self._iter_io_devices(_core.get_next_bridge)
+        )
 
-    def iter_pci_devices(self) -> Iterator[_Object]:
+    def iter_pci_devices(self) -> Iterator[_hwobject.PciDevice]:
         """Iterate over all PCI devices.
 
         Yields
         ------
         All PCI device instances.
         """
-        return self._iter_io_devices(_core.get_next_pcidev)
+        return cast(
+            Iterator[_hwobject.PciDevice], self._iter_io_devices(_core.get_next_pcidev)
+        )
 
     def n_cpus(self) -> int:
         """Get the total number of processing units (CPUs).

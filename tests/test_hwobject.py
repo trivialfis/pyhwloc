@@ -86,6 +86,10 @@ def test_object_navigation() -> None:
         assert len(children) == root.arity
         assert len(children) > 0
 
+        for c in root.children:
+            assert c.is_normal()
+        assert root.children == children
+
         # Test sibling iteration
         if len(children) > 1:
             first_child = children[0]

@@ -21,6 +21,7 @@ pytest.importorskip("pynvml")
 import pynvml as nm
 
 from pyhwloc import nvml as hwloc_nvml
+from pyhwloc.hwobject import OsDevice
 from pyhwloc.topology import Topology, TypeFilter
 
 
@@ -30,15 +31,15 @@ def test_nvml() -> None:
         dev = hwloc_nvml.get_device(topo, 0)
 
         osdev = dev.get_osdev()
-        assert osdev is not None
-        assert osdev.is_osdev_gpu()
+        assert osdev is not None and isinstance(osdev, OsDevice)
+        assert osdev.is_gpu()
 
         nmhdl = nm.nvmlDeviceGetHandleByIndex(0)
         assert isinstance(nmhdl, ctypes._Pointer)
         dev = hwloc_nvml.get_device(topo, nmhdl)
         osdev = dev.get_osdev()
-        assert osdev is not None
-        assert osdev.is_osdev_gpu()
+        assert osdev is not None and isinstance(osdev, OsDevice)
+        assert osdev.is_gpu()
 
         assert dev.get_affinity().weight() >= 1
 

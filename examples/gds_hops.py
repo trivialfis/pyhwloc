@@ -13,8 +13,16 @@ Please see the `GDS document
 """
 
 from pyhwloc import Topology
-from pyhwloc.hwobject import GetTypeDepth, Object, ObjType
+from pyhwloc.hwobject import GetTypeDepth, Object, ObjType, OsDevice
 from pyhwloc.topology import TypeFilter
+
+
+def is_osdev_gpu(obj: Object) -> bool:
+    return isinstance(obj, OsDevice) and obj.is_gpu()
+
+
+def is_osdev_storage(obj: Object) -> bool:
+    return isinstance(obj, OsDevice) and obj.is_storage()
 
 
 def cnt_hops(gpu: Object, nvme: Object) -> tuple[int, bool]:
@@ -69,7 +77,7 @@ if __name__ == "__main__":
         gpus = []
         for obj in topo.iter_objs_by_type(ObjType.OS_DEVICE):
             # Check if it's a GPU device
-            if obj.is_osdev_gpu():
+            if is_osdev_gpu(obj):
                 assert obj.depth == GetTypeDepth.OS_DEVICE
                 assert obj.name is not None
                 if obj.name.lower().startswith("cuda"):
@@ -78,7 +86,7 @@ if __name__ == "__main__":
         # Look for NVME drives
         nvmes = []
         for obj in topo.iter_objs_by_type(ObjType.OS_DEVICE):
-            if obj.is_osdev_storage():
+            if is_osdev_storage(obj):
                 assert obj.depth == GetTypeDepth.OS_DEVICE
                 assert obj.name is not None
                 if obj.name.lower().startswith("nvme"):

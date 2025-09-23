@@ -72,8 +72,8 @@ We reuse the C document for most of the functions, which might look confusing if
 not already familiar with hwloc. On the other hand, the package is fully typed. Please use
 the type hints as part of the document.
 
-The Topology Class
-------------------
+The Topology Class and the Object Class
+---------------------------------------
 
 The hwloc API is built upon the :py:class:`~pyhwloc.topology.Topology`, through which one
 can obtain device :py:class:`~pyhwloc.hwobject.Object` and other attributes. For
@@ -95,6 +95,16 @@ The :py:class:`~pyhwloc.hwobject.Object` represents a specific software or hardw
 in the device tree. You can get its attributes using specific getters like
 :py:class:`~pyhwloc.hwobject.Object.pci_id`, or the
 :py:meth:`~pyhwloc.hwobject.Object.attr`.
+
+We have some special categories of objects, including
+:py:class:`~pyhwloc.hwobject.NumaNode`, :py:class:`~pyhwloc.hwobject.OsDevice` and
+friends. These object types have their own attributes, like the PCI bus ID for
+:py:class:`~pyhwloc.hwobject.PciDevice`. You can check whether an object is an `OsDevice`
+by using the ``isinstance``, or the predicate
+:py:meth:`~pyhwloc.hwobject.Object.is_os_device`. Iteration methods like the
+`iter_numa_nodes` shown above can return object types with the correct type
+annotation. Other methods return the generic `Object` type hint, but the underlying type
+is still valid (can be checked with ``isinstance``).
 
 
 Working with Enum Flags

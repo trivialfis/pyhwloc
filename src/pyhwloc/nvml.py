@@ -12,13 +12,16 @@ import ctypes
 import math
 import os
 import weakref
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 from .bitmap import Bitmap
 from .hwloc import nvml as _nvml
-from .hwobject import Object
+from .hwobject import OsDevice
 from .topology import Topology
-from .utils import _reuse_doc, _TopoRef
+from .utils import _reuse_doc, _TopoRefMixin
+
+if TYPE_CHECKING:
+    from .utils import _TopoRef
 
 __all__ = [
     "Device",
@@ -27,7 +30,7 @@ __all__ = [
 ]
 
 
-class Device(_TopoRef):
+class Device(_TopoRefMixin):
     """Class to represent an NVML device. This class can be created using the
     :py:func:`get_device`.
 
@@ -57,12 +60,10 @@ class Device(_TopoRef):
     def __init__(self) -> None:
         raise RuntimeError("Use `get_device` instead.")
         self._nvml_hdl: ctypes._Pointer = None
-        self._topo_ref: weakref.ReferenceType[Topology]
+        self._topo_ref: _TopoRef
 
     @classmethod
-    def from_native_handle(
-        cls, topo: weakref.ReferenceType[Topology], hdl: ctypes._Pointer
-    ) -> Device:
+    def from_native_handle(cls, topo: _TopoRef, hdl: ctypes._Pointer) -> Device:
         """Create Device from NVML handle and index.
 
         Parameters
@@ -79,7 +80,7 @@ class Device(_TopoRef):
         return dev
 
     @classmethod
-    def from_idx(cls, topo: weakref.ReferenceType[Topology], idx: int) -> Device:
+    def from_idx(cls, topo: _TopoRef, idx: int) -> Device:
         """Create Device from NVML device ordinal."""
         import pynvml as nm
 
@@ -108,10 +109,10 @@ class Device(_TopoRef):
         return bitmap
 
     @_reuse_doc(_nvml.get_device_osdev)
-    def get_osdev(self) -> Object | None:
+    def get_osdev(self) -> OsDevice | None:
         dev_obj = _nvml.get_device_osdev(self._topo.native_handle, self.native_handle)
         if dev_obj:
-            return Object(dev_obj, self._topo_ref)
+            return OsDevice(dev_obj, self._topo_ref)
         return None
 
 

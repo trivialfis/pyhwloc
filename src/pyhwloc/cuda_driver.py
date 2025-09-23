@@ -12,9 +12,9 @@ from typing import TYPE_CHECKING
 
 from .bitmap import Bitmap
 from .hwloc import cudadr as _cudadr
-from .hwobject import Object
+from .hwobject import OsDevice, PciDevice
 from .topology import Topology
-from .utils import PciId, _reuse_doc, _TopoRef
+from .utils import PciId, _reuse_doc, _TopoRefMixin
 
 __all__ = [
     "Device",
@@ -24,8 +24,10 @@ __all__ = [
 if TYPE_CHECKING:
     from cuda.bindings.driver import CUDevice
 
+    from .utils import _TopoRef
 
-class Device(_TopoRef):
+
+class Device(_TopoRefMixin):
     """Class to represent a CUDA driver device. This class can be created using the
     :py:func:`get_device`.
 
@@ -52,12 +54,10 @@ class Device(_TopoRef):
     def __init__(self) -> None:
         raise RuntimeError("Use `get_device` instead.")
         self._cu_device: CUDevice
-        self._topo_ref: weakref.ReferenceType[Topology]
+        self._topo_ref: _TopoRef
 
     @classmethod
-    def from_native_handle(
-        cls, topo: weakref.ReferenceType[Topology], device: CUDevice
-    ) -> Device:
+    def from_native_handle(cls, topo: _TopoRef, device: CUDevice) -> Device:
         """Create Device from CUDA driver device.
 
         Parameters
@@ -74,7 +74,7 @@ class Device(_TopoRef):
         return dev
 
     @classmethod
-    def from_idx(cls, topo: weakref.ReferenceType[Topology], idx: int) -> Device:
+    def from_idx(cls, topo: _TopoRef, idx: int) -> Device:
         """Create Device from the CUDA driver ordinal."""
         import cuda.bindings.driver as cuda
 
@@ -110,25 +110,25 @@ class Device(_TopoRef):
         return bitmap
 
     @_reuse_doc(_cudadr.get_device_pcidev)
-    def get_pcidev(self) -> Object | None:
+    def get_pcidev(self) -> PciDevice | None:
         import cuda.bindings.driver as cuda
 
         dev_obj = _cudadr.get_device_pcidev(
             self._topo.native_handle, cuda.CUdevice(self.native_handle)
         )
         if dev_obj:
-            return Object(dev_obj, self._topo_ref)
+            return PciDevice(dev_obj, self._topo_ref)
         return None
 
     @_reuse_doc(_cudadr.get_device_osdev)
-    def get_osdev(self) -> Object | None:
+    def get_osdev(self) -> OsDevice | None:
         import cuda.bindings.driver as cuda
 
         dev_obj = _cudadr.get_device_osdev(
             self._topo.native_handle, cuda.CUdevice(self.native_handle)
         )
         if dev_obj:
-            return Object(dev_obj, self._topo_ref)
+            return OsDevice(dev_obj, self._topo_ref)
         return None
 
 
