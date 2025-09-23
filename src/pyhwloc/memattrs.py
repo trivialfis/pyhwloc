@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "MemAttr",
-    "MemAttrsAccessor",
+    "MemAttrs",
     "MemAttrFlag",
     "LocalNumaNodeFlag",
     "MemAttrId",
@@ -308,7 +308,7 @@ class MemAttr(_TopoRefMixin):
         return self.native_handle.value == other.native_handle.value
 
 
-class MemAttrsAccessor(_TopoRefMixin):
+class MemAttrs(_TopoRefMixin):
     """Accessor for memory attributes."""
 
     def __init__(self, topo: _TopoRef) -> None:
@@ -330,7 +330,6 @@ class MemAttrsAccessor(_TopoRefMixin):
 
     @_reuse_doc(_core.memattr_register)
     def register(self, name: str, flags: _Flags[MemAttrFlag] = 0) -> MemAttr:
-        """Register a new custom memory attribute."""
         attr_id = _core.memattr_register(
             self._topo.native_handle, name, _or_flags(flags)
         )
