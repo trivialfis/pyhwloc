@@ -1488,7 +1488,7 @@ def topology_get_userdata(topology: topology_t) -> int:
 
 
 #############################
-# Modifying a loaded Topology
+# Modifying a Loaded Topology
 #############################
 
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00150.php
@@ -1535,8 +1535,8 @@ _LIB.hwloc_topology_allow.restype = ctypes.c_int
 @_cfndoc
 def topology_allow(
     topology: topology_t,
-    cpuset: hwloc_const_cpuset_t,
-    nodeset: hwloc_const_nodeset_t,
+    cpuset: hwloc_const_cpuset_t | None,
+    nodeset: hwloc_const_nodeset_t | None,
     flags: int,
 ) -> None:
     _checkc(_LIB.hwloc_topology_allow(topology, cpuset, nodeset, flags))
@@ -1551,14 +1551,19 @@ def topology_insert_misc_object(
     topology: topology_t, parent: ObjPtr, name: str
 ) -> ObjPtr | None:
     name_bytes = name.encode("utf-8")
+    # null return can be caused by error and filter, how do we know which one is the
+    # case?
+    ctypes.set_errno(0)
     obj = _LIB.hwloc_topology_insert_misc_object(topology, parent, name_bytes)
-    # fixme: null return can be caused by error and filter, how do we know which one is
-    # the case?
     if not obj:
+        err = ctypes.get_errno()
+        if err != 0:
+            _checkc(-1)
         return None
     return obj
 
 
+# fixme: we might need to create the object class hierarchy to expose these functions.
 _LIB.hwloc_topology_alloc_group_object.argtypes = [topology_t]
 _LIB.hwloc_topology_alloc_group_object.restype = obj_t
 
