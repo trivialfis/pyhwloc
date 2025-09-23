@@ -76,10 +76,10 @@ The Topology Class and the Object Class
 ---------------------------------------
 
 The hwloc API is built upon the :py:class:`~pyhwloc.topology.Topology`, through which one
-can obtain device :py:class:`~pyhwloc.hwobject.Object` and other attributes. For
-interpolation with CUDA libraries, the :py:class:`~pyhwloc.nvml.Device` can be converted
-into a :py:class:`~pyhwloc.hwobject.Object` through the topology. Following is a snippet
-for waling the topology with object nodes:
+can obtain devices represented by the :py:class:`~pyhwloc.hwobject.Object` and other
+attributes. For interpolation with CUDA libraries, the :py:class:`~pyhwloc.nvml.Device`
+can be converted into a :py:class:`~pyhwloc.hwobject.Object` through the
+topology. Following is a snippet for walking the topology with object nodes:
 
 .. code-block:: python
 
@@ -88,23 +88,50 @@ for waling the topology with object nodes:
     with pyhwloc.Topology() as topo:
         for node in topo.iter_numa_nodes():
             print(f"NUMA Node {node.logical_index}: {node}")
-            if node.total_memory > 0:
-                print(f"  Memory: {node.total_memory // (1024 * 1024)} MB")
+            print(f"  Memory: {node.total_memory // (1024 * 1024)} MB")
 
 The :py:class:`~pyhwloc.hwobject.Object` represents a specific software or hardware device
 in the device tree. You can get its attributes using specific getters like
-:py:class:`~pyhwloc.hwobject.Object.pci_id`, or the
-:py:meth:`~pyhwloc.hwobject.Object.attr`.
+:py:class:`~pyhwloc.hwobject.Object.arity`.
 
 We have some special categories of objects, including
 :py:class:`~pyhwloc.hwobject.NumaNode`, :py:class:`~pyhwloc.hwobject.OsDevice` and
-friends. These object types have their own attributes, like the PCI bus ID for
+friends. These object types have their own attributes, like the PCI bus ID of the
 :py:class:`~pyhwloc.hwobject.PciDevice`. You can check whether an object is an `OsDevice`
 by using the ``isinstance``, or the predicate
 :py:meth:`~pyhwloc.hwobject.Object.is_os_device`. Iteration methods like the
 `iter_numa_nodes` shown above can return object types with the correct type
 annotation. Other methods return the generic `Object` type hint, but the underlying type
-is still valid (can be checked with ``isinstance``).
+is still valid (can be checked with ``isinstance``). To put it concretely:
+
+- Use iterator with known type:
+
+.. code-block:: python
+
+    import pyhwloc
+    from pyhwloc.hwobject import NumaNode
+
+    with pyhwloc.from_this_system() as topo:
+        for node in topo.iter_numa_nodes():
+            assert isinstance(node, NumaNode)
+            # Local memory is specific to the NumaNode object type.
+            print(f"Local memory: {node.local_memory // (1024 * 1024)} MB")
+
+- Use runtime-defined object type:
+
+.. code-block:: python
+
+    import pyhwloc
+    from pyhwloc.hwobject import NumaNode, Object
+
+    with pyhwloc.from_this_system() as topo:
+        # We don't know what the child is.
+        for child in topo.iter_all_breadth_first():
+            if child.is_numa_node():
+                # The type is always the most specialized type.
+                assert isinstance(child, NumaNode)
+                # NumaNode is a sub-class of the Object
+                assert isinstance(child, Object)
 
 
 Working with Enum Flags

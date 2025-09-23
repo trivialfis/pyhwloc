@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, TypeAlias, Union, overload
 from .bitmap import Bitmap as _Bitmap
 from .hwloc import core as _core
 from .hwobject import Object as _Object
+from .hwobject import _object
 from .utils import _Flags, _or_flags, _reuse_doc, _TopoRefMixin
 
 if TYPE_CHECKING:
@@ -183,7 +184,7 @@ class MemAttr(_TopoRefMixin):
             ctypes.byref(initiator_loc) if initiator_loc is not None else None,
         )
 
-        return _Object(best_target, self._topo_ref), value
+        return _object(best_target, self._topo_ref), value
 
     @_reuse_doc(_core.memattr_get_best_initiator)
     def get_best_initiator(self, target_node: _Object) -> tuple[_Object | _Bitmap, int]:
@@ -194,7 +195,7 @@ class MemAttr(_TopoRefMixin):
         )
 
         if best_initiator.type == _core.LocationType.OBJECT:
-            obj = _Object(best_initiator.location.object, self._topo_ref)
+            obj = _object(best_initiator.location.object, self._topo_ref)
             return obj, value
         else:
             bitmap = _Bitmap.from_native_handle(
@@ -238,7 +239,7 @@ class MemAttr(_TopoRefMixin):
 
         result = []
         for i in range(nr.value):
-            target_obj = _Object(targets_array[i], self._topo_ref)
+            target_obj = _object(targets_array[i], self._topo_ref)
             value = int(values_array[i])
             result.append((target_obj, value))
 
@@ -280,7 +281,7 @@ class MemAttr(_TopoRefMixin):
         result: list[tuple[_Object | _Bitmap, int]] = []
         for i in range(nrlocs.value):
             if initiators_array[i].type == _core.LocationType.OBJECT:
-                initiator_obj = _Object(
+                initiator_obj = _object(
                     initiators_array[i].location.object, self._topo_ref
                 )
                 value = int(values_array[i])
@@ -373,7 +374,7 @@ class MemAttrsAccessor(_TopoRefMixin):
 
         result = []
         for i in range(nr.value):
-            node_obj = _Object(nodes_array[i], self._topo_ref)
+            node_obj = _object(nodes_array[i], self._topo_ref)
             result.append(node_obj)
 
         return result

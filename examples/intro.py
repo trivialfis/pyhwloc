@@ -14,35 +14,35 @@ import pyhwloc
 
 def main() -> int:
     # Create and load topology using context manager for automatic cleanup
-    with pyhwloc.Topology() as topology:
-        print(f"Topology depth: {topology.depth}")
+    with pyhwloc.from_this_system() as topo:
+        print(f"Topology depth: {topo.depth}")
 
         # Print basic system information
         print(
             f"""
 === System Overview ===
-CPUs: {topology.n_cpus()}
-Cores: {topology.n_cores()}
-NUMA nodes: {topology.n_numa_nodes()}
-Packages: {topology.n_packages()}
+CPUs: {topo.n_cpus()}
+Cores: {topo.n_cores()}
+NUMA nodes: {topo.n_numa_nodes()}
+Packages: {topo.n_packages()}
 """
         )
 
         # Iterate through all objects by depth
         print("=== Objects by Depth ===")
-        for depth in range(topology.depth):
+        for depth in range(topo.depth):
             print(f"Depth {depth}:")
-            for obj in topology.iter_objs_by_depth(depth):
+            for obj in topo.iter_objs_by_depth(depth):
                 print(f"  {obj}")
             print()
 
         # Work with specific object types
         print("=== CPU Information ===")
-        for cpu in topology.iter_cpus():
+        for cpu in topo.iter_cpus():
             print(f"CPU {cpu.logical_index}: {cpu}")
 
         print("=== Core Information ===")
-        for core in topology.iter_cores():
+        for core in topo.iter_cores():
             print(f"Core {core.logical_index}: {core}")
             # Print children (PUs)
             print("  PUs:")
@@ -50,16 +50,17 @@ Packages: {topology.n_packages()}
                 print(f"    {pu}")
 
         print("=== NUMA Node Information ===")
-        for node in topology.iter_numa_nodes():
+        for node in topo.iter_numa_nodes():
             print(f"NUMA Node {node.logical_index}: {node}")
-            if node.total_memory > 0:
-                print(f"  Memory: {node.total_memory // (1024 * 1024)} MB")
+            print(f"  Memory: {node.total_memory // (1024 * 1024)} MB")
+            # Local memory is specific to the NumaNode object type.
+            print(f"  Local memory: {node.local_memory // (1024 * 1024)} MB")
 
         # Demonstrate object navigation
         print()
         print("=== Object Navigation ===")
         # Get first CPU and navigate the topology
-        first_cpu = next(topology.iter_cpus(), None)
+        first_cpu = next(topo.iter_cpus(), None)
         if first_cpu:
             print(f"First CPU: {first_cpu}")
 
@@ -71,7 +72,7 @@ Packages: {topology.n_packages()}
 
             print()
             # Explore first core's children
-            first_core = next(topology.iter_cores(), None)
+            first_core = next(topo.iter_cores(), None)
             if first_core:
                 print(f"First core: {first_core}")
                 print("Children:")
@@ -85,7 +86,7 @@ Packages: {topology.n_packages()}
         # Object comparison and attributes
         print()
         print("=== Object Attributes ===")
-        root = topology.get_obj_by_depth(0, 0)  # Root object
+        root = topo.get_obj_by_depth(0, 0)  # Root object
         assert root is not None
         print(f"Root object: {root}")
         print(f"Type: {root.type}")
