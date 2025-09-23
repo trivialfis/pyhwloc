@@ -1,0 +1,34 @@
+name: pyhwloc wheel
+
+on: [push]
+
+permissions:
+  contents: read  # to fetch code (actions/checkout)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Build-Linux-x86-Wheel:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+    container:
+      image: quay.io/pypa/manylinux_2_28_x86_64
+
+    steps:
+    - name: Build binary wheel
+      shell: bash -l {0}
+      run: |
+        ./dev/build_wheel.sh
+
+    - name: Upload binary wheel
+      uses: actions/upload-artifact@v4
+      with:
+        name: Linux-x86_64-wheel
+        path: dist/pyhwloc-*.whl
+        if-no-files-found: error
+        retention-days: 7
