@@ -20,8 +20,44 @@ type. Users can use it to reach to the :doc:`low-level </low_level>` interface.
 .. automodule:: pyhwloc.topology
   :members:
 
+
 .. automodule:: pyhwloc.hwobject
+
+.. autoclass:: pyhwloc.hwobject.ObjType
+.. autoclass:: pyhwloc.hwobject.ObjOsdevType
+.. autoclass:: pyhwloc.hwobject.ObjBridgeType
+.. autoclass:: pyhwloc.hwobject.ObjSnprintfFlag
+.. autoclass:: pyhwloc.hwobject.GetTypeDepth
+.. autoclass:: pyhwloc.hwobject.ObjTypeCmp
+
+.. autofunction:: compare_types
+
+.. autoclass:: pyhwloc.hwobject.Object
   :members:
+
+.. autoclass:: pyhwloc.hwobject.NumaNode
+  :members:
+  :inherited-members:
+
+.. autoclass:: pyhwloc.hwobject.Cache
+  :members:
+  :inherited-members:
+
+.. autoclass:: pyhwloc.hwobject.Group
+  :members:
+  :inherited-members:
+
+.. autoclass:: pyhwloc.hwobject.PciDevice
+  :members:
+  :inherited-members:
+
+.. autoclass:: pyhwloc.hwobject.Bridge
+  :members:
+  :inherited-members:
+
+.. autoclass:: pyhwloc.hwobject.OsDevice
+  :members:
+  :inherited-members:
 
 .. automodule:: pyhwloc.distances
   :members:

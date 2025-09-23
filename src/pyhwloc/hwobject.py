@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import ctypes
 from copy import copy
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import TYPE_CHECKING, Iterator, Protocol, TypeAlias, cast
 
@@ -56,46 +57,57 @@ class _HasAttr(Protocol):
 class _PciDevAttr(_HasAttr):
     @property
     def func(self) -> int:
+        """Function number (t    in the PCI BDF notation xxxx:yy:zz.t)."""
         return self.attr.func
 
     @property
     def vendor_id(self) -> int:
+        """Vendor ID (xxxx in [xxxx:yyyy])."""
         return self.attr.vendor_id
 
     @property
     def device_id(self) -> int:
+        """Device ID (yyyy in [xxxx:yyyy])."""
         return self.attr.device_id
 
     @property
     def subvendor_id(self) -> int:
+        """Sub-Vendor ID."""
         return self.attr.subvendor_id
 
     @property
     def subdevice_id(self) -> int:
+        """Sub-Device ID."""
         return self.attr.subdevice_id
 
     @property
     def revision(self) -> int:
+        """Revision number."""
         return self.attr.revision
 
     @property
     def prog_if(self) -> int:
+        """Register-level programming interface number (3rd byte of the class)."""
         return self.attr.prog_if
 
     @property
     def linkspeed(self) -> float:
+        """Link speed in GB/s."""
         return self.attr.linkspeed
 
     @property
     def base_class(self) -> int:
+        """The base class number"""
         return self.attr.base_class
 
     @property
     def subclass(self) -> int:
+        """The sub-class number"""
         return self.attr.subclass
 
     @property
     def pci_id(self) -> PciId:
+        """Domain, bus, dev."""
         return PciId(self.attr.domain, self.attr.bus, self.attr.dev)
 
 
@@ -105,6 +117,7 @@ class PciDevAttr(_PciDevAttr):
 
     @property
     def attr(self) -> _core.hwloc_pcidev_attr_s:
+        """Get PCI device attributes."""
         return self._attr
 
 
@@ -561,17 +574,30 @@ class NumaNode(Object):
 
     @property
     def attr(self) -> _core.hwloc_numanode_attr_s:
+        """Return numa node attributes."""
         return cast(_core.hwloc_numanode_attr_s, super().attr)
 
     @property
     def local_memory(self) -> int:
+        """Local memory (in bytes)."""
         return self.attr.local_memory
 
+    @dataclass
+    class PageType:
+        size: int
+        count: int
+
     @property
-    def page_types(self) -> list[int]:
+    def page_types(self) -> list[PageType]:
+        """List of local memory page types."""
         prop = []
         for i in range(self.attr.page_types_len):
-            prop.append(self.attr.page_types[i])
+            prop.append(
+                self.PageType(
+                    size=self.attr.page_types[i].size,
+                    count=self.attr.page_types[i].count,
+                )
+            )
         return prop
 
 
@@ -580,26 +606,32 @@ class Cache(Object):
 
     @property
     def attr(self) -> _core.hwloc_cache_attr_s:
+        """Return cache attributes."""
         return cast(_core.hwloc_cache_attr_s, super().attr)
 
     @property
     def size(self) -> int:
+        """Size of cache in bytes."""
         return self.attr.size
 
     @property
     def cache_depth(self) -> int:
+        """Depth of cache (e.g., L1, L2, ...etc.)."""
         return self.attr.depth
 
     @property
     def linesize(self) -> int:
+        """Cache-line size in bytes. 0 if unknown."""
         return self.attr.linesize
 
     @property
     def associativity(self) -> int:
+        """Ways of associativity, -1 if fully associative, 0 if unknown."""
         return self.attr.associativity
 
     @property
     def cache_type(self) -> int:
+        """Cache type."""
         return _core.ObjCacheType(self.attr.type)
 
 
@@ -608,6 +640,7 @@ class Group(Object):
 
     @property
     def attr(self) -> _core.hwloc_group_attr_s:
+        """Return group attributes."""
         return cast(_core.hwloc_group_attr_s, super().attr)
 
     @property
@@ -625,6 +658,7 @@ class PciDevice(Object, _PciDevAttr):
 
     @property
     def attr(self) -> _core.hwloc_pcidev_attr_s:
+        """Return PCI device attributes."""
         return cast(_core.hwloc_pcidev_attr_s, super().attr)
 
 
@@ -633,6 +667,7 @@ class Bridge(Object):
 
     @property
     def attr(self) -> _core.hwloc_bridge_attr_s:
+        """Return bridge attributes."""
         return cast(_core.hwloc_bridge_attr_s, super().attr)
 
     @property
@@ -654,6 +689,11 @@ class Bridge(Object):
 class OsDevice(Object):
     """:py:class:`Object` with type == `OS_DEVICE`."""
 
+    @property
+    def attr(self) -> _core.hwloc_osdev_attr_s:
+        """Return OS device attributes."""
+        return cast(_core.hwloc_osdev_attr_s, super().attr)
+
     def is_osdev_type(self, typ: int) -> bool:
         if not self.is_os_device():
             return False
@@ -665,12 +705,15 @@ class OsDevice(Object):
         return bool(osdev_types & typ)
 
     def is_gpu(self) -> bool:
+        """Types include the `ObjOsdevType.GPU`."""
         return self.is_osdev_type(ObjOsdevType.GPU)
 
     def is_coproc(self) -> bool:
+        """Types include the `ObjOsdevType.COPROC`."""
         return self.is_osdev_type(ObjOsdevType.COPROC)
 
     def is_storage(self) -> bool:
+        """Types include the `ObjOsdevType.STORAGE`."""
         return self.is_osdev_type(ObjOsdevType.STORAGE)
 
 
