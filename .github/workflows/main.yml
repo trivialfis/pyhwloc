@@ -171,12 +171,7 @@ jobs:
     - name: Install pyhwloc with custom hwloc
       shell: pwsh
       run: |
-        git clone https://github.com/trivialfis/hwloc.git
-        cd hwloc
-        git checkout win-shared-lib-update
-        cd ..
-
-        pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=fetch-hwloc=True --config-settings=hwloc-src-dir="$(PWD)\hwloc"
+        pip wheel -v . --no-build-isolation --no-deps --wheel-dir dist --config-settings=fetch-hwloc=True
         pip install .\dist\pyhwloc-0.0.0.dev0-py3-none-win_amd64.whl
 
         python -c "from pyhwloc import Topology"
@@ -203,14 +198,14 @@ jobs:
     - name: Install hwloc
       shell: pwsh
       run: |
-        git clone https://github.com/trivialfis/hwloc.git
+        git clone https://github.com/open-mpi/hwloc.git
         cd hwloc
-        git checkout win-shared-lib-update
+        git checkout a2447ff929e10242e996b4bd50137226e01520cf
 
         cd contrib/windows-cmake
         mkdir build
         cd build
-        cmake .. "-GVisual Studio 17 2022" -DHWLOC_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$Env:CONDA_PREFIX"
+        cmake .. "-GVisual Studio 17 2022" -DBUILD_SHARED_LIBS=ON -DHWLOC_ENABLE_PLUGINS=ON -DCMAKE_INSTALL_PREFIX="$Env:CONDA_PREFIX"
         cmake --build . --config Release --parallel "$((Get-WmiObject Win32_Processor).NumberOfLogicalProcessors)"
         cmake --install . --config Release
 

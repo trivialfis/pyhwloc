@@ -26,15 +26,12 @@ Windows
 -------
 
 Following are some notes about the working-in-progress support for building pyhwloc and
-hwloc from source on Windows using CMake. Firstly, hwloc doesn't support building the
-dynamically linked library with CMake yet. We have to `patch
-<https://github.com/open-mpi/hwloc/pull/738>`__ hwloc for using the ``SHARED`` CMake
-keyword. Then we can run the following to build both libraries:
+hwloc from source on Windows using CMake. First, we need to build hwloc from source:
 
 .. code-block:: powershell
 
   cd hwloc\contrib\windows-cmake\
-  cmake -GNinja -DCMAKE_INSTALL_PREFIX=$Env:CONDA_PREFIX  -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DHWLOC_BUILD_SHARED_LIBS=ON ..
+  cmake -GNinja -DHWLOC_ENABLE_PLUGINS=ON -DCMAKE_INSTALL_PREFIX="$Env:CONDA_PREFIX" -DCMAKE_BUILD_TYPE=RelWithDebInfo  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_SHARED_LIBS=ON ..
   ninja
   ninja install
 
