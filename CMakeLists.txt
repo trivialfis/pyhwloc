@@ -26,7 +26,7 @@ if(PYHWLOC_FETCH_HWLOC)
   FetchContent_Declare(
     hwloc
     GIT_REPOSITORY https://github.com/open-mpi/hwloc.git
-    GIT_TAG        1098578d77d9cec7b8154479ecb7aa9f7d483950
+    GIT_TAG        a2447ff929e10242e996b4bd50137226e01520cf
   )
 
   # Configure hwloc build options
@@ -40,8 +40,9 @@ if(PYHWLOC_FETCH_HWLOC)
         -B ${hwloc_BINARY_DIR}
         -G ${CMAKE_GENERATOR}
         -DCMAKE_INSTALL_PREFIX=${PYHWLOC_OUTPUT_DIR}
-        -DHWLOC_BUILD_SHARED_LIBS=ON
+	-DBUILD_SHARED_LIBS=ON
         -DHWLOC_WITH_CUDA=ON
+	-DHWLOC_ENABLE_PLUGINS=ON
         WORKING_DIRECTORY ${hwloc_SOURCE_DIR}
       )
     else()
