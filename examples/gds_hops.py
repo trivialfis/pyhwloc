@@ -65,20 +65,18 @@ def cnt_hops(gpu: Object, nvme: Object) -> tuple[int, bool]:
     gpu_path = []
     for k in range(i - 1, len(gpu_ancestors)):
         gpu_path.append(str(gpu_ancestors[k]))
-    print("- GPU path:", " -> ".join(list(reversed(gpu_path))))
+    print("- GPU path:", " -> ".join(gpu_path[::-1]))
     nvme_path = []
 
     for k in range(j - 1, len(nvme_ancestors)):
         nvme_path.append(str(nvme_ancestors[k]))
-    print("- NVME path:", " -> ".join(list(reversed(nvme_path))))
+    print("- NVME path:", " -> ".join(nvme_path[::-1]))
     print()
 
     # +1 for the common ancestor. -1 for removing the PCI device. OS device is a
     # software device, which is "attached" to the PCI device. But they are the same
     # thing.
     n_hops = (len(gpu_ancestors) - i - 1) + (len(nvme_ancestors) - j - 1) + 1
-    # if n_hops == 0:
-    #     n_hops = len(gpu_ancestors) + len(nvme_ancestors) - 1
     return n_hops, crossed
 
 
