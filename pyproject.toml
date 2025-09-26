@@ -1,9 +1,8 @@
 [build-system]
 requires = [
-    "hatchling>=1.13",
+    "hatchling",
     "packaging"
 ]
-# build-backend = "hatchling.build"
 backend-path = ["."]
 build-backend="hatch_build.backend"
 
