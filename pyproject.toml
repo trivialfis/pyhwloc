@@ -4,7 +4,7 @@ requires = [
     "packaging"
 ]
 backend-path = ["."]
-build-backend="hatch_build.backend"
+build-backend="hatch.backend"
 
 [project]
 name = "pyhwloc"
@@ -43,7 +43,7 @@ path = "src/pyhwloc/hwloc/__init__.py"
 "src/pyhwloc/_lib" = "pyhwloc/_lib"
 
 [tool.hatch.build.targets.wheel.hooks.custom]
-path = "hatch_build/hook.py"
+path = "hatch/hook.py"
 
 [tool.mypy]
 ignore_missing_imports = true
