@@ -25,8 +25,9 @@ wheel. The following sections go through them.
 Windows
 -------
 
-Following are some notes about the working-in-progress support for building pyhwloc and
-hwloc from source on Windows using CMake. First, we need to build hwloc from source:
+Following are some notes about building pyhwloc and hwloc from source on Windows using
+CMake. We don't support the mingw environment for Windows. First, we need to build hwloc
+from source:
 
 .. code-block:: powershell
 
@@ -56,8 +57,9 @@ Linux
 To use a pre-built hwloc in the system or a virtual environment (conda):
 
 - Create a conda environment that's similar to the CI build.
-- Build hwloc from source, install it into the conda environment (``CONDA_PREFIX``). We
-  have example scripts used in the CI. Then proceed to create the wheel:
+- Build hwloc from source with its autotools-based build, install it into the conda
+  environment (``CONDA_PREFIX``). We have example scripts used in the CI. Then we can
+  proceed to create the pyhwloc wheel:
 
   + Binary wheel
 
@@ -92,7 +94,7 @@ The bundling approach is mainly for the PyPI package. We don't recommend the PyP
 for complex use cases aside from exploratory usage, since bundling a custom hwloc might
 create symbol conflicts between different versions of hwloc in the environment.
 
-A complete list of options available with the ``--config-settings=``:
+A complete list of options available for the ``--config-settings=``:
 
 - ``build-dir=/path/to/build/dir`` for specifying a build dir.
 - ``hwloc-src-dir=/path/to/hwloc-src`` for using a local checkout of hwloc. This assumes
@@ -100,9 +102,10 @@ A complete list of options available with the ``--config-settings=``:
 - ``hwloc-root-dir=/path/to/hwloc`` to specify the path of an existing hwloc installation.
 - ``fetch-hwloc=True`` to build the fat wheel.
 
-The binary wheel for Linux uses plugins by default. However, plugins for Windows is not
-yet supported. Due to the plugins support, all symbols from hwloc are loaded into the
-public name space using :py:data:`ctypes.RTLD_GLOBAL`.
+The binary wheel uses plugins by default. Due to the plugins support, all symbols from
+hwloc are loaded into the linker's public name space using
+:py:data:`ctypes.RTLD_GLOBAL`. For the Windows build, please make sure the CUDA runtime
+and driver libraries are in the ``PATH`` when you import pyhwloc.
 
 Building the Document
 =====================
