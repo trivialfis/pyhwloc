@@ -167,7 +167,7 @@ else:
 
 
 @_cstructdoc("hwloc_memory_page_type_s", parent="hwloc_obj_attr_u")
-class hwloc_memory_page_type_s(_PrintableStruct):
+class MemoryPageType(_PrintableStruct):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of pages
         ("count", hwloc_uint64_t),  # Number of pages of this size
@@ -175,19 +175,19 @@ class hwloc_memory_page_type_s(_PrintableStruct):
 
 
 @_cstructdoc("hwloc_numanode_attr_s", parent="hwloc_obj_attr_u")
-class hwloc_numanode_attr_s(_PrintableStruct):
+class NumanodeAttr(_PrintableStruct):
     _fields_ = [
         ("local_memory", hwloc_uint64_t),  # Local memory (in bytes)
         ("page_types_len", ctypes.c_uint),  # Size of array page_types
         (
             "page_types",
-            ctypes.POINTER(hwloc_memory_page_type_s),
+            ctypes.POINTER(MemoryPageType),
         ),  # Array of local memory page types
     ]
 
 
 @_cstructdoc("hwloc_cache_attr_s", parent="hwloc_obj_attr_u")
-class hwloc_cache_attr_s(_PrintableStruct):
+class CacheAttr(_PrintableStruct):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of cache in bytes
         ("depth", ctypes.c_uint),  # Depth of cache (e.g., L1, L2, ...etc.)
@@ -201,7 +201,7 @@ class hwloc_cache_attr_s(_PrintableStruct):
 
 
 @_cstructdoc("hwloc_group_attr_s", parent="hwloc_obj_attr_u")
-class hwloc_group_attr_s(_PrintableStruct):
+class GroupAttr(_PrintableStruct):
     _fields_ = [
         ("depth", ctypes.c_uint),  # Depth of group object
         ("kind", ctypes.c_uint),  # Internally-used kind of group
@@ -217,7 +217,7 @@ class hwloc_group_attr_s(_PrintableStruct):
 
 
 @_cstructdoc("hwloc_pcidev_attr_s", parent="hwloc_obj_attr_u")
-class hwloc_pcidev_attr_s(_PrintableStruct):
+class PcidevAttr(_PrintableStruct):
     _fields_ = [
         (
             "domain",
@@ -258,7 +258,7 @@ class hwloc_bridge_upstream_u(ctypes.Union):
     _fields_ = [
         (
             "pci",
-            hwloc_pcidev_attr_s,
+            PcidevAttr,
         ),  # PCI attribute of the upstream part as a PCI device
     ]
 
@@ -266,7 +266,7 @@ class hwloc_bridge_upstream_u(ctypes.Union):
 @_cstructdoc(
     "hwloc_bridge_downstream_pci_s", parent="hwloc_obj_attr_u.hwloc_bridge_downstream_u"
 )
-class hwloc_bridge_downstream_pci_s(_PrintableStruct):
+class BridgeDownstreamPci(_PrintableStruct):
     _fields_ = [
         ("domain", ctypes.c_uint),  # Domain number the downstream PCI buses
         ("secondary_bus", ctypes.c_ubyte),  # First PCI bus number below the bridge
@@ -277,12 +277,12 @@ class hwloc_bridge_downstream_pci_s(_PrintableStruct):
 @_cuniondoc("hwloc_obj_attr_u")
 class hwloc_bridge_downstream_u(ctypes.Union):
     _fields_ = [
-        ("pci", hwloc_bridge_downstream_pci_s),
+        ("pci", BridgeDownstreamPci),
     ]
 
 
 @_cstructdoc("hwloc_bridge_attr_s", parent="hwloc_obj_attr_u")
-class hwloc_bridge_attr_s(_PrintableStruct):
+class BridgeAttr(_PrintableStruct):
     _fields_ = [
         ("upstream", hwloc_bridge_upstream_u),
         (
@@ -316,11 +316,11 @@ class OsdevAttr(_PrintableStruct):
 @_cuniondoc()
 class hwloc_obj_attr_u(ctypes.Union):
     _fields_ = [
-        ("numanode", hwloc_numanode_attr_s),  # NUMA node-specific Object Attributes
-        ("cache", hwloc_cache_attr_s),  # Cache-specific Object Attributes
-        ("group", hwloc_group_attr_s),  # Group-specific Object Attributes
-        ("pcidev", hwloc_pcidev_attr_s),  # PCI Device specific Object Attributes
-        ("bridge", hwloc_bridge_attr_s),  # Bridge specific Object Attributes
+        ("numanode", NumanodeAttr),  # NUMA node-specific Object Attributes
+        ("cache", CacheAttr),  # Cache-specific Object Attributes
+        ("group", GroupAttr),  # Group-specific Object Attributes
+        ("pcidev", PcidevAttr),  # PCI Device specific Object Attributes
+        ("bridge", BridgeAttr),  # Bridge specific Object Attributes
         ("osdev", OsdevAttr),  # OS Device specific Object Attributes
     ]
 

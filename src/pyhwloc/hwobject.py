@@ -51,7 +51,7 @@ GetTypeDepth: TypeAlias = _core.GetTypeDepth
 
 class _HasAttr(Protocol):
     @property
-    def attr(self) -> _core.hwloc_pcidev_attr_s: ...
+    def attr(self) -> _core.PcidevAttr: ...
 
 
 class _PciDevAttr(_HasAttr):
@@ -112,11 +112,11 @@ class _PciDevAttr(_HasAttr):
 
 
 class PciDevAttr(_PciDevAttr):
-    def __init__(self, attr: _core.hwloc_pcidev_attr_s) -> None:
+    def __init__(self, attr: _core.PcidevAttr) -> None:
         self._attr = attr
 
     @property
-    def attr(self) -> _core.hwloc_pcidev_attr_s:
+    def attr(self) -> _core.PcidevAttr:
         """Get PCI device attributes."""
         return self._attr
 
@@ -458,7 +458,7 @@ class Object(_TopoRefMixin):
                 f"Invalid object type. Expecting PCI device, got {self.type}"
             )
         attr = self.attr
-        assert attr is not None and isinstance(attr, _core.hwloc_pcidev_attr_s)
+        assert attr is not None and isinstance(attr, _core.PcidevAttr)
         return PciId(attr.domain, attr.bus, attr.dev)
 
     def iter_children(self) -> Iterator[Object]:
@@ -586,9 +586,9 @@ class NumaNode(Object):
     """NUMA node object."""
 
     @property
-    def attr(self) -> _core.hwloc_numanode_attr_s:
+    def attr(self) -> _core.NumanodeAttr:
         """Return numa node attributes."""
-        return cast(_core.hwloc_numanode_attr_s, super().attr)
+        return cast(_core.NumanodeAttr, super().attr)
 
     @property
     def local_memory(self) -> int:
@@ -618,9 +618,9 @@ class Cache(Object):
     """Cache :py:class:`Object`."""
 
     @property
-    def attr(self) -> _core.hwloc_cache_attr_s:
+    def attr(self) -> _core.CacheAttr:
         """Return cache attributes."""
-        return cast(_core.hwloc_cache_attr_s, super().attr)
+        return cast(_core.CacheAttr, super().attr)
 
     @property
     def size(self) -> int:
@@ -652,9 +652,9 @@ class Group(Object):
     """:py:class:`Object` with type == `GROUP`."""
 
     @property
-    def attr(self) -> _core.hwloc_group_attr_s:
+    def attr(self) -> _core.GroupAttr:
         """Return group attributes."""
-        return cast(_core.hwloc_group_attr_s, super().attr)
+        return cast(_core.GroupAttr, super().attr)
 
     @property
     def group_depth(self) -> int:
@@ -671,18 +671,18 @@ class PciDevice(Object, _PciDevAttr):
         super().__init__(hdl, topology)
 
     @property
-    def attr(self) -> _core.hwloc_pcidev_attr_s:
+    def attr(self) -> _core.PcidevAttr:
         """Return PCI device attributes."""
-        return cast(_core.hwloc_pcidev_attr_s, super().attr)
+        return cast(_core.PcidevAttr, super().attr)
 
 
 class Bridge(Object):
     """:py:class:`Object` with type == `BRIDGE`."""
 
     @property
-    def attr(self) -> _core.hwloc_bridge_attr_s:
+    def attr(self) -> _core.BridgeAttr:
         """Return bridge attributes."""
-        return cast(_core.hwloc_bridge_attr_s, super().attr)
+        return cast(_core.BridgeAttr, super().attr)
 
     @property
     def upstream_pci(self) -> PciDevAttr:
@@ -695,7 +695,7 @@ class Bridge(Object):
         return self.attr.upstream_type
 
     @property
-    def downstream_pci(self) -> _core.hwloc_bridge_downstream_pci_s:
+    def downstream_pci(self) -> _core.BridgeDownstreamPci:
         """PCI attribute of the downstream part as a PCI device."""
         return self.attr.downstream.pci
 
