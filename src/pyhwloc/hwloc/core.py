@@ -3065,7 +3065,7 @@ class hwloc_location_u(ctypes.Union):
 
 
 @_cstructdoc("hwloc_location")
-class hwloc_location(_PrintableStruct):
+class Location(_PrintableStruct):
     _fields_ = [
         ("type", ctypes.c_int),  # hwloc_location_type_e
         ("location", hwloc_location_u),
@@ -3073,7 +3073,7 @@ class hwloc_location(_PrintableStruct):
 
 
 if TYPE_CHECKING:
-    LocationPtr = ctypes._Pointer[hwloc_location] | ctypes._CArgObject
+    LocationPtr = ctypes._Pointer[Location] | ctypes._CArgObject
 else:
     LocationPtr = ctypes._Pointer
 
@@ -3098,7 +3098,7 @@ def memattr_get_by_name(
 
 _LIB.hwloc_get_local_numanode_objs.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.POINTER(ctypes.c_uint),
     ctypes.POINTER(obj_t),
     ctypes.c_ulong,
@@ -3136,7 +3136,7 @@ _LIB.hwloc_memattr_get_value.argtypes = [
     topology_t,
     hwloc_memattr_id_t,
     obj_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.c_ulong,
     ctypes.POINTER(hwloc_uint64_t),
 ]
@@ -3163,7 +3163,7 @@ def memattr_get_value(
 _LIB.hwloc_memattr_get_best_target.argtypes = [
     topology_t,
     hwloc_memattr_id_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.c_ulong,
     ctypes.POINTER(obj_t),
     ctypes.POINTER(hwloc_uint64_t),
@@ -3199,7 +3199,7 @@ _LIB.hwloc_memattr_get_best_initiator.argtypes = [
     hwloc_memattr_id_t,
     obj_t,
     ctypes.c_ulong,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.POINTER(hwloc_uint64_t),
 ]
 _LIB.hwloc_memattr_get_best_initiator.restype = ctypes.c_int
@@ -3210,8 +3210,8 @@ def memattr_get_best_initiator(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
     target_node: ObjPtr,
-) -> tuple[hwloc_location, int]:
-    best_initiator = hwloc_location()
+) -> tuple[Location, int]:
+    best_initiator = Location()
     value = hwloc_uint64_t()
     # flags must be 0 for now.
     flags = 0
@@ -3231,7 +3231,7 @@ def memattr_get_best_initiator(
 _LIB.hwloc_memattr_get_targets.argtypes = [
     topology_t,
     hwloc_memattr_id_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.c_ulong,
     ctypes.POINTER(ctypes.c_uint),
     ctypes.POINTER(obj_t),
@@ -3264,7 +3264,7 @@ _LIB.hwloc_memattr_get_initiators.argtypes = [
     obj_t,
     ctypes.c_ulong,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.POINTER(hwloc_uint64_t),
 ]
 _LIB.hwloc_memattr_get_initiators.restype = ctypes.c_int
@@ -3367,7 +3367,7 @@ _LIB.hwloc_memattr_set_value.argtypes = [
     topology_t,
     hwloc_memattr_id_t,
     obj_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.c_ulong,
     hwloc_uint64_t,
 ]

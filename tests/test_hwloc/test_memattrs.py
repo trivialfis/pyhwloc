@@ -10,7 +10,7 @@ from pyhwloc.hwloc.core import (
     MemAttrId,
     ObjType,
     get_obj_by_type,
-    hwloc_location,
+    Location,
     hwloc_location_u,
     hwloc_memattr_id_t,
     memattr_get_flags,
@@ -63,7 +63,7 @@ def test_memattr_register_and_set_value() -> None:
     cpu_obj = get_obj_by_type(topo.hdl, ObjType.PU, 0)
     assert cpu_obj
     # Create location structure for the initiator
-    initiator = hwloc_location()
+    initiator = Location()
     initiator.type = LocationType.OBJECT
     initiator.location = hwloc_location_u()
     initiator.location.object = cpu_obj
