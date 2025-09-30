@@ -815,7 +815,7 @@ class Topology:
             None,
             _or_flags(kind),
         )
-        distances_ptr_ptr = (ctypes.POINTER(_core.hwloc_distances_s) * nr.value)()
+        distances_ptr_ptr = (ctypes.POINTER(_core.Distances) * nr.value)()
         if nr.value == 0:
             return result
 

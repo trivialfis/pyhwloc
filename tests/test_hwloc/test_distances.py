@@ -11,6 +11,7 @@ import ctypes
 from functools import partial
 
 from pyhwloc.hwloc.core import (
+    Distances,
     DistancesAddFlag,
     DistancesKind,
     Obj,
@@ -24,7 +25,6 @@ from pyhwloc.hwloc.core import (
     distances_obj_pair_values,
     distances_release_remove,
     get_obj_by_type,
-    hwloc_distances_s,
     hwloc_uint64_t,
     topology_destroy,
     topology_get_depth,
@@ -51,7 +51,7 @@ def test_distances_comprehensive() -> None:
     topology_load(topo)
 
     # Arrays for objects and distance values
-    distances = ctypes.POINTER(hwloc_distances_s)()
+    distances = ctypes.POINTER(Distances)()
     objs = (ctypes.POINTER(Obj) * n_nodes)()
     values = (hwloc_uint64_t * (n_nodes**2))()
 

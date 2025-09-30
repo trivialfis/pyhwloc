@@ -2685,7 +2685,7 @@ class DistancesTransform(IntEnum):
 
 
 @_cstructdoc("hwloc_distances_s")
-class hwloc_distances_s(_PrintableStruct):
+class Distances(_PrintableStruct):
     _fields_ = [
         ("nbobjs", ctypes.c_uint),
         ("objs", ctypes.POINTER(obj_t)),
@@ -2697,7 +2697,7 @@ class hwloc_distances_s(_PrintableStruct):
 _LIB.hwloc_distances_get.argtypes = [
     topology_t,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(ctypes.POINTER(hwloc_distances_s)),
+    ctypes.POINTER(ctypes.POINTER(Distances)),
     ctypes.c_ulong,
     ctypes.c_ulong,
 ]
@@ -2705,11 +2705,11 @@ _LIB.hwloc_distances_get.restype = ctypes.c_int
 
 
 if TYPE_CHECKING:
-    DistancesPtr = ctypes._Pointer[hwloc_distances_s]
+    DistancesPtr = ctypes._Pointer[Distances]
     DistancesPtrPtr = (
-        ctypes._Pointer[ctypes._Pointer[hwloc_distances_s]]
+        ctypes._Pointer[ctypes._Pointer[Distances]]
         | ctypes._CArgObject
-        | ctypes.Array[ctypes._Pointer[hwloc_distances_s]]
+        | ctypes.Array[ctypes._Pointer[Distances]]
         | None
     )
     UintPtr = ctypes._Pointer[ctypes.c_uint] | ctypes._CArgObject
@@ -2734,7 +2734,7 @@ _LIB.hwloc_distances_get_by_depth.argtypes = [
     topology_t,
     ctypes.c_int,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(ctypes.POINTER(hwloc_distances_s)),
+    ctypes.POINTER(ctypes.POINTER(Distances)),
     ctypes.c_ulong,
     ctypes.c_ulong,
 ]
@@ -2759,7 +2759,7 @@ _LIB.hwloc_distances_get_by_type.argtypes = [
     topology_t,
     ctypes.c_int,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(ctypes.POINTER(hwloc_distances_s)),
+    ctypes.POINTER(ctypes.POINTER(Distances)),
     ctypes.c_ulong,
     ctypes.c_ulong,
 ]
@@ -2784,7 +2784,7 @@ _LIB.hwloc_distances_get_by_name.argtypes = [
     topology_t,
     ctypes.c_char_p,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(ctypes.POINTER(hwloc_distances_s)),
+    ctypes.POINTER(ctypes.POINTER(Distances)),
     ctypes.c_ulong,
 ]
 _LIB.hwloc_distances_get_by_name.restype = ctypes.c_int
@@ -2803,7 +2803,7 @@ def distances_get_by_name(
 
 _LIB.hwloc_distances_get_name.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
 ]
 _LIB.hwloc_distances_get_name.restype = ctypes.c_char_p
 
@@ -2818,7 +2818,7 @@ def distances_get_name(topology: topology_t, distances: DistancesPtr) -> str | N
 
 _LIB.hwloc_distances_release.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
 ]
 _LIB.hwloc_distances_release.restype = None
 
@@ -2830,7 +2830,7 @@ def distances_release(topology: topology_t, distances: DistancesPtr) -> None:
 
 _LIB.hwloc_distances_transform.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
     ctypes.c_int,  # DistancesTransform
     ctypes.c_void_p,
     ctypes.c_ulong,
@@ -2860,7 +2860,7 @@ def distances_transform(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00165.php
 
 _pyhwloc_lib.pyhwloc_distances_obj_index.argtypes = [
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
     obj_t,
 ]
 _pyhwloc_lib.pyhwloc_distances_obj_index.restype = ctypes.c_int
@@ -2873,7 +2873,7 @@ def distances_obj_index(distances: DistancesPtr, obj: ObjPtr) -> int:
 
 
 _pyhwloc_lib.pyhwloc_distances_obj_pair_values.argtypes = [
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
     obj_t,
     obj_t,
     ctypes.POINTER(hwloc_uint64_t),
@@ -3011,7 +3011,7 @@ def distances_remove_by_type(topology: topology_t, obj_type: ObjType) -> None:
 
 _LIB.hwloc_distances_release_remove.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
 ]
 _LIB.hwloc_distances_release_remove.restype = ctypes.c_int
 
