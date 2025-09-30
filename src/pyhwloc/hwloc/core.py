@@ -326,11 +326,14 @@ class ObjAttr(ctypes.Union):
 
 
 @_cstructdoc("hwloc_obj")
-class hwloc_obj(_PrintableStruct):
+class Obj(_PrintableStruct):
     pass
 
 
-hwloc_obj._fields_ = [
+obj_t = ctypes.POINTER(Obj)
+
+
+Obj._fields_ = [
     ("type", ctypes.c_int),  # hwloc_obj_type_t
     ("subtype", ctypes.c_char_p),
     ("os_index", ctypes.c_uint),
@@ -339,23 +342,23 @@ hwloc_obj._fields_ = [
     ("attr", ctypes.POINTER(ObjAttr)),
     ("depth", ctypes.c_int),
     ("logical_index", ctypes.c_uint),
-    ("next_cousin", ctypes.POINTER(hwloc_obj)),
-    ("prev_cousin", ctypes.POINTER(hwloc_obj)),
-    ("parent", ctypes.POINTER(hwloc_obj)),
+    ("next_cousin", obj_t),
+    ("prev_cousin", obj_t),
+    ("parent", obj_t),
     ("sibling_rank", ctypes.c_uint),
-    ("next_sibling", ctypes.POINTER(hwloc_obj)),
-    ("prev_sibling", ctypes.POINTER(hwloc_obj)),
+    ("next_sibling", obj_t),
+    ("prev_sibling", obj_t),
     ("arity", ctypes.c_uint),
-    ("children", ctypes.POINTER(ctypes.POINTER(hwloc_obj))),
-    ("first_child", ctypes.POINTER(hwloc_obj)),
-    ("last_child", ctypes.POINTER(hwloc_obj)),
+    ("children", ctypes.POINTER(ctypes.POINTER(Obj))),
+    ("first_child", obj_t),
+    ("last_child", obj_t),
     ("symmetric_subtree", ctypes.c_int),
     ("memory_arity", ctypes.c_uint),
-    ("memory_first_child", ctypes.POINTER(hwloc_obj)),
+    ("memory_first_child", obj_t),
     ("io_arity", ctypes.c_uint),
-    ("io_first_child", ctypes.POINTER(hwloc_obj)),
+    ("io_first_child", obj_t),
     ("misc_arity", ctypes.c_uint),
-    ("misc_first_child", ctypes.POINTER(hwloc_obj)),
+    ("misc_first_child", obj_t),
     ("cpuset", hwloc_cpuset_t),
     ("complete_cpuset", hwloc_cpuset_t),
     ("nodeset", hwloc_nodeset_t),
@@ -366,10 +369,8 @@ hwloc_obj._fields_ = [
 ]
 
 
-obj_t = ctypes.POINTER(hwloc_obj)
-
 if TYPE_CHECKING:
-    ObjPtr = ctypes._Pointer[hwloc_obj]
+    ObjPtr = ctypes._Pointer[Obj]
 else:
     ObjPtr = ctypes._Pointer
 
@@ -528,7 +529,7 @@ def get_nbobjs_by_type(topology: topology_t, obj_type: ObjType) -> int:
 
 
 _pyhwloc_lib.pyhwloc_get_root_obj.argtypes = [topology_t]
-_pyhwloc_lib.pyhwloc_get_root_obj.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_root_obj.restype = obj_t
 
 
 @_cfndoc
@@ -542,7 +543,7 @@ _pyhwloc_lib.pyhwloc_get_obj_by_type.argtypes = [
     ctypes.c_int,
     ctypes.c_uint,
 ]
-_pyhwloc_lib.pyhwloc_get_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_obj_by_type.restype = obj_t
 
 
 @_cfndoc
@@ -556,9 +557,9 @@ def get_obj_by_type(topology: topology_t, obj_type: ObjType, idx: int) -> ObjPtr
 _pyhwloc_lib.pyhwloc_get_next_obj_by_depth.argtypes = [
     topology_t,
     ctypes.c_int,
-    ctypes.POINTER(hwloc_obj),
+    obj_t,
 ]
-_pyhwloc_lib.pyhwloc_get_next_obj_by_depth.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_obj_by_depth.restype = obj_t
 
 
 @_cfndoc
@@ -574,9 +575,9 @@ def get_next_obj_by_depth(
 _pyhwloc_lib.pyhwloc_get_next_obj_by_type.argtypes = [
     topology_t,
     ctypes.c_int,
-    ctypes.POINTER(hwloc_obj),
+    obj_t,
 ]
-_pyhwloc_lib.pyhwloc_get_next_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_obj_by_type.restype = obj_t
 
 
 @_cfndoc
@@ -595,7 +596,7 @@ def get_nbobjs_by_depth(topology: topology_t, depth: int) -> int:
 
 
 _LIB.hwloc_get_obj_by_depth.argtypes = [topology_t, ctypes.c_int, ctypes.c_uint]
-_LIB.hwloc_get_obj_by_depth.restype = ctypes.POINTER(hwloc_obj)
+_LIB.hwloc_get_obj_by_depth.restype = obj_t
 
 
 @_cfndoc
@@ -2379,9 +2380,9 @@ def cpuset_from_nodeset(
 
 _pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_obj),
+    ctypes.POINTER(Obj),
 ]
-_pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.restype = ctypes.POINTER(Obj)
 
 
 @_cfndoc
@@ -2390,8 +2391,8 @@ def get_non_io_ancestor_obj(topology: topology_t, ioobj: ObjPtr) -> ObjPtr:
     return _pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj(topology, ioobj)
 
 
-_pyhwloc_lib.pyhwloc_get_next_pcidev.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
-_pyhwloc_lib.pyhwloc_get_next_pcidev.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_pcidev.argtypes = [topology_t, ctypes.POINTER(Obj)]
+_pyhwloc_lib.pyhwloc_get_next_pcidev.restype = ctypes.POINTER(Obj)
 
 
 @_cfndoc
@@ -2409,7 +2410,7 @@ _pyhwloc_lib.pyhwloc_get_pcidev_by_busid.argtypes = [
     ctypes.c_uint,
     ctypes.c_uint,
 ]
-_pyhwloc_lib.pyhwloc_get_pcidev_by_busid.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busid.restype = ctypes.POINTER(Obj)
 
 
 @_cfndoc
@@ -2423,7 +2424,7 @@ def get_pcidev_by_busid(
 
 
 _pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.argtypes = [topology_t, ctypes.c_char_p]
-_pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.restype = ctypes.POINTER(Obj)
 
 
 @_cfndoc
@@ -2436,8 +2437,8 @@ def get_pcidev_by_busidstring(topology: topology_t, busid: str) -> ObjPtr | None
     return obj
 
 
-_pyhwloc_lib.pyhwloc_get_next_osdev.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
-_pyhwloc_lib.pyhwloc_get_next_osdev.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_osdev.argtypes = [topology_t, ctypes.POINTER(Obj)]
+_pyhwloc_lib.pyhwloc_get_next_osdev.restype = ctypes.POINTER(Obj)
 
 
 @_cfndoc
@@ -2448,8 +2449,8 @@ def get_next_osdev(topology: topology_t, prev: ObjPtr | None) -> ObjPtr | None:
     return obj
 
 
-_pyhwloc_lib.pyhwloc_get_next_bridge.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
-_pyhwloc_lib.pyhwloc_get_next_bridge.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_bridge.argtypes = [topology_t, ctypes.POINTER(Obj)]
+_pyhwloc_lib.pyhwloc_get_next_bridge.restype = ctypes.POINTER(Obj)
 
 
 @_cfndoc
@@ -2461,7 +2462,7 @@ def get_next_bridge(topology: topology_t, prev: ObjPtr | None) -> ObjPtr | None:
 
 
 _pyhwloc_lib.pyhwloc_bridge_covers_pcibus.argtypes = [
-    ctypes.POINTER(hwloc_obj),
+    ctypes.POINTER(Obj),
     ctypes.c_uint,
     ctypes.c_uint,
 ]
@@ -2525,7 +2526,7 @@ def _free_xmlbuffer(topology: topology_t, xmlbuffer: ctypes.c_char_p) -> None:
 
 
 export_callback_t = ctypes.CFUNCTYPE(
-    None, ctypes.c_void_p, topology_t, ctypes.POINTER(hwloc_obj)
+    None, ctypes.c_void_p, topology_t, ctypes.POINTER(Obj)
 )
 
 _LIB.hwloc_topology_set_userdata_export_callback.argtypes = [
@@ -2545,7 +2546,7 @@ def topology_set_userdata_export_callback(
 _LIB.hwloc_export_obj_userdata.argtypes = [
     ctypes.c_void_p,
     topology_t,
-    ctypes.POINTER(hwloc_obj),
+    ctypes.POINTER(Obj),
     ctypes.c_char_p,
     ctypes.c_void_p,
     ctypes.c_size_t,
@@ -2572,7 +2573,7 @@ def export_obj_userdata(
 _LIB.hwloc_export_obj_userdata_base64.argtypes = [
     ctypes.c_void_p,
     topology_t,
-    ctypes.POINTER(hwloc_obj),
+    ctypes.POINTER(Obj),
     ctypes.c_char_p,
     ctypes.c_void_p,
     ctypes.c_size_t,
@@ -2599,7 +2600,7 @@ def export_obj_userdata_base64(
 import_callback_t = ctypes.CFUNCTYPE(
     None,
     topology_t,
-    ctypes.POINTER(hwloc_obj),
+    ctypes.POINTER(Obj),
     ctypes.c_char_p,
     ctypes.c_void_p,
     ctypes.c_size_t,
