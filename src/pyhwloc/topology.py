@@ -35,9 +35,8 @@ from .hwobject import ObjType as _ObjType
 from .hwobject import _object
 from .utils import _Flags, _get_info, _memview_to_mem, _or_flags, _reuse_doc
 
-# Distance-related imports (lazy import to avoid circular dependencies)
-if TYPE_CHECKING:
-    from .distances import Distances
+if TYPE_CHECKING or _lib._IS_DOC_BUILD:
+    from . import distances as _distances
     from .memattrs import MemAttrs as _MemAttrs
 
 __all__ = [
@@ -191,7 +190,7 @@ class Topology:
         self._hdl = hdl
         self._loaded = True
         # See the distance release method for more info.
-        self._cleanup: list[weakref.ReferenceType[Distances]] = []
+        self._cleanup: list[weakref.ReferenceType[_distances.Distances]] = []
 
     @classmethod
     def from_native_handle(cls, hdl: _core.topology_t, is_loaded: bool) -> Topology:
@@ -802,7 +801,9 @@ class Topology:
 
     # Distance Methods
     @_reuse_doc(_core.distances_get)
-    def get_distances(self, kind: _Flags[DistancesKind] = 0) -> list[Distances]:
+    def get_distances(
+        self, kind: _Flags[DistancesKind] = 0
+    ) -> list[_distances.Distances]:
         from .distances import Distances
 
         # Get count first

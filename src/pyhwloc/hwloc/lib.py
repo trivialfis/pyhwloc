@@ -168,9 +168,9 @@ def _cuniondoc(name: str, *, parent: str | None = None) -> Callable[[Type], Type
     def _decorator(union: Type) -> Type:
         assert issubclass(union, ctypes.Union)
         if parent is not None:
-            doc = f"""See :c:union:`{parent}.{union.__name__}`"""
+            doc = f"""See :c:union:`{parent}.name`"""
         else:
-            doc = f"""See :c:union:`{union.__name__}`"""
+            doc = f"""See :c:union:`{name}`"""
         union.__doc__ = doc
         return union
 
