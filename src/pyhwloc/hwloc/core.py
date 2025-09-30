@@ -2380,9 +2380,9 @@ def cpuset_from_nodeset(
 
 _pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.argtypes = [
     topology_t,
-    ctypes.POINTER(Obj),
+    obj_t,
 ]
-_pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.restype = ctypes.POINTER(Obj)
+_pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.restype = obj_t
 
 
 @_cfndoc
@@ -2391,8 +2391,8 @@ def get_non_io_ancestor_obj(topology: topology_t, ioobj: ObjPtr) -> ObjPtr:
     return _pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj(topology, ioobj)
 
 
-_pyhwloc_lib.pyhwloc_get_next_pcidev.argtypes = [topology_t, ctypes.POINTER(Obj)]
-_pyhwloc_lib.pyhwloc_get_next_pcidev.restype = ctypes.POINTER(Obj)
+_pyhwloc_lib.pyhwloc_get_next_pcidev.argtypes = [topology_t, obj_t]
+_pyhwloc_lib.pyhwloc_get_next_pcidev.restype = obj_t
 
 
 @_cfndoc
@@ -2410,7 +2410,7 @@ _pyhwloc_lib.pyhwloc_get_pcidev_by_busid.argtypes = [
     ctypes.c_uint,
     ctypes.c_uint,
 ]
-_pyhwloc_lib.pyhwloc_get_pcidev_by_busid.restype = ctypes.POINTER(Obj)
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busid.restype = obj_t
 
 
 @_cfndoc
@@ -2424,7 +2424,7 @@ def get_pcidev_by_busid(
 
 
 _pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.argtypes = [topology_t, ctypes.c_char_p]
-_pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.restype = ctypes.POINTER(Obj)
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.restype = obj_t
 
 
 @_cfndoc
@@ -2437,8 +2437,8 @@ def get_pcidev_by_busidstring(topology: topology_t, busid: str) -> ObjPtr | None
     return obj
 
 
-_pyhwloc_lib.pyhwloc_get_next_osdev.argtypes = [topology_t, ctypes.POINTER(Obj)]
-_pyhwloc_lib.pyhwloc_get_next_osdev.restype = ctypes.POINTER(Obj)
+_pyhwloc_lib.pyhwloc_get_next_osdev.argtypes = [topology_t, obj_t]
+_pyhwloc_lib.pyhwloc_get_next_osdev.restype = obj_t
 
 
 @_cfndoc
@@ -2449,8 +2449,8 @@ def get_next_osdev(topology: topology_t, prev: ObjPtr | None) -> ObjPtr | None:
     return obj
 
 
-_pyhwloc_lib.pyhwloc_get_next_bridge.argtypes = [topology_t, ctypes.POINTER(Obj)]
-_pyhwloc_lib.pyhwloc_get_next_bridge.restype = ctypes.POINTER(Obj)
+_pyhwloc_lib.pyhwloc_get_next_bridge.argtypes = [topology_t, obj_t]
+_pyhwloc_lib.pyhwloc_get_next_bridge.restype = obj_t
 
 
 @_cfndoc
@@ -2462,7 +2462,7 @@ def get_next_bridge(topology: topology_t, prev: ObjPtr | None) -> ObjPtr | None:
 
 
 _pyhwloc_lib.pyhwloc_bridge_covers_pcibus.argtypes = [
-    ctypes.POINTER(Obj),
+    obj_t,
     ctypes.c_uint,
     ctypes.c_uint,
 ]
@@ -2525,9 +2525,7 @@ def _free_xmlbuffer(topology: topology_t, xmlbuffer: ctypes.c_char_p) -> None:
     _LIB.hwloc_free_xmlbuffer(topology, xmlbuffer)
 
 
-export_callback_t = ctypes.CFUNCTYPE(
-    None, ctypes.c_void_p, topology_t, ctypes.POINTER(Obj)
-)
+export_callback_t = ctypes.CFUNCTYPE(None, ctypes.c_void_p, topology_t, obj_t)
 
 _LIB.hwloc_topology_set_userdata_export_callback.argtypes = [
     topology_t,
@@ -2546,7 +2544,7 @@ def topology_set_userdata_export_callback(
 _LIB.hwloc_export_obj_userdata.argtypes = [
     ctypes.c_void_p,
     topology_t,
-    ctypes.POINTER(Obj),
+    obj_t,
     ctypes.c_char_p,
     ctypes.c_void_p,
     ctypes.c_size_t,
@@ -2573,7 +2571,7 @@ def export_obj_userdata(
 _LIB.hwloc_export_obj_userdata_base64.argtypes = [
     ctypes.c_void_p,
     topology_t,
-    ctypes.POINTER(Obj),
+    obj_t,
     ctypes.c_char_p,
     ctypes.c_void_p,
     ctypes.c_size_t,
@@ -2600,7 +2598,7 @@ def export_obj_userdata_base64(
 import_callback_t = ctypes.CFUNCTYPE(
     None,
     topology_t,
-    ctypes.POINTER(Obj),
+    obj_t,
     ctypes.c_char_p,
     ctypes.c_void_p,
     ctypes.c_size_t,
