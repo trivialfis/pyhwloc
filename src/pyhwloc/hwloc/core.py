@@ -144,7 +144,7 @@ def compare_types(type1: ObjType, type2: ObjType) -> int:
 
 
 @_cstructdoc("hwloc_info_s")
-class hwloc_info_s(_PrintableStruct):
+class Info(_PrintableStruct):
     _fields_ = [
         ("name", ctypes.c_char_p),  # Info name
         ("value", ctypes.c_char_p),  # Info value
@@ -154,7 +154,7 @@ class hwloc_info_s(_PrintableStruct):
 @_cstructdoc("hwloc_infos_s")
 class Infos(_PrintableStruct):
     _fields_ = [
-        ("array", ctypes.POINTER(hwloc_info_s)),
+        ("array", ctypes.POINTER(Info)),
         ("count", ctypes.c_uint),
         ("allocated", ctypes.c_uint),
     ]
@@ -303,7 +303,7 @@ hwloc_obj_osdev_types_t = ctypes.c_ulong
 
 
 @_cstructdoc("hwloc_osdev_attr_s", parent="hwloc_obj_attr_u")
-class hwloc_osdev_attr_s(_PrintableStruct):
+class OsdevAttr(_PrintableStruct):
     _fields_ = [
         (
             "types",
@@ -321,7 +321,7 @@ class hwloc_obj_attr_u(ctypes.Union):
         ("group", hwloc_group_attr_s),  # Group-specific Object Attributes
         ("pcidev", hwloc_pcidev_attr_s),  # PCI Device specific Object Attributes
         ("bridge", hwloc_bridge_attr_s),  # Bridge specific Object Attributes
-        ("osdev", hwloc_osdev_attr_s),  # OS Device specific Object Attributes
+        ("osdev", OsdevAttr),  # OS Device specific Object Attributes
     ]
 
 

@@ -708,9 +708,9 @@ class OsDevice(Object):
     """:py:class:`Object` with type == `OS_DEVICE`."""
 
     @property
-    def attr(self) -> _core.hwloc_osdev_attr_s:
+    def attr(self) -> _core.OsdevAttr:
         """Return OS device attributes."""
-        return cast(_core.hwloc_osdev_attr_s, super().attr)
+        return cast(_core.OsdevAttr, super().attr)
 
     def is_osdev_type(self, typ: int) -> bool:
         """Check type of the OS device."""

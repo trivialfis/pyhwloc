@@ -45,13 +45,13 @@ class CpuKinds(_TopoRefMixin):
         # Create array of hwloc_info_s items
         items = []
         for k, v in infos.items():
-            item = _core.hwloc_info_s()
+            item = _core.Info()
             names.append(k.encode("utf-8"))
             values.append(v.encode("utf-8"))
             items.append(item)
 
         # Create array of pointers to items
-        array = (_core.hwloc_info_s * len(infos))()
+        array = (_core.Info * len(infos))()
         for i, item in enumerate(items):
             item.name = names[i]
             item.value = values[i]
