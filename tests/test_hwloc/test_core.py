@@ -51,7 +51,7 @@ from pyhwloc.hwloc.core import (
     get_type_or_above_depth,
     get_type_or_below_depth,
     hwloc_info_s,
-    hwloc_infos_s,
+    Infos,
     hwloc_obj_attr_u,
     hwloc_obj_cache_type_t,
     is_same_obj,
@@ -537,7 +537,7 @@ def test_cpukinds_register_and_get_functions() -> None:
     test_info.name = b"TestCPUKind"
     test_info.value = b"TestValue"
 
-    infos = hwloc_infos_s()
+    infos = Infos()
     infos.array = ctypes.pointer(test_info)
     infos.count = 1
 

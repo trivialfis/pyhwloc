@@ -35,7 +35,7 @@ class CpuKinds(_TopoRefMixin):
     def register(
         self, cpuset: Bitmap, forced_efficiency: int, infos: dict[str, str] = {}
     ) -> None:
-        cinfos = _core.hwloc_infos_s()
+        cinfos = _core.Infos()
         cinfos.allocated = 0
         cinfos.count = len(infos)
         names = []

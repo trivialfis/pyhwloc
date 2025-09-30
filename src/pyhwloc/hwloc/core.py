@@ -152,7 +152,7 @@ class hwloc_info_s(_PrintableStruct):
 
 
 @_cstructdoc("hwloc_infos_s")
-class hwloc_infos_s(_PrintableStruct):
+class Infos(_PrintableStruct):
     _fields_ = [
         ("array", ctypes.POINTER(hwloc_info_s)),
         ("count", ctypes.c_uint),
@@ -161,7 +161,7 @@ class hwloc_infos_s(_PrintableStruct):
 
 
 if TYPE_CHECKING:
-    InfosPtr = ctypes._Pointer[hwloc_infos_s]
+    InfosPtr = ctypes._Pointer[Infos]
 else:
     InfosPtr = ctypes._Pointer
 
@@ -360,7 +360,7 @@ hwloc_obj._fields_ = [
     ("complete_cpuset", hwloc_cpuset_t),
     ("nodeset", hwloc_nodeset_t),
     ("complete_nodeset", hwloc_nodeset_t),
-    ("infos", hwloc_infos_s),
+    ("infos", Infos),
     ("userdata", ctypes.c_void_p),
     ("gp_index", hwloc_uint64_t),
 ]
@@ -726,7 +726,7 @@ def type_sscanf_as_depth(string: str, topology: topology_t) -> tuple[ObjType, in
 
 
 _pyhwloc_lib.pyhwloc_get_info_by_name.argtypes = [
-    ctypes.POINTER(hwloc_infos_s),
+    ctypes.POINTER(Infos),
     ctypes.c_char_p,
 ]
 _pyhwloc_lib.pyhwloc_get_info_by_name.restype = ctypes.c_char_p
@@ -768,7 +768,7 @@ def obj_set_subtype(topology: topology_t, obj: ObjPtr, subtype: str) -> None:
 
 
 _LIB.hwloc_topology_get_infos.argtypes = [topology_t]
-_LIB.hwloc_topology_get_infos.restype = ctypes.POINTER(hwloc_infos_s)
+_LIB.hwloc_topology_get_infos.restype = ctypes.POINTER(Infos)
 
 
 @_cfndoc
@@ -1323,7 +1323,7 @@ class hwloc_topology_cpubind_support(_PrintableStruct):
 
 
 @_cstructdoc("hwloc_topology_membind_support")
-class hwloc_topology_membind_support(_PrintableStruct):
+class TopologyMembindSupport(_PrintableStruct):
     _fields_ = [
         ("set_thisproc_membind", ctypes.c_ubyte),
         ("get_thisproc_membind", ctypes.c_ubyte),
@@ -1345,19 +1345,19 @@ class hwloc_topology_membind_support(_PrintableStruct):
 
 
 @_cstructdoc("hwloc_topology_misc_support")
-class hwloc_topology_misc_support(_PrintableStruct):
+class TopologyMiscSupport(_PrintableStruct):
     _fields_ = [
         ("imported_support", ctypes.c_ubyte),
     ]
 
 
 @_cstructdoc("hwloc_topology_support")
-class hwloc_topology_support(_PrintableStruct):
+class TopologySupport(_PrintableStruct):
     _fields_ = [
         ("discovery", ctypes.POINTER(hwloc_topology_discovery_support)),
         ("cpubind", ctypes.POINTER(hwloc_topology_cpubind_support)),
-        ("membind", ctypes.POINTER(hwloc_topology_membind_support)),
-        ("misc", ctypes.POINTER(hwloc_topology_misc_support)),
+        ("membind", ctypes.POINTER(TopologyMembindSupport)),
+        ("misc", ctypes.POINTER(TopologyMiscSupport)),
     ]
 
 
@@ -1411,11 +1411,11 @@ def topology_is_thissystem(topology: topology_t) -> bool:
 
 
 _LIB.hwloc_topology_get_support.argtypes = [topology_t]
-_LIB.hwloc_topology_get_support.restype = ctypes.POINTER(hwloc_topology_support)
+_LIB.hwloc_topology_get_support.restype = ctypes.POINTER(TopologySupport)
 
 
 if TYPE_CHECKING:
-    SupportType = ctypes._Pointer[hwloc_topology_support]
+    SupportType = ctypes._Pointer[TopologySupport]
 else:
     SupportType = ctypes._Pointer
 
@@ -3444,7 +3444,7 @@ _LIB.hwloc_cpukinds_get_info.argtypes = [
     ctypes.c_uint,
     bitmap_t,
     ctypes.POINTER(ctypes.c_int),
-    ctypes.POINTER(ctypes.POINTER(hwloc_infos_s)),
+    ctypes.POINTER(ctypes.POINTER(Infos)),
     ctypes.c_ulong,
 ]
 _LIB.hwloc_cpukinds_get_info.restype = ctypes.c_int
@@ -3456,7 +3456,7 @@ def cpukinds_get_info(
 ) -> tuple[bitmap_t, int, InfosPtr]:
     cpuset = bitmap_alloc()
     efficiency = ctypes.c_int()
-    infos_ptr = ctypes.POINTER(hwloc_infos_s)()
+    infos_ptr = ctypes.POINTER(Infos)()
     # flags must be 0 for now.
     _checkc(
         _LIB.hwloc_cpukinds_get_info(
@@ -3476,7 +3476,7 @@ _LIB.hwloc_cpukinds_register.argtypes = [
     topology_t,
     bitmap_t,
     ctypes.c_int,
-    ctypes.POINTER(hwloc_infos_s),
+    ctypes.POINTER(Infos),
     ctypes.c_ulong,
 ]
 _LIB.hwloc_cpukinds_register.restype = ctypes.c_int
@@ -3487,7 +3487,7 @@ def cpukinds_register(
     topology: topology_t,
     cpuset: bitmap_t,
     forced_efficiency: int,
-    infos: hwloc_infos_s | None,
+    infos: Infos | None,
 ) -> None:
     pinfos = ctypes.byref(infos) if infos is not None else None
     # The parameter flags must be 0 for now.
