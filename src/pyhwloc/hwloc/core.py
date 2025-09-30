@@ -143,51 +143,51 @@ def compare_types(type1: ObjType, type2: ObjType) -> int:
 # The info_s and infs_s are dictionary in Python.
 
 
-@_cstructdoc()
-class hwloc_info_s(_PrintableStruct):
+@_cstructdoc("hwloc_info_s")
+class Info(_PrintableStruct):
     _fields_ = [
         ("name", ctypes.c_char_p),  # Info name
         ("value", ctypes.c_char_p),  # Info value
     ]
 
 
-@_cstructdoc()
-class hwloc_infos_s(_PrintableStruct):
+@_cstructdoc("hwloc_infos_s")
+class Infos(_PrintableStruct):
     _fields_ = [
-        ("array", ctypes.POINTER(hwloc_info_s)),
+        ("array", ctypes.POINTER(Info)),
         ("count", ctypes.c_uint),
         ("allocated", ctypes.c_uint),
     ]
 
 
 if TYPE_CHECKING:
-    InfosPtr = ctypes._Pointer[hwloc_infos_s]
+    InfosPtr = ctypes._Pointer[Infos]
 else:
     InfosPtr = ctypes._Pointer
 
 
-@_cstructdoc(parent="hwloc_obj_attr_u")
-class hwloc_memory_page_type_s(_PrintableStruct):
+@_cstructdoc("hwloc_memory_page_type_s", parent="hwloc_obj_attr_u")
+class MemoryPageType(_PrintableStruct):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of pages
         ("count", hwloc_uint64_t),  # Number of pages of this size
     ]
 
 
-@_cstructdoc(parent="hwloc_obj_attr_u")
-class hwloc_numanode_attr_s(_PrintableStruct):
+@_cstructdoc("hwloc_numanode_attr_s", parent="hwloc_obj_attr_u")
+class NumanodeAttr(_PrintableStruct):
     _fields_ = [
         ("local_memory", hwloc_uint64_t),  # Local memory (in bytes)
         ("page_types_len", ctypes.c_uint),  # Size of array page_types
         (
             "page_types",
-            ctypes.POINTER(hwloc_memory_page_type_s),
+            ctypes.POINTER(MemoryPageType),
         ),  # Array of local memory page types
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u")
-class hwloc_cache_attr_s(_PrintableStruct):
+@_cstructdoc("hwloc_cache_attr_s", parent="hwloc_obj_attr_u")
+class CacheAttr(_PrintableStruct):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of cache in bytes
         ("depth", ctypes.c_uint),  # Depth of cache (e.g., L1, L2, ...etc.)
@@ -200,8 +200,8 @@ class hwloc_cache_attr_s(_PrintableStruct):
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u")
-class hwloc_group_attr_s(_PrintableStruct):
+@_cstructdoc("hwloc_group_attr_s", parent="hwloc_obj_attr_u")
+class GroupAttr(_PrintableStruct):
     _fields_ = [
         ("depth", ctypes.c_uint),  # Depth of group object
         ("kind", ctypes.c_uint),  # Internally-used kind of group
@@ -216,8 +216,8 @@ class hwloc_group_attr_s(_PrintableStruct):
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u")
-class hwloc_pcidev_attr_s(_PrintableStruct):
+@_cstructdoc("hwloc_pcidev_attr_s", parent="hwloc_obj_attr_u")
+class PcidevAttr(_PrintableStruct):
     _fields_ = [
         (
             "domain",
@@ -253,18 +253,20 @@ class hwloc_pcidev_attr_s(_PrintableStruct):
         return self.class_id & 0xFF
 
 
-@_cuniondoc("hwloc_obj_attr_u.hwloc_bridge_attr_s")
-class hwloc_bridge_upstream_u(ctypes.Union):
+@_cuniondoc("hwloc_bridge_upstream_u", parent="hwloc_obj_attr_u.hwloc_bridge_attr_s")
+class BridgeUpstream(ctypes.Union):
     _fields_ = [
         (
             "pci",
-            hwloc_pcidev_attr_s,
+            PcidevAttr,
         ),  # PCI attribute of the upstream part as a PCI device
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u.hwloc_bridge_downstream_u")
-class hwloc_bridge_downstream_pci_s(_PrintableStruct):
+@_cstructdoc(
+    "hwloc_bridge_downstream_pci_s", parent="hwloc_obj_attr_u.BridgeDownstream"
+)
+class BridgeDownstreamPci(_PrintableStruct):
     _fields_ = [
         ("domain", ctypes.c_uint),  # Domain number the downstream PCI buses
         ("secondary_bus", ctypes.c_ubyte),  # First PCI bus number below the bridge
@@ -272,22 +274,22 @@ class hwloc_bridge_downstream_pci_s(_PrintableStruct):
     ]
 
 
-@_cuniondoc("hwloc_obj_attr_u")
-class hwloc_bridge_downstream_u(ctypes.Union):
+@_cuniondoc("hwloc_bridge_downstream_u", parent="hwloc_obj_attr_u")
+class BridgeDownstream(ctypes.Union):
     _fields_ = [
-        ("pci", hwloc_bridge_downstream_pci_s),
+        ("pci", BridgeDownstreamPci),
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u")
-class hwloc_bridge_attr_s(_PrintableStruct):
+@_cstructdoc("hwloc_bridge_attr_s", parent="hwloc_obj_attr_u")
+class BridgeAttr(_PrintableStruct):
     _fields_ = [
-        ("upstream", hwloc_bridge_upstream_u),
+        ("upstream", BridgeUpstream),
         (
             "upstream_type",
             ctypes.c_int,
         ),  # hwloc_obj_bridge_type_e - Upstream Bridge type
-        ("downstream", hwloc_bridge_downstream_u),
+        ("downstream", BridgeDownstream),
         (
             "downstream_type",
             ctypes.c_int,
@@ -300,8 +302,8 @@ class hwloc_bridge_attr_s(_PrintableStruct):
 hwloc_obj_osdev_types_t = ctypes.c_ulong
 
 
-@_cstructdoc("hwloc_obj_attr_u")
-class hwloc_osdev_attr_s(_PrintableStruct):
+@_cstructdoc("hwloc_osdev_attr_s", parent="hwloc_obj_attr_u")
+class OsdevAttr(_PrintableStruct):
     _fields_ = [
         (
             "types",
@@ -311,63 +313,64 @@ class hwloc_osdev_attr_s(_PrintableStruct):
 
 
 # Main attribute union
-@_cuniondoc()
-class hwloc_obj_attr_u(ctypes.Union):
+@_cuniondoc("hwloc_obj_attr_u")
+class ObjAttr(ctypes.Union):
     _fields_ = [
-        ("numanode", hwloc_numanode_attr_s),  # NUMA node-specific Object Attributes
-        ("cache", hwloc_cache_attr_s),  # Cache-specific Object Attributes
-        ("group", hwloc_group_attr_s),  # Group-specific Object Attributes
-        ("pcidev", hwloc_pcidev_attr_s),  # PCI Device specific Object Attributes
-        ("bridge", hwloc_bridge_attr_s),  # Bridge specific Object Attributes
-        ("osdev", hwloc_osdev_attr_s),  # OS Device specific Object Attributes
+        ("numanode", NumanodeAttr),  # NUMA node-specific Object Attributes
+        ("cache", CacheAttr),  # Cache-specific Object Attributes
+        ("group", GroupAttr),  # Group-specific Object Attributes
+        ("pcidev", PcidevAttr),  # PCI Device specific Object Attributes
+        ("bridge", BridgeAttr),  # Bridge specific Object Attributes
+        ("osdev", OsdevAttr),  # OS Device specific Object Attributes
     ]
 
 
-@_cstructdoc()
-class hwloc_obj(_PrintableStruct):
+@_cstructdoc("hwloc_obj")
+class Obj(_PrintableStruct):
     pass
 
 
-hwloc_obj._fields_ = [
+obj_t = ctypes.POINTER(Obj)
+
+
+Obj._fields_ = [
     ("type", ctypes.c_int),  # hwloc_obj_type_t
     ("subtype", ctypes.c_char_p),
     ("os_index", ctypes.c_uint),
     ("name", ctypes.c_char_p),
     ("total_memory", hwloc_uint64_t),
-    ("attr", ctypes.POINTER(hwloc_obj_attr_u)),
+    ("attr", ctypes.POINTER(ObjAttr)),
     ("depth", ctypes.c_int),
     ("logical_index", ctypes.c_uint),
-    ("next_cousin", ctypes.POINTER(hwloc_obj)),
-    ("prev_cousin", ctypes.POINTER(hwloc_obj)),
-    ("parent", ctypes.POINTER(hwloc_obj)),
+    ("next_cousin", obj_t),
+    ("prev_cousin", obj_t),
+    ("parent", obj_t),
     ("sibling_rank", ctypes.c_uint),
-    ("next_sibling", ctypes.POINTER(hwloc_obj)),
-    ("prev_sibling", ctypes.POINTER(hwloc_obj)),
+    ("next_sibling", obj_t),
+    ("prev_sibling", obj_t),
     ("arity", ctypes.c_uint),
-    ("children", ctypes.POINTER(ctypes.POINTER(hwloc_obj))),
-    ("first_child", ctypes.POINTER(hwloc_obj)),
-    ("last_child", ctypes.POINTER(hwloc_obj)),
+    ("children", ctypes.POINTER(ctypes.POINTER(Obj))),
+    ("first_child", obj_t),
+    ("last_child", obj_t),
     ("symmetric_subtree", ctypes.c_int),
     ("memory_arity", ctypes.c_uint),
-    ("memory_first_child", ctypes.POINTER(hwloc_obj)),
+    ("memory_first_child", obj_t),
     ("io_arity", ctypes.c_uint),
-    ("io_first_child", ctypes.POINTER(hwloc_obj)),
+    ("io_first_child", obj_t),
     ("misc_arity", ctypes.c_uint),
-    ("misc_first_child", ctypes.POINTER(hwloc_obj)),
+    ("misc_first_child", obj_t),
     ("cpuset", hwloc_cpuset_t),
     ("complete_cpuset", hwloc_cpuset_t),
     ("nodeset", hwloc_nodeset_t),
     ("complete_nodeset", hwloc_nodeset_t),
-    ("infos", hwloc_infos_s),
+    ("infos", Infos),
     ("userdata", ctypes.c_void_p),
     ("gp_index", hwloc_uint64_t),
 ]
 
 
-obj_t = ctypes.POINTER(hwloc_obj)
-
 if TYPE_CHECKING:
-    ObjPtr = ctypes._Pointer[hwloc_obj]
+    ObjPtr = ctypes._Pointer[Obj]
 else:
     ObjPtr = ctypes._Pointer
 
@@ -468,7 +471,7 @@ def get_type_depth(topology: topology_t, obj_type: ObjType) -> int:
 _LIB.hwloc_get_type_depth_with_attr.argtypes = [
     topology_t,
     ctypes.c_int,  # ObjType
-    ctypes.POINTER(hwloc_obj_attr_u),
+    ctypes.POINTER(ObjAttr),
     ctypes.c_size_t,
 ]
 _LIB.hwloc_get_type_depth_with_attr.restype = ctypes.c_int
@@ -526,7 +529,7 @@ def get_nbobjs_by_type(topology: topology_t, obj_type: ObjType) -> int:
 
 
 _pyhwloc_lib.pyhwloc_get_root_obj.argtypes = [topology_t]
-_pyhwloc_lib.pyhwloc_get_root_obj.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_root_obj.restype = obj_t
 
 
 @_cfndoc
@@ -540,7 +543,7 @@ _pyhwloc_lib.pyhwloc_get_obj_by_type.argtypes = [
     ctypes.c_int,
     ctypes.c_uint,
 ]
-_pyhwloc_lib.pyhwloc_get_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_obj_by_type.restype = obj_t
 
 
 @_cfndoc
@@ -554,9 +557,9 @@ def get_obj_by_type(topology: topology_t, obj_type: ObjType, idx: int) -> ObjPtr
 _pyhwloc_lib.pyhwloc_get_next_obj_by_depth.argtypes = [
     topology_t,
     ctypes.c_int,
-    ctypes.POINTER(hwloc_obj),
+    obj_t,
 ]
-_pyhwloc_lib.pyhwloc_get_next_obj_by_depth.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_obj_by_depth.restype = obj_t
 
 
 @_cfndoc
@@ -572,9 +575,9 @@ def get_next_obj_by_depth(
 _pyhwloc_lib.pyhwloc_get_next_obj_by_type.argtypes = [
     topology_t,
     ctypes.c_int,
-    ctypes.POINTER(hwloc_obj),
+    obj_t,
 ]
-_pyhwloc_lib.pyhwloc_get_next_obj_by_type.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_obj_by_type.restype = obj_t
 
 
 @_cfndoc
@@ -593,7 +596,7 @@ def get_nbobjs_by_depth(topology: topology_t, depth: int) -> int:
 
 
 _LIB.hwloc_get_obj_by_depth.argtypes = [topology_t, ctypes.c_int, ctypes.c_uint]
-_LIB.hwloc_get_obj_by_depth.restype = ctypes.POINTER(hwloc_obj)
+_LIB.hwloc_get_obj_by_depth.restype = obj_t
 
 
 @_cfndoc
@@ -673,18 +676,18 @@ def obj_attr_snprintf(
 _LIB.hwloc_type_sscanf.argtypes = [
     ctypes.c_char_p,
     ctypes.POINTER(ctypes.c_int),
-    ctypes.POINTER(hwloc_obj_attr_u),
+    ctypes.POINTER(ObjAttr),
     ctypes.c_size_t,
 ]
 _LIB.hwloc_type_sscanf.restype = ctypes.c_int
 
 
 @_cfndoc
-def type_sscanf(string: str) -> tuple[ObjType, hwloc_obj_attr_u | None]:
+def type_sscanf(string: str) -> tuple[ObjType, ObjAttr | None]:
     string_bytes = string.encode("utf-8")
     typep = ctypes.c_int()
 
-    attrp = hwloc_obj_attr_u()
+    attrp = ObjAttr()
     result = _LIB.hwloc_type_sscanf(
         string_bytes, ctypes.byref(typep), ctypes.byref(attrp), ctypes.sizeof(attrp)
     )
@@ -724,7 +727,7 @@ def type_sscanf_as_depth(string: str, topology: topology_t) -> tuple[ObjType, in
 
 
 _pyhwloc_lib.pyhwloc_get_info_by_name.argtypes = [
-    ctypes.POINTER(hwloc_infos_s),
+    ctypes.POINTER(Infos),
     ctypes.c_char_p,
 ]
 _pyhwloc_lib.pyhwloc_get_info_by_name.restype = ctypes.c_char_p
@@ -766,7 +769,7 @@ def obj_set_subtype(topology: topology_t, obj: ObjPtr, subtype: str) -> None:
 
 
 _LIB.hwloc_topology_get_infos.argtypes = [topology_t]
-_LIB.hwloc_topology_get_infos.restype = ctypes.POINTER(hwloc_infos_s)
+_LIB.hwloc_topology_get_infos.restype = ctypes.POINTER(Infos)
 
 
 @_cfndoc
@@ -1291,8 +1294,8 @@ def topology_set_components(topology: topology_t, flags: int, name: str) -> None
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00149.php
 
 
-@_cstructdoc()
-class hwloc_topology_discovery_support(_PrintableStruct):
+@_cstructdoc("hwloc_topology_discovery_support")
+class TopologyDiscoverySupport(_PrintableStruct):
     _fields_ = [
         ("pu", ctypes.c_ubyte),
         ("numa", ctypes.c_ubyte),
@@ -1303,8 +1306,8 @@ class hwloc_topology_discovery_support(_PrintableStruct):
     ]
 
 
-@_cstructdoc()
-class hwloc_topology_cpubind_support(_PrintableStruct):
+@_cstructdoc("hwloc_topology_cpubind_support")
+class TopologyCpubindSupport(_PrintableStruct):
     _fields_ = [
         ("set_thisproc_cpubind", ctypes.c_ubyte),
         ("get_thisproc_cpubind", ctypes.c_ubyte),
@@ -1320,8 +1323,8 @@ class hwloc_topology_cpubind_support(_PrintableStruct):
     ]
 
 
-@_cstructdoc()
-class hwloc_topology_membind_support(_PrintableStruct):
+@_cstructdoc("hwloc_topology_membind_support")
+class TopologyMembindSupport(_PrintableStruct):
     _fields_ = [
         ("set_thisproc_membind", ctypes.c_ubyte),
         ("get_thisproc_membind", ctypes.c_ubyte),
@@ -1342,20 +1345,20 @@ class hwloc_topology_membind_support(_PrintableStruct):
     ]
 
 
-@_cstructdoc()
-class hwloc_topology_misc_support(_PrintableStruct):
+@_cstructdoc("hwloc_topology_misc_support")
+class TopologyMiscSupport(_PrintableStruct):
     _fields_ = [
         ("imported_support", ctypes.c_ubyte),
     ]
 
 
-@_cstructdoc()
-class hwloc_topology_support(_PrintableStruct):
+@_cstructdoc("hwloc_topology_support")
+class TopologySupport(_PrintableStruct):
     _fields_ = [
-        ("discovery", ctypes.POINTER(hwloc_topology_discovery_support)),
-        ("cpubind", ctypes.POINTER(hwloc_topology_cpubind_support)),
-        ("membind", ctypes.POINTER(hwloc_topology_membind_support)),
-        ("misc", ctypes.POINTER(hwloc_topology_misc_support)),
+        ("discovery", ctypes.POINTER(TopologyDiscoverySupport)),
+        ("cpubind", ctypes.POINTER(TopologyCpubindSupport)),
+        ("membind", ctypes.POINTER(TopologyMembindSupport)),
+        ("misc", ctypes.POINTER(TopologyMiscSupport)),
     ]
 
 
@@ -1409,11 +1412,11 @@ def topology_is_thissystem(topology: topology_t) -> bool:
 
 
 _LIB.hwloc_topology_get_support.argtypes = [topology_t]
-_LIB.hwloc_topology_get_support.restype = ctypes.POINTER(hwloc_topology_support)
+_LIB.hwloc_topology_get_support.restype = ctypes.POINTER(TopologySupport)
 
 
 if TYPE_CHECKING:
-    SupportType = ctypes._Pointer[hwloc_topology_support]
+    SupportType = ctypes._Pointer[TopologySupport]
 else:
     SupportType = ctypes._Pointer
 
@@ -2377,9 +2380,9 @@ def cpuset_from_nodeset(
 
 _pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_obj),
+    obj_t,
 ]
-_pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj.restype = obj_t
 
 
 @_cfndoc
@@ -2388,8 +2391,8 @@ def get_non_io_ancestor_obj(topology: topology_t, ioobj: ObjPtr) -> ObjPtr:
     return _pyhwloc_lib.pyhwloc_get_non_io_ancestor_obj(topology, ioobj)
 
 
-_pyhwloc_lib.pyhwloc_get_next_pcidev.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
-_pyhwloc_lib.pyhwloc_get_next_pcidev.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_pcidev.argtypes = [topology_t, obj_t]
+_pyhwloc_lib.pyhwloc_get_next_pcidev.restype = obj_t
 
 
 @_cfndoc
@@ -2407,7 +2410,7 @@ _pyhwloc_lib.pyhwloc_get_pcidev_by_busid.argtypes = [
     ctypes.c_uint,
     ctypes.c_uint,
 ]
-_pyhwloc_lib.pyhwloc_get_pcidev_by_busid.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busid.restype = obj_t
 
 
 @_cfndoc
@@ -2421,7 +2424,7 @@ def get_pcidev_by_busid(
 
 
 _pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.argtypes = [topology_t, ctypes.c_char_p]
-_pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_pcidev_by_busidstring.restype = obj_t
 
 
 @_cfndoc
@@ -2434,8 +2437,8 @@ def get_pcidev_by_busidstring(topology: topology_t, busid: str) -> ObjPtr | None
     return obj
 
 
-_pyhwloc_lib.pyhwloc_get_next_osdev.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
-_pyhwloc_lib.pyhwloc_get_next_osdev.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_osdev.argtypes = [topology_t, obj_t]
+_pyhwloc_lib.pyhwloc_get_next_osdev.restype = obj_t
 
 
 @_cfndoc
@@ -2446,8 +2449,8 @@ def get_next_osdev(topology: topology_t, prev: ObjPtr | None) -> ObjPtr | None:
     return obj
 
 
-_pyhwloc_lib.pyhwloc_get_next_bridge.argtypes = [topology_t, ctypes.POINTER(hwloc_obj)]
-_pyhwloc_lib.pyhwloc_get_next_bridge.restype = ctypes.POINTER(hwloc_obj)
+_pyhwloc_lib.pyhwloc_get_next_bridge.argtypes = [topology_t, obj_t]
+_pyhwloc_lib.pyhwloc_get_next_bridge.restype = obj_t
 
 
 @_cfndoc
@@ -2459,7 +2462,7 @@ def get_next_bridge(topology: topology_t, prev: ObjPtr | None) -> ObjPtr | None:
 
 
 _pyhwloc_lib.pyhwloc_bridge_covers_pcibus.argtypes = [
-    ctypes.POINTER(hwloc_obj),
+    obj_t,
     ctypes.c_uint,
     ctypes.c_uint,
 ]
@@ -2522,9 +2525,7 @@ def _free_xmlbuffer(topology: topology_t, xmlbuffer: ctypes.c_char_p) -> None:
     _LIB.hwloc_free_xmlbuffer(topology, xmlbuffer)
 
 
-export_callback_t = ctypes.CFUNCTYPE(
-    None, ctypes.c_void_p, topology_t, ctypes.POINTER(hwloc_obj)
-)
+export_callback_t = ctypes.CFUNCTYPE(None, ctypes.c_void_p, topology_t, obj_t)
 
 _LIB.hwloc_topology_set_userdata_export_callback.argtypes = [
     topology_t,
@@ -2543,7 +2544,7 @@ def topology_set_userdata_export_callback(
 _LIB.hwloc_export_obj_userdata.argtypes = [
     ctypes.c_void_p,
     topology_t,
-    ctypes.POINTER(hwloc_obj),
+    obj_t,
     ctypes.c_char_p,
     ctypes.c_void_p,
     ctypes.c_size_t,
@@ -2570,7 +2571,7 @@ def export_obj_userdata(
 _LIB.hwloc_export_obj_userdata_base64.argtypes = [
     ctypes.c_void_p,
     topology_t,
-    ctypes.POINTER(hwloc_obj),
+    obj_t,
     ctypes.c_char_p,
     ctypes.c_void_p,
     ctypes.c_size_t,
@@ -2597,7 +2598,7 @@ def export_obj_userdata_base64(
 import_callback_t = ctypes.CFUNCTYPE(
     None,
     topology_t,
-    ctypes.POINTER(hwloc_obj),
+    obj_t,
     ctypes.c_char_p,
     ctypes.c_void_p,
     ctypes.c_size_t,
@@ -2681,8 +2682,8 @@ class DistancesTransform(IntEnum):
     TRANSITIVE_CLOSURE = 3
 
 
-@_cstructdoc()
-class hwloc_distances_s(_PrintableStruct):
+@_cstructdoc("hwloc_distances_s")
+class Distances(_PrintableStruct):
     _fields_ = [
         ("nbobjs", ctypes.c_uint),
         ("objs", ctypes.POINTER(obj_t)),
@@ -2694,7 +2695,7 @@ class hwloc_distances_s(_PrintableStruct):
 _LIB.hwloc_distances_get.argtypes = [
     topology_t,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(ctypes.POINTER(hwloc_distances_s)),
+    ctypes.POINTER(ctypes.POINTER(Distances)),
     ctypes.c_ulong,
     ctypes.c_ulong,
 ]
@@ -2702,11 +2703,11 @@ _LIB.hwloc_distances_get.restype = ctypes.c_int
 
 
 if TYPE_CHECKING:
-    DistancesPtr = ctypes._Pointer[hwloc_distances_s]
+    DistancesPtr = ctypes._Pointer[Distances]
     DistancesPtrPtr = (
-        ctypes._Pointer[ctypes._Pointer[hwloc_distances_s]]
+        ctypes._Pointer[ctypes._Pointer[Distances]]
         | ctypes._CArgObject
-        | ctypes.Array[ctypes._Pointer[hwloc_distances_s]]
+        | ctypes.Array[ctypes._Pointer[Distances]]
         | None
     )
     UintPtr = ctypes._Pointer[ctypes.c_uint] | ctypes._CArgObject
@@ -2731,7 +2732,7 @@ _LIB.hwloc_distances_get_by_depth.argtypes = [
     topology_t,
     ctypes.c_int,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(ctypes.POINTER(hwloc_distances_s)),
+    ctypes.POINTER(ctypes.POINTER(Distances)),
     ctypes.c_ulong,
     ctypes.c_ulong,
 ]
@@ -2756,7 +2757,7 @@ _LIB.hwloc_distances_get_by_type.argtypes = [
     topology_t,
     ctypes.c_int,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(ctypes.POINTER(hwloc_distances_s)),
+    ctypes.POINTER(ctypes.POINTER(Distances)),
     ctypes.c_ulong,
     ctypes.c_ulong,
 ]
@@ -2781,7 +2782,7 @@ _LIB.hwloc_distances_get_by_name.argtypes = [
     topology_t,
     ctypes.c_char_p,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(ctypes.POINTER(hwloc_distances_s)),
+    ctypes.POINTER(ctypes.POINTER(Distances)),
     ctypes.c_ulong,
 ]
 _LIB.hwloc_distances_get_by_name.restype = ctypes.c_int
@@ -2800,7 +2801,7 @@ def distances_get_by_name(
 
 _LIB.hwloc_distances_get_name.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
 ]
 _LIB.hwloc_distances_get_name.restype = ctypes.c_char_p
 
@@ -2815,7 +2816,7 @@ def distances_get_name(topology: topology_t, distances: DistancesPtr) -> str | N
 
 _LIB.hwloc_distances_release.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
 ]
 _LIB.hwloc_distances_release.restype = None
 
@@ -2827,7 +2828,7 @@ def distances_release(topology: topology_t, distances: DistancesPtr) -> None:
 
 _LIB.hwloc_distances_transform.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
     ctypes.c_int,  # DistancesTransform
     ctypes.c_void_p,
     ctypes.c_ulong,
@@ -2857,7 +2858,7 @@ def distances_transform(
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00165.php
 
 _pyhwloc_lib.pyhwloc_distances_obj_index.argtypes = [
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
     obj_t,
 ]
 _pyhwloc_lib.pyhwloc_distances_obj_index.restype = ctypes.c_int
@@ -2870,7 +2871,7 @@ def distances_obj_index(distances: DistancesPtr, obj: ObjPtr) -> int:
 
 
 _pyhwloc_lib.pyhwloc_distances_obj_pair_values.argtypes = [
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
     obj_t,
     obj_t,
     ctypes.POINTER(hwloc_uint64_t),
@@ -3008,7 +3009,7 @@ def distances_remove_by_type(topology: topology_t, obj_type: ObjType) -> None:
 
 _LIB.hwloc_distances_release_remove.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_distances_s),
+    ctypes.POINTER(Distances),
 ]
 _LIB.hwloc_distances_release_remove.restype = ctypes.c_int
 
@@ -3054,7 +3055,7 @@ class LocalNumaNodeFlag(IntEnum):
     INTERSECT_LOCALITY = 1 << 3
 
 
-@_cuniondoc("hwloc_location")
+@_cuniondoc("hwloc_location_u", parent="hwloc_location")
 class hwloc_location_u(ctypes.Union):
     _fields_ = [
         ("cpuset", hwloc_cpuset_t),
@@ -3062,8 +3063,8 @@ class hwloc_location_u(ctypes.Union):
     ]
 
 
-@_cstructdoc()
-class hwloc_location(_PrintableStruct):
+@_cstructdoc("hwloc_location")
+class Location(_PrintableStruct):
     _fields_ = [
         ("type", ctypes.c_int),  # hwloc_location_type_e
         ("location", hwloc_location_u),
@@ -3071,7 +3072,7 @@ class hwloc_location(_PrintableStruct):
 
 
 if TYPE_CHECKING:
-    LocationPtr = ctypes._Pointer[hwloc_location] | ctypes._CArgObject
+    LocationPtr = ctypes._Pointer[Location] | ctypes._CArgObject
 else:
     LocationPtr = ctypes._Pointer
 
@@ -3096,7 +3097,7 @@ def memattr_get_by_name(
 
 _LIB.hwloc_get_local_numanode_objs.argtypes = [
     topology_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.POINTER(ctypes.c_uint),
     ctypes.POINTER(obj_t),
     ctypes.c_ulong,
@@ -3134,7 +3135,7 @@ _LIB.hwloc_memattr_get_value.argtypes = [
     topology_t,
     hwloc_memattr_id_t,
     obj_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.c_ulong,
     ctypes.POINTER(hwloc_uint64_t),
 ]
@@ -3161,7 +3162,7 @@ def memattr_get_value(
 _LIB.hwloc_memattr_get_best_target.argtypes = [
     topology_t,
     hwloc_memattr_id_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.c_ulong,
     ctypes.POINTER(obj_t),
     ctypes.POINTER(hwloc_uint64_t),
@@ -3197,7 +3198,7 @@ _LIB.hwloc_memattr_get_best_initiator.argtypes = [
     hwloc_memattr_id_t,
     obj_t,
     ctypes.c_ulong,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.POINTER(hwloc_uint64_t),
 ]
 _LIB.hwloc_memattr_get_best_initiator.restype = ctypes.c_int
@@ -3208,8 +3209,8 @@ def memattr_get_best_initiator(
     topology: topology_t,
     attribute: hwloc_memattr_id_t,
     target_node: ObjPtr,
-) -> tuple[hwloc_location, int]:
-    best_initiator = hwloc_location()
+) -> tuple[Location, int]:
+    best_initiator = Location()
     value = hwloc_uint64_t()
     # flags must be 0 for now.
     flags = 0
@@ -3229,7 +3230,7 @@ def memattr_get_best_initiator(
 _LIB.hwloc_memattr_get_targets.argtypes = [
     topology_t,
     hwloc_memattr_id_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.c_ulong,
     ctypes.POINTER(ctypes.c_uint),
     ctypes.POINTER(obj_t),
@@ -3262,7 +3263,7 @@ _LIB.hwloc_memattr_get_initiators.argtypes = [
     obj_t,
     ctypes.c_ulong,
     ctypes.POINTER(ctypes.c_uint),
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.POINTER(hwloc_uint64_t),
 ]
 _LIB.hwloc_memattr_get_initiators.restype = ctypes.c_int
@@ -3365,7 +3366,7 @@ _LIB.hwloc_memattr_set_value.argtypes = [
     topology_t,
     hwloc_memattr_id_t,
     obj_t,
-    ctypes.POINTER(hwloc_location),
+    ctypes.POINTER(Location),
     ctypes.c_ulong,
     hwloc_uint64_t,
 ]
@@ -3442,7 +3443,7 @@ _LIB.hwloc_cpukinds_get_info.argtypes = [
     ctypes.c_uint,
     bitmap_t,
     ctypes.POINTER(ctypes.c_int),
-    ctypes.POINTER(ctypes.POINTER(hwloc_infos_s)),
+    ctypes.POINTER(ctypes.POINTER(Infos)),
     ctypes.c_ulong,
 ]
 _LIB.hwloc_cpukinds_get_info.restype = ctypes.c_int
@@ -3454,7 +3455,7 @@ def cpukinds_get_info(
 ) -> tuple[bitmap_t, int, InfosPtr]:
     cpuset = bitmap_alloc()
     efficiency = ctypes.c_int()
-    infos_ptr = ctypes.POINTER(hwloc_infos_s)()
+    infos_ptr = ctypes.POINTER(Infos)()
     # flags must be 0 for now.
     _checkc(
         _LIB.hwloc_cpukinds_get_info(
@@ -3474,7 +3475,7 @@ _LIB.hwloc_cpukinds_register.argtypes = [
     topology_t,
     bitmap_t,
     ctypes.c_int,
-    ctypes.POINTER(hwloc_infos_s),
+    ctypes.POINTER(Infos),
     ctypes.c_ulong,
 ]
 _LIB.hwloc_cpukinds_register.restype = ctypes.c_int
@@ -3485,7 +3486,7 @@ def cpukinds_register(
     topology: topology_t,
     cpuset: bitmap_t,
     forced_efficiency: int,
-    infos: hwloc_infos_s | None,
+    infos: Infos | None,
 ) -> None:
     pinfos = ctypes.byref(infos) if infos is not None else None
     # The parameter flags must be 0 for now.

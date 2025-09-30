@@ -55,7 +55,7 @@ def _sched_set(initiator: _Initiator | None) -> _Bitmap | _Object | None:
 
 
 @overload
-def _initiator_loc(initiator: _Initiator) -> _core.hwloc_location: ...
+def _initiator_loc(initiator: _Initiator) -> _core.Location: ...
 
 
 @overload
@@ -64,16 +64,16 @@ def _initiator_loc(initiator: None) -> None: ...
 
 def _initiator_loc(
     initiator: _Initiator | None,
-) -> _core.hwloc_location | None:
+) -> _core.Location | None:
     if isinstance(initiator, _Object):
-        initiator_loc = _core.hwloc_location()
+        initiator_loc = _core.Location()
         initiator_loc.type = _core.LocationType.OBJECT
         initiator_loc.location = _core.hwloc_location_u()
         initiator_loc.location.object = initiator.native_handle
         return initiator_loc
 
     if isinstance(initiator, _Bitmap):
-        initiator_loc = _core.hwloc_location()
+        initiator_loc = _core.Location()
         initiator_loc.type = _core.LocationType.CPUSET
         initiator_loc.location = _core.hwloc_location_u()
         initiator_loc.location.cpuset = initiator.native_handle
@@ -265,7 +265,7 @@ class MemAttr(_TopoRefMixin):
             return []
 
         # Allocate arrays for initiators and values
-        initiators_array = (_core.hwloc_location * nrlocs.value)()
+        initiators_array = (_core.Location * nrlocs.value)()
         values_array = (_core.hwloc_uint64_t * nrlocs.value)()
 
         # Second call to get the actual data

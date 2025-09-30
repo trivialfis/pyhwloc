@@ -118,7 +118,7 @@ class _TopoRefMixin:
         return v
 
 
-def _get_info(infos: _core.hwloc_infos_s) -> dict[str, str]:
+def _get_info(infos: _core.Infos) -> dict[str, str]:
     infos_d = {}
     for i in range(infos.count):
         info = infos.array[i]
