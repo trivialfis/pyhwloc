@@ -143,7 +143,7 @@ def compare_types(type1: ObjType, type2: ObjType) -> int:
 # The info_s and infs_s are dictionary in Python.
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_info_s")
 class hwloc_info_s(_PrintableStruct):
     _fields_ = [
         ("name", ctypes.c_char_p),  # Info name
@@ -151,7 +151,7 @@ class hwloc_info_s(_PrintableStruct):
     ]
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_infos_s")
 class hwloc_infos_s(_PrintableStruct):
     _fields_ = [
         ("array", ctypes.POINTER(hwloc_info_s)),
@@ -166,7 +166,7 @@ else:
     InfosPtr = ctypes._Pointer
 
 
-@_cstructdoc(parent="hwloc_obj_attr_u")
+@_cstructdoc("hwloc_memory_page_type_s", parent="hwloc_obj_attr_u")
 class hwloc_memory_page_type_s(_PrintableStruct):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of pages
@@ -174,7 +174,7 @@ class hwloc_memory_page_type_s(_PrintableStruct):
     ]
 
 
-@_cstructdoc(parent="hwloc_obj_attr_u")
+@_cstructdoc("hwloc_numanode_attr_s", parent="hwloc_obj_attr_u")
 class hwloc_numanode_attr_s(_PrintableStruct):
     _fields_ = [
         ("local_memory", hwloc_uint64_t),  # Local memory (in bytes)
@@ -186,7 +186,7 @@ class hwloc_numanode_attr_s(_PrintableStruct):
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u")
+@_cstructdoc("hwloc_cache_attr_s", parent="hwloc_obj_attr_u")
 class hwloc_cache_attr_s(_PrintableStruct):
     _fields_ = [
         ("size", hwloc_uint64_t),  # Size of cache in bytes
@@ -200,7 +200,7 @@ class hwloc_cache_attr_s(_PrintableStruct):
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u")
+@_cstructdoc("hwloc_group_attr_s", parent="hwloc_obj_attr_u")
 class hwloc_group_attr_s(_PrintableStruct):
     _fields_ = [
         ("depth", ctypes.c_uint),  # Depth of group object
@@ -216,7 +216,7 @@ class hwloc_group_attr_s(_PrintableStruct):
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u")
+@_cstructdoc("hwloc_pcidev_attr_s", parent="hwloc_obj_attr_u")
 class hwloc_pcidev_attr_s(_PrintableStruct):
     _fields_ = [
         (
@@ -263,7 +263,9 @@ class hwloc_bridge_upstream_u(ctypes.Union):
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u.hwloc_bridge_downstream_u")
+@_cstructdoc(
+    "hwloc_bridge_downstream_pci_s", parent="hwloc_obj_attr_u.hwloc_bridge_downstream_u"
+)
 class hwloc_bridge_downstream_pci_s(_PrintableStruct):
     _fields_ = [
         ("domain", ctypes.c_uint),  # Domain number the downstream PCI buses
@@ -279,7 +281,7 @@ class hwloc_bridge_downstream_u(ctypes.Union):
     ]
 
 
-@_cstructdoc("hwloc_obj_attr_u")
+@_cstructdoc("hwloc_bridge_attr_s", parent="hwloc_obj_attr_u")
 class hwloc_bridge_attr_s(_PrintableStruct):
     _fields_ = [
         ("upstream", hwloc_bridge_upstream_u),
@@ -300,7 +302,7 @@ class hwloc_bridge_attr_s(_PrintableStruct):
 hwloc_obj_osdev_types_t = ctypes.c_ulong
 
 
-@_cstructdoc("hwloc_obj_attr_u")
+@_cstructdoc("hwloc_osdev_attr_s", parent="hwloc_obj_attr_u")
 class hwloc_osdev_attr_s(_PrintableStruct):
     _fields_ = [
         (
@@ -323,7 +325,7 @@ class hwloc_obj_attr_u(ctypes.Union):
     ]
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_obj")
 class hwloc_obj(_PrintableStruct):
     pass
 
@@ -1291,7 +1293,7 @@ def topology_set_components(topology: topology_t, flags: int, name: str) -> None
 # https://www.open-mpi.org/projects/hwloc/doc/v2.12.0/a00149.php
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_topology_discovery_support")
 class hwloc_topology_discovery_support(_PrintableStruct):
     _fields_ = [
         ("pu", ctypes.c_ubyte),
@@ -1303,7 +1305,7 @@ class hwloc_topology_discovery_support(_PrintableStruct):
     ]
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_topology_cpubind_support")
 class hwloc_topology_cpubind_support(_PrintableStruct):
     _fields_ = [
         ("set_thisproc_cpubind", ctypes.c_ubyte),
@@ -1320,7 +1322,7 @@ class hwloc_topology_cpubind_support(_PrintableStruct):
     ]
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_topology_membind_support")
 class hwloc_topology_membind_support(_PrintableStruct):
     _fields_ = [
         ("set_thisproc_membind", ctypes.c_ubyte),
@@ -1342,14 +1344,14 @@ class hwloc_topology_membind_support(_PrintableStruct):
     ]
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_topology_misc_support")
 class hwloc_topology_misc_support(_PrintableStruct):
     _fields_ = [
         ("imported_support", ctypes.c_ubyte),
     ]
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_topology_support")
 class hwloc_topology_support(_PrintableStruct):
     _fields_ = [
         ("discovery", ctypes.POINTER(hwloc_topology_discovery_support)),
@@ -2681,7 +2683,7 @@ class DistancesTransform(IntEnum):
     TRANSITIVE_CLOSURE = 3
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_distances_s")
 class hwloc_distances_s(_PrintableStruct):
     _fields_ = [
         ("nbobjs", ctypes.c_uint),
@@ -3062,7 +3064,7 @@ class hwloc_location_u(ctypes.Union):
     ]
 
 
-@_cstructdoc()
+@_cstructdoc("hwloc_location")
 class hwloc_location(_PrintableStruct):
     _fields_ = [
         ("type", ctypes.c_int),  # hwloc_location_type_e

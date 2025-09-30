@@ -151,13 +151,13 @@ def _cenumdoc(name: str) -> Callable[[Type], Type]:
     return _decorator
 
 
-def _cstructdoc(parent: str | None = None) -> Callable[[Type], Type]:
+def _cstructdoc(name: str, parent: str | None = None) -> Callable[[Type], Type]:
     def _decorator(struct: Type) -> Type:
         assert issubclass(struct, ctypes.Structure), struct
         if parent is not None:
-            doc = f"""See :c:struct:`{parent}.{struct.__name__}`"""
+            doc = f"""See :c:struct:`{parent}.{name}`"""
         else:
-            doc = f"""See :c:struct:`{struct.__name__}`"""
+            doc = f"""See :c:struct:`{name}`"""
         struct.__doc__ = doc
         return struct
 
