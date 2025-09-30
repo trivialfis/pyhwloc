@@ -61,6 +61,7 @@ type. Users can use it to reach to the :doc:`low-level </low_level>` interface.
 
 .. automodule:: pyhwloc.distances
   :members:
+  :special-members: __getitem__
 
 .. automodule:: pyhwloc.cpukinds
   :members:
