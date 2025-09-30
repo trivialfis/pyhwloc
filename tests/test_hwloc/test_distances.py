@@ -13,6 +13,7 @@ from functools import partial
 from pyhwloc.hwloc.core import (
     DistancesAddFlag,
     DistancesKind,
+    Obj,
     ObjType,
     distances_add_commit,
     distances_add_create,
@@ -24,7 +25,6 @@ from pyhwloc.hwloc.core import (
     distances_release_remove,
     get_obj_by_type,
     hwloc_distances_s,
-    Obj,
     hwloc_uint64_t,
     topology_destroy,
     topology_get_depth,

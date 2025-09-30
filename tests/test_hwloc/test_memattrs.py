@@ -5,12 +5,12 @@ from __future__ import annotations
 import ctypes
 
 from pyhwloc.hwloc.core import (
+    Location,
     LocationType,
     MemAttrFlag,
     MemAttrId,
     ObjType,
     get_obj_by_type,
-    Location,
     hwloc_location_u,
     hwloc_memattr_id_t,
     memattr_get_flags,
