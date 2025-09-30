@@ -253,8 +253,8 @@ class PcidevAttr(_PrintableStruct):
         return self.class_id & 0xFF
 
 
-@_cuniondoc("hwloc_obj_attr_u.hwloc_bridge_attr_s")
-class hwloc_bridge_upstream_u(ctypes.Union):
+@_cuniondoc("hwloc_bridge_upstream_u", parent="hwloc_obj_attr_u.hwloc_bridge_attr_s")
+class BridgeUpstream(ctypes.Union):
     _fields_ = [
         (
             "pci",
@@ -264,7 +264,7 @@ class hwloc_bridge_upstream_u(ctypes.Union):
 
 
 @_cstructdoc(
-    "hwloc_bridge_downstream_pci_s", parent="hwloc_obj_attr_u.hwloc_bridge_downstream_u"
+    "hwloc_bridge_downstream_pci_s", parent="hwloc_obj_attr_u.BridgeDownstream"
 )
 class BridgeDownstreamPci(_PrintableStruct):
     _fields_ = [
@@ -274,8 +274,8 @@ class BridgeDownstreamPci(_PrintableStruct):
     ]
 
 
-@_cuniondoc("hwloc_obj_attr_u")
-class hwloc_bridge_downstream_u(ctypes.Union):
+@_cuniondoc("hwloc_bridge_downstream_u", parent="hwloc_obj_attr_u")
+class BridgeDownstream(ctypes.Union):
     _fields_ = [
         ("pci", BridgeDownstreamPci),
     ]
@@ -284,12 +284,12 @@ class hwloc_bridge_downstream_u(ctypes.Union):
 @_cstructdoc("hwloc_bridge_attr_s", parent="hwloc_obj_attr_u")
 class BridgeAttr(_PrintableStruct):
     _fields_ = [
-        ("upstream", hwloc_bridge_upstream_u),
+        ("upstream", BridgeUpstream),
         (
             "upstream_type",
             ctypes.c_int,
         ),  # hwloc_obj_bridge_type_e - Upstream Bridge type
-        ("downstream", hwloc_bridge_downstream_u),
+        ("downstream", BridgeDownstream),
         (
             "downstream_type",
             ctypes.c_int,
@@ -313,8 +313,8 @@ class OsdevAttr(_PrintableStruct):
 
 
 # Main attribute union
-@_cuniondoc()
-class hwloc_obj_attr_u(ctypes.Union):
+@_cuniondoc("hwloc_obj_attr_u")
+class ObjAttr(ctypes.Union):
     _fields_ = [
         ("numanode", NumanodeAttr),  # NUMA node-specific Object Attributes
         ("cache", CacheAttr),  # Cache-specific Object Attributes
@@ -336,7 +336,7 @@ hwloc_obj._fields_ = [
     ("os_index", ctypes.c_uint),
     ("name", ctypes.c_char_p),
     ("total_memory", hwloc_uint64_t),
-    ("attr", ctypes.POINTER(hwloc_obj_attr_u)),
+    ("attr", ctypes.POINTER(ObjAttr)),
     ("depth", ctypes.c_int),
     ("logical_index", ctypes.c_uint),
     ("next_cousin", ctypes.POINTER(hwloc_obj)),
@@ -470,7 +470,7 @@ def get_type_depth(topology: topology_t, obj_type: ObjType) -> int:
 _LIB.hwloc_get_type_depth_with_attr.argtypes = [
     topology_t,
     ctypes.c_int,  # ObjType
-    ctypes.POINTER(hwloc_obj_attr_u),
+    ctypes.POINTER(ObjAttr),
     ctypes.c_size_t,
 ]
 _LIB.hwloc_get_type_depth_with_attr.restype = ctypes.c_int
@@ -675,18 +675,18 @@ def obj_attr_snprintf(
 _LIB.hwloc_type_sscanf.argtypes = [
     ctypes.c_char_p,
     ctypes.POINTER(ctypes.c_int),
-    ctypes.POINTER(hwloc_obj_attr_u),
+    ctypes.POINTER(ObjAttr),
     ctypes.c_size_t,
 ]
 _LIB.hwloc_type_sscanf.restype = ctypes.c_int
 
 
 @_cfndoc
-def type_sscanf(string: str) -> tuple[ObjType, hwloc_obj_attr_u | None]:
+def type_sscanf(string: str) -> tuple[ObjType, ObjAttr | None]:
     string_bytes = string.encode("utf-8")
     typep = ctypes.c_int()
 
-    attrp = hwloc_obj_attr_u()
+    attrp = ObjAttr()
     result = _LIB.hwloc_type_sscanf(
         string_bytes, ctypes.byref(typep), ctypes.byref(attrp), ctypes.sizeof(attrp)
     )
@@ -3056,7 +3056,7 @@ class LocalNumaNodeFlag(IntEnum):
     INTERSECT_LOCALITY = 1 << 3
 
 
-@_cuniondoc("hwloc_location")
+@_cuniondoc("hwloc_location_u", parent="hwloc_location")
 class hwloc_location_u(ctypes.Union):
     _fields_ = [
         ("cpuset", hwloc_cpuset_t),

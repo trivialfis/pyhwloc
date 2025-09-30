@@ -52,7 +52,7 @@ from pyhwloc.hwloc.core import (
     get_type_or_below_depth,
     Info,
     Infos,
-    hwloc_obj_attr_u,
+    ObjAttr,
     hwloc_obj_cache_type_t,
     is_same_obj,
     obj_add_info,
@@ -406,7 +406,7 @@ def test_type_sscanf_functions() -> None:
 
 def test_hwloc_obj_attr_u_union() -> None:
     # Test creating and accessing the union
-    attr_union = hwloc_obj_attr_u()
+    attr_union = ObjAttr()
 
     # Test cache attributes
     attr_union.cache.size = 32768  # 32KB cache
