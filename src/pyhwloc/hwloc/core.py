@@ -1294,7 +1294,7 @@ def topology_set_components(topology: topology_t, flags: int, name: str) -> None
 
 
 @_cstructdoc("hwloc_topology_discovery_support")
-class hwloc_topology_discovery_support(_PrintableStruct):
+class TopologyDiscoverySupport(_PrintableStruct):
     _fields_ = [
         ("pu", ctypes.c_ubyte),
         ("numa", ctypes.c_ubyte),
@@ -1306,7 +1306,7 @@ class hwloc_topology_discovery_support(_PrintableStruct):
 
 
 @_cstructdoc("hwloc_topology_cpubind_support")
-class hwloc_topology_cpubind_support(_PrintableStruct):
+class TopologyCpubindSupport(_PrintableStruct):
     _fields_ = [
         ("set_thisproc_cpubind", ctypes.c_ubyte),
         ("get_thisproc_cpubind", ctypes.c_ubyte),
@@ -1354,8 +1354,8 @@ class TopologyMiscSupport(_PrintableStruct):
 @_cstructdoc("hwloc_topology_support")
 class TopologySupport(_PrintableStruct):
     _fields_ = [
-        ("discovery", ctypes.POINTER(hwloc_topology_discovery_support)),
-        ("cpubind", ctypes.POINTER(hwloc_topology_cpubind_support)),
+        ("discovery", ctypes.POINTER(TopologyDiscoverySupport)),
+        ("cpubind", ctypes.POINTER(TopologyCpubindSupport)),
         ("membind", ctypes.POINTER(TopologyMembindSupport)),
         ("misc", ctypes.POINTER(TopologyMiscSupport)),
     ]
