@@ -200,7 +200,7 @@ jobs:
       run: |
         git clone https://github.com/open-mpi/hwloc.git
         cd hwloc
-        git checkout a2447ff929e10242e996b4bd50137226e01520cf
+        git checkout 02139ddc71ff2a0a8f241275db9ff4b686ab024a
 
         cd contrib/windows-cmake
         mkdir build
