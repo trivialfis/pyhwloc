@@ -166,23 +166,10 @@ else:
     InfosPtr = ctypes._Pointer
 
 
-@_cstructdoc("hwloc_memory_page_type_s", parent="hwloc_obj_attr_u")
-class MemoryPageType(_PrintableStruct):
-    _fields_ = [
-        ("size", hwloc_uint64_t),  # Size of pages
-        ("count", hwloc_uint64_t),  # Number of pages of this size
-    ]
-
-
 @_cstructdoc("hwloc_numanode_attr_s", parent="hwloc_obj_attr_u")
 class NumanodeAttr(_PrintableStruct):
     _fields_ = [
         ("local_memory", hwloc_uint64_t),  # Local memory (in bytes)
-        ("page_types_len", ctypes.c_uint),  # Size of array page_types
-        (
-            "page_types",
-            ctypes.POINTER(MemoryPageType),
-        ),  # Array of local memory page types
     ]
 
 
