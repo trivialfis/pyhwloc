@@ -166,6 +166,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
+        if: github.ref == 'refs/heads/main'
         uses: actions/deploy-pages@854d7aa1b99e4509c4d1b53d69b7ba4eaf39215a
 
   Windows-Test:
