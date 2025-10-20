@@ -26,7 +26,7 @@ if(PYHWLOC_FETCH_HWLOC)
   FetchContent_Declare(
     hwloc
     GIT_REPOSITORY https://github.com/open-mpi/hwloc.git
-    GIT_TAG        a2447ff929e10242e996b4bd50137226e01520cf
+    GIT_TAG        02139ddc71ff2a0a8f241275db9ff4b686ab024a
   )
 
   # Configure hwloc build options
