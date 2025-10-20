@@ -326,12 +326,12 @@ class Topology:
         return self._hdl
 
     @_reuse_doc(_core.topology_export_xmlbuffer)
-    def export_xml_buffer(self, flags: ExportXmlFlags | int) -> str:
-        return _core.topology_export_xmlbuffer(self.native_handle, flags)
+    def export_xml_buffer(self, flags: _Flags[ExportXmlFlags] = 0) -> str:
+        return _core.topology_export_xmlbuffer(self.native_handle, _or_flags(flags))
 
     @_reuse_doc(_core.topology_export_xml)
     def export_xml_file(
-        self, path: os.PathLike | str, flags: _Flags[ExportXmlFlags]
+        self, path: os.PathLike | str, flags: _Flags[ExportXmlFlags] = 0
     ) -> None:
         path = os.fspath(os.path.expanduser(path))
         _core.topology_export_xml(self.native_handle, path, _or_flags(flags))
