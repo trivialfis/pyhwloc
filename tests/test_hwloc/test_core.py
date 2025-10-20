@@ -762,7 +762,7 @@ def test_topology_set_components() -> None:
 def test_topology_set_xmlbuffer() -> None:
     topo = Topology()
     assert topology_is_thissystem(topo.hdl)
-    buf = topology_export_xmlbuffer(topo.hdl, ExportXmlFlags.V2)
+    buf = topology_export_xmlbuffer(topo.hdl, 0)
 
     hdl = topology_t()
     topology_init(hdl)
