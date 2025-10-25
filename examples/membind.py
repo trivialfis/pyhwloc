@@ -24,7 +24,7 @@ def bind_np_array() -> None:
             return
 
         nodeset, policy = topo.get_area_membind(array.data, MemBindFlags.BYNODESET)
-        print(MemBindPolicy(policy).name, nodeset)
+        print(policy.name, nodeset)
         # >>> FIRSTTOUCH 0
 
         # Use to the first node.
@@ -32,7 +32,7 @@ def bind_np_array() -> None:
         topo.set_area_membind(array.data, nodeset, MemBindPolicy.BIND, 0)
 
         nodeset, policy = topo.get_area_membind(array.data, MemBindFlags.BYNODESET)
-        print(MemBindPolicy(policy).name, nodeset)
+        print(policy.name, nodeset)
         # >>> BIND 0
         assert policy == MemBindPolicy.BIND
 
