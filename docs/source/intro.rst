@@ -201,7 +201,7 @@ Using the Bitmap
 The :py:class:`~pyhwloc.bitmap.Bitmap` is a core data structure used by hwloc. One can
 convert the bitmap into a Python set using the
 :py:meth:`~pyhwloc.bitmap.Bitmap.to_sched_set` for interpolation with the Python
-``os.sched_`` module. Similarly, one can construct a bitmap from a integer set:
+``os.sched_`` module. Similarly, one can construct a bitmap from an integer set:
 
 .. code-block::
 
