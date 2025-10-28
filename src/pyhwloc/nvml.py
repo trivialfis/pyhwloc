@@ -48,6 +48,7 @@ class Device(_TopoRefMixin):
             try:
                 # Get the first NVML device
                 nvml_hdl = pynvml.nvmlDeviceGetHandleByIndex(0)
+                # You can pass 0 directly to `get_device` as well.
                 dev = get_device(topo, nvml_hdl)
                 print(dev.get_affinity())  # CPU affinity
                 # Get the hwloc object
@@ -124,7 +125,7 @@ def get_device(topology: Topology, device: int | ctypes._Pointer) -> Device:
     topology :
         Hwloc topology, loaded with OS devices.
     device :
-        Either the device ordinal or the nvmlDevice
+        Either a device ordinal or a nvmlDevice.
 
     """
     if isinstance(device, int):

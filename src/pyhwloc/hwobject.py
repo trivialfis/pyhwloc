@@ -595,24 +595,6 @@ class NumaNode(Object):
         """Local memory (in bytes)."""
         return self.attr.local_memory
 
-    @dataclass
-    class PageType:
-        size: int
-        count: int
-
-    @property
-    def page_types(self) -> list[PageType]:
-        """List of local memory page types."""
-        prop = []
-        for i in range(self.attr.page_types_len):
-            prop.append(
-                self.PageType(
-                    size=self.attr.page_types[i].size,
-                    count=self.attr.page_types[i].count,
-                )
-            )
-        return prop
-
 
 class Cache(Object):
     """Cache :py:class:`Object`."""

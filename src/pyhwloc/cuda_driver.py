@@ -43,6 +43,7 @@ class Device(_TopoRefMixin):
         ) as topo:
             # Get the first CUDA device
             status, cu_device = cuda.cuDeviceGet(0)
+            # You can pass 0 directly to `get_device` as well.
             dev = get_device(topo, cu_device)
             print(dev.get_affinity())  # CPU affinity
             print(dev.pci_id)  # PCI information
@@ -141,7 +142,7 @@ def get_device(topology: Topology, device: int | CUdevice) -> Device:
     topology :
         Hardware topology, loaded with OS devices
     device :
-        CUdevice handle from CUDA driver API or device ordinal.
+        CUdevice handle from CUDA driver API or a device ordinal.
 
     """
     if isinstance(device, int):
