@@ -2616,8 +2616,7 @@ def topology_set_userdata_import_callback(
 class ExportSyntheticFlags(IntEnum):
     NO_EXTENDED_TYPES = 1 << 0
     NO_ATTRS = 1 << 1
-    V1 = 1 << 2
-    IGNORE_MEMORY = 1 << 3
+    IGNORE_MEMORY = 1 << 2
 
 
 _LIB.hwloc_topology_export_synthetic.argtypes = [

@@ -506,7 +506,7 @@ def test_topology_export_synthetic() -> None:
     flags = ExFlags.NO_EXTENDED_TYPES
     topology_export_synthetic(topo.hdl, c_buf, len(buf), flags)
     result = buf.decode("utf-8")
-    assert "Socket" in result
+    assert "Package" in result
 
 
 ####################
