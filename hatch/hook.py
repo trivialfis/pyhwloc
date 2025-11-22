@@ -21,6 +21,24 @@ ROOT_KEY = "PYHWLOC_HWLOC_ROOT_DIR"
 SRC_KEY = "PYHWLOC_HWLOC_SRC_DIR"
 
 
+def get_vs_generator() -> str:
+    """Find the latest visual studio version."""
+    out = subprocess.run(["cmake", "-G"], stdout=subprocess.PIPE)
+    cmake_help = out.stdout.decode()
+    # ninja doesn't work due to cmake dependency specification.
+    # I don't want cmake to pick up mingw somehow.
+    vs2026 = "Visual Studio 18 2026"
+    vs2022 = "Visual Studio 17 2022"
+
+    if vs2026 in cmake_help:
+        gen = vs2026
+    else:
+        gen = vs2022
+
+    gen = f"-G{gen}"
+    return gen
+
+
 def run_cmake_build(
     source_dir: str | Path,
     build_dir: str | Path,
@@ -67,8 +85,8 @@ def run_cmake_build(
         *cmake_args,
     ]
     if platform.system() == "Windows":
-        # I don't want cmake to pick up mingw somehow.
-        configure_cmd.append("-GVisual Studio 17 2022")
+        gen = get_vs_generator()
+        configure_cmd.append(gen)
     else:
         configure_cmd.append(f"-DCMAKE_BUILD_TYPE={build_type}")
 
